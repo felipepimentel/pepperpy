@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "pypepper"
+version = "0.1.0"
+description = ""
+authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.extras]
+console = ["rich"]
+logging = ["loguru"]
+api = ["requests"]
+database = ["sqlite3", "redis"]
+file = ["csv", "json"]
+
+[tool.poetry.group.dev.dependencies]
+bumpversion = "^0.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.bumpversion]
+current_version = "0.1.0"
+
+[tool.bumpversion.file]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
