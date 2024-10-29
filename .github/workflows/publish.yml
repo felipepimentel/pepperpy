@@ -2,8 +2,8 @@ name: Release and Publish Package
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
   release:
@@ -23,6 +23,14 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-root
+
+      - name: Install bump2version
+        run: pip install bump2version
+
+      - name: Bump version
+        run: bump2version patch --allow-dirty
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the package
         run: poetry build
