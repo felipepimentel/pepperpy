@@ -40,6 +40,11 @@ jobs:
           fi
           poetry publish --username __token__ --password $PYPI_TOKEN
 
+      - name: Create Tag
+        run: |
+          git tag -a v$(poetry version -s) -m "Release v$(poetry version -s)"
+          git push origin --tags
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
