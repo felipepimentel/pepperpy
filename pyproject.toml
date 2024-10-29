@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pepperpy"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 readme = "README.md"
