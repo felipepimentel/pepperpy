@@ -34,14 +34,19 @@ jobs:
       - name: Bump version and Tag
         id: versioning
         run: |
-          poetry version patch
+          # Verifica se a versão existe no PyPI
+          VERSION_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" https://pypi.org/project/pepperpy/$(poetry version -s)/)
+          if [ "$VERSION_EXISTS" -eq 200 ]; then
+            echo "Version already exists on PyPI. Bumping version..."
+            poetry version patch
+          fi
+      
           NEW_VERSION=$(poetry version -s)
           echo "New version: $NEW_VERSION"
           git commit -am "Bump version to $NEW_VERSION"
           git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
           git push origin main --tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
 
       - name: Build the package
         run: poetry build
