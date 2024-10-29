@@ -33,7 +33,12 @@ jobs:
       - name: Publish to PyPI
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: poetry publish --username __token__ --password $PYPI_TOKEN
+        run: |
+          if [ -z "${{ secrets.PYPI_TOKEN }}" ]; then
+            echo "Error: PYPI_TOKEN is not set."
+            exit 1
+          fi
+          poetry publish --username __token__ --password $PYPI_TOKEN
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
