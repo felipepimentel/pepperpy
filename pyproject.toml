@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pypepper"
+name = "pepperpy"
 version = "0.1.0"
 description = ""
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
