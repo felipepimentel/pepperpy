@@ -40,6 +40,8 @@ jobs:
           git commit -am "Bump version to $NEW_VERSION"
           git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
           git push origin main --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the package
         run: poetry build
@@ -62,7 +64,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Assets
-        uses: dream-encode/upload-release-asset-node16@v2.0.3
+          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: ./dist/*
