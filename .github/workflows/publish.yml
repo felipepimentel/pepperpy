@@ -24,26 +24,34 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
-      - name: Bump version
-        run: poetry version patch
-
-      - name: Build the package
-        run: poetry build
-
-      - name: Publish to PyPI
+      - name: Try to Build and Publish
+        id: publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          if [ -z "${{ secrets.PYPI_TOKEN }}" ]; then
-            echo "Error: PYPI_TOKEN is not set."
-            exit 1
-          fi
-          poetry publish --username __token__ --password $PYPI_TOKEN
+          set -e
 
-      - name: Create Tag
-        run: |
-          git tag -a v$(poetry version -s) -m "Release v$(poetry version -s)"
-          git push origin --tags
+          # Define a function to attempt publish
+          attempt_publish() {
+            poetry build
+            poetry publish --username __token__ --password $PYPI_TOKEN
+          }
+
+          # Try initial publish
+          if ! attempt_publish; then
+            echo "Publishing failed, incrementing version and retrying..."
+            
+            # Bump version patch and retry
+            poetry version patch
+            NEW_VERSION=$(poetry version -s)
+            echo "New version: $NEW_VERSION"
+            git commit -am "Bump version to $NEW_VERSION"
+            git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
+            git push origin main --tags
+
+            # Retry publishing with the new version
+            attempt_publish
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
