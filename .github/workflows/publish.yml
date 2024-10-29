@@ -7,6 +7,8 @@ on:
 
 jobs:
   release:
+    if: github.repository == 'felipepimentel/pepperpy'
+
     runs-on: ubuntu-latest
 
     steps:
@@ -24,10 +26,14 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
+      - name: Configure Git User
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
+
       - name: Bump version and Tag
         id: versioning
         run: |
-          # Bump version and get new version string
           poetry version patch
           NEW_VERSION=$(poetry version -s)
           echo "New version: $NEW_VERSION"
@@ -42,17 +48,13 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          if [ -z "${{ secrets.PYPI_TOKEN }}" ]; then
-            echo "Error: PYPI_TOKEN is not set."
-            exit 1
-          fi
           poetry publish --username __token__ --password $PYPI_TOKEN
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        uses: comnoco/create-release-action@v2.0.5
         with:
-          tag_name: v${{ steps.versioning.outputs.version }}
-          release_name: Release v${{ steps.versioning.outputs.version }}
+          tag_name: "v${{ steps.versioning.outputs.version }}"
+          release_name: "Release v${{ steps.versioning.outputs.version }}"
           body: "Automatic release of version v${{ steps.versioning.outputs.version }}"
           draft: false
           prerelease: false
@@ -60,9 +62,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
+        uses: dream-encode/upload-release-asset-node16@v2.0.3
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: ./dist/*
           asset_name: "${{ steps.versioning.outputs.version }}-asset"
           asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
