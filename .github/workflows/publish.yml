@@ -36,6 +36,16 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions"
 
+      - name: Set initial version (if missing)
+        # This step creates an initial tag v0.0.0 if there are no tags, 
+        # ensuring semantic-release has a starting point for versioning.
+        run: |
+          if ! git describe --tags --abbrev=0; then
+            git tag -a v0.0.0 -m "Initial version"
+            git push origin v0.0.0
+          fi
+        continue-on-error: true
+
       - name: Run Python Semantic Release
         id: versioning
         env:
