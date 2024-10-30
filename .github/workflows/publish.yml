@@ -37,7 +37,7 @@ jobs:
           git config --local user.name "GitHub Actions"
 
       - name: Set initial version (if missing)
-        # This step creates an initial tag v0.0.0 if there are no tags, 
+        # This step creates an initial tag v0.0.0 if there are no tags,
         # ensuring semantic-release has a starting point for versioning.
         run: |
           if ! git describe --tags --abbrev=0; then
@@ -63,27 +63,3 @@ jobs:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           poetry publish --username __token__ --password $PYPI_TOKEN
-
-      - name: Create GitHub Release
-        if: steps.versioning.outcome == 'success'
-        id: create_github_release
-        uses: actions/create-release@v1.1.0
-        with:
-          tag_name: "v${{ steps.versioning.outputs.version }}"
-          release_name: "Release v${{ steps.versioning.outputs.version }}"
-          body: "Automatic release of version v${{ steps.versioning.outputs.version }}"
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Release Asset
-        if: steps.create_github_release.outcome == 'success'
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
-          asset_path: ./dist/*
-          asset_name: "${{ steps.versioning.outputs.version }}-asset"
-          asset_content_type: application/octet-stream
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
