@@ -36,22 +36,17 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20.8.1'
-
-      - name: Install Semantic Release
+      - name: Install Python Semantic Release
         run: |
-          npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/exec semantic-release-python
+          poetry add --dev python-semantic-release
 
-      - name: Run Semantic Release
+      - name: Run Python Semantic Release
         id: versioning
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          semantic-release
+          poetry run semantic-release publish
 
       - name: Build the package
         run: poetry build
