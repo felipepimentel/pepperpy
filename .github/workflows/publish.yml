@@ -58,7 +58,7 @@ jobs:
           poetry publish --username __token__ --password $PYPI_TOKEN
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
+        uses: actions/create-release@v1.1.0
         with:
           tag_name: "v${{ steps.versioning.outputs.version }}"
           release_name: "Release v${{ steps.versioning.outputs.version }}"
