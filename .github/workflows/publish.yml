@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    if: github.repository == 'felipepimentel/pypepper'
+    if: github.repository == 'felipepimentel/pepperpy'
 
     permissions:
       contents: write
