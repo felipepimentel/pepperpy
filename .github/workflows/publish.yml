@@ -44,11 +44,13 @@ jobs:
         run: |
           poetry run semantic-release publish
 
+      - name: Clean Previous Builds
+        if: steps.versioning.outcome == 'success'
+        run: rm -rf dist/
+
       - name: Build the package
         if: steps.versioning.outcome == 'success'
-        run: |
-          rm -rf dist/
-          poetry build
+        run: poetry build
 
       - name: Publish to PyPI
         if: steps.versioning.outcome == 'success'
