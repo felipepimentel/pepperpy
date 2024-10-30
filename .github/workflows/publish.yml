@@ -7,8 +7,6 @@ on:
 
 jobs:
   release:
-    if: github.repository == 'felipepimentel/pepperpy'
-
     permissions:
       contents: write
       packages: write
@@ -19,6 +17,8 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,7 +37,6 @@ jobs:
           git config --local user.name "GitHub Actions"
 
       - name: Run Python Semantic Release
-        # Esta etapa é responsável por atualizar a versão e criar uma tag
         id: versioning
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +47,6 @@ jobs:
       - name: Build the package
         if: steps.versioning.outcome == 'success'
         run: |
-          # Limpa qualquer build anterior e garante que nova versão seja construída
           rm -rf dist/
           poetry build
 

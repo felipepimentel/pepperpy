@@ -23,10 +23,10 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.semantic_release]
-version_variable = ["pyproject.toml:tool.poetry.version"]
+version_variable = [
+    "pepperpy/__init__.py:__version__",
+    "pyproject.toml:tool.poetry.version"
+]
 branch = "main"
-changelog_file = "CHANGELOG.md"
-build_command = "poetry build"
 upload_to_pypi = true
-repository = "pypi"
-version_source = "commit"
+build_command = "poetry build"
