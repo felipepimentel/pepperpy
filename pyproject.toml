@@ -1,6 +1,5 @@
 [tool.poetry]
 name = "pepperpy"
-version = "0.1.4"
 description = ""
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 readme = "README.md"
@@ -15,6 +14,17 @@ api = ["requests"]
 database = ["sqlite3", "redis"]
 file = ["csv", "json"]
 
+[tool.poetry.group.dev.dependencies]
+semantic-release = "^0.1.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.semantic_release]
+version_toml = [
+    "pyproject.toml:tool.poetry.version",
+]
+branch = "main"
+changelog_file = "CHANGELOG.md"
+build_command = "pip install poetry && poetry build"
