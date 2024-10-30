@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "pepperpy"
-description = ""
+description = "A simple Python project template"
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 readme = "README.md"
+version = "0.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.10"
