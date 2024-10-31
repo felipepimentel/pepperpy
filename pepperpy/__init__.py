@@ -1,5 +1,5 @@
 # pypepper/__init__.py
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 
 def lazy_import(module_name):
