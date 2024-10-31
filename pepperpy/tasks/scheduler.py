@@ -60,4 +60,4 @@ class TaskScheduler:
             if hasattr(task, "stop"):
                 await task.stop()
             else:
-                task.cancel() 
+                task.cancel()

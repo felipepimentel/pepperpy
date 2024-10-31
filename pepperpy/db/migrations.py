@@ -87,4 +87,4 @@ class MigrationManager:
                 print(f"Applied migration {migration.version}")
             except Exception as e:
                 print(f"Error applying migration {migration.version}: {e}")
-                raise 
+                raise

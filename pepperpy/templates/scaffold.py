@@ -62,4 +62,4 @@ class ProjectScaffold:
                     # Copy binary files
                     shutil.copy2(src, dest_path)
         
-        return project_dir 
+        return project_dir

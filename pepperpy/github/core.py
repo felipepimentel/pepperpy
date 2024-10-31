@@ -59,4 +59,4 @@ class GitHubManager:
     
     async def get_repository(self, full_name: str) -> Repository:
         """Get repository by full name (owner/repo)."""
-        return self.client.get_repo(full_name) 
+        return self.client.get_repo(full_name)

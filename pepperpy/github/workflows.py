@@ -70,4 +70,4 @@ class WorkflowManager:
         """Trigger a workflow run."""
         repository = await self.github.get_repository(repo)
         workflow = repository.get_workflow(workflow_id)
-        workflow.create_dispatch(ref, inputs or {}) 
+        workflow.create_dispatch(ref, inputs or {})
