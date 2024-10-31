@@ -7,13 +7,11 @@ version = "1.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-
-[tool.poetry.extras]
-console = ["rich"]
-logging = ["loguru"]
-api = ["requests"]
-database = ["sqlite3", "redis"]
-file = ["csv", "json"]
+requests = "^2.32.3"
+loguru = "^0.7.2"
+rich = "^13.9.3"
+python-dotenv = "^1.0.1"
+numpy = "^1.24.0"
 
 [tool.poetry.group.dev.dependencies]
 python-semantic-release = "^9.12.0"
