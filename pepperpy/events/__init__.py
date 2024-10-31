@@ -155,4 +155,4 @@ def subscribe(
     def decorator(func: Callable) -> Callable:
         event_bus.subscribe(event_type, func, priority, **filters)
         return func
-    return decorator 
+    return decorator

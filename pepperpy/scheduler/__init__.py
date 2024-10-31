@@ -257,4 +257,4 @@ class Scheduler:
 # Convenience functions
 def create_scheduler(**kwargs) -> Scheduler:
     """Create a new scheduler instance."""
-    return Scheduler(**kwargs) 
+    return Scheduler(**kwargs)
