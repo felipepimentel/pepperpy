@@ -1,9 +1,26 @@
 # CHANGELOG
 
 
+## v1.2.0 (2024-10-31)
+
+### Unknown
+
+* Merge branch 'main' of github.com:felipepimentel/pepperpy ([`7228380`](https://github.com/felipepimentel/pepperpy/commit/72283805261ac32b1f558ee2ea0afdf33b89932b))
+
+
 ## v1.1.0 (2024-10-31)
 
 ### Features
+
+* feat(core): implement middleware and hooks support in the application framework
+
+feat(validation): add data validation and sanitization system
+
+feat(rate-limiter): introduce token bucket rate limiting implementation
+
+feat(factory): extend factory class to create additional components
+
+chore: update version to 1.0.1 and add version retrieval logic ([`cb3ad89`](https://github.com/felipepimentel/pepperpy/commit/cb3ad89eac36fce3a47ad60569b2e60d662b7ddf))
 
 * feat(infrastructure): add examples for distributed caching, job processing, and metrics collection ([`0f33a08`](https://github.com/felipepimentel/pepperpy/commit/0f33a08a9fb123400c7c8f2cd315061175cbac79))
 
