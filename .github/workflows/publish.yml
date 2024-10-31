@@ -42,7 +42,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
+          poetry run semantic-release version
           poetry run semantic-release publish
+
 
       - name: Clean Previous Builds
         if: steps.versioning.outcome == 'success'

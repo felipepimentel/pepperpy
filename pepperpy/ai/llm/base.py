@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Any, Generic, TypeVar, Callable
+from typing import Dict, List, Optional, Any, Generic, TypeVar, Callable, Union
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime
 
 from .types import Message, Conversation, ModelInfo
-from .metrics import TokenUsage, CostEstimate, Budget
+from .metrics import TokenUsage, CostEstimate as Cost, Budget
 from .cache import BaseCache, MemoryCache, CacheEntry, generate_cache_key
 from .rate_limit import RateLimit, RateLimiter
 from .retry import RetryConfig, retry_async
@@ -31,8 +31,9 @@ class LLMResponse(Generic[T]):
     """Standardized LLM response."""
     content: T
     usage: TokenUsage
-    cost: Optional[CostEstimate] = None
+    cost: Optional[Cost] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = None
 
     @property
     def total_tokens(self) -> int:
@@ -52,6 +53,18 @@ class LLMConfig:
     rate_limit: Optional[RateLimit] = None
     retry_config: Optional[RetryConfig] = None
     budget: Optional[Budget] = None
+
+@dataclass
+class TokenUsage:
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+
+@dataclass
+class Cost:
+    prompt_cost: float
+    completion_cost: float
+    total_cost: float
 
 class BaseLLM(ABC):
     """Base class for LLM implementations."""
@@ -180,3 +193,30 @@ class BaseLLM(ABC):
         raise NotImplementedError(
             f"Streaming not implemented for {self.__class__.__name__}"
         )
+
+    def estimate_tokens(self, text: str) -> int:
+        """Estimate token count for text."""
+        # Implementação básica (4 caracteres = ~1 token)
+        return len(text) // 4
+    
+    def estimate_cost(self, text: str, model: Optional[str] = None) -> Cost:
+        """Estimate cost for text processing."""
+        tokens = self.estimate_tokens(text)
+        rates = self.get_model_rates(model)
+        
+        prompt_cost = tokens * rates['prompt']
+        completion_cost = tokens * 1.5 * rates['completion']  # Estimativa de resposta
+        
+        return Cost(
+            prompt_cost=prompt_cost,
+            completion_cost=completion_cost,
+            total_cost=prompt_cost + completion_cost
+        )
+    
+    def get_model_rates(self, model: Optional[str] = None) -> Dict[str, float]:
+        """Get token rates for model."""
+        # Taxas padrão (pode ser sobrescrito por implementações específicas)
+        return {
+            'prompt': 0.0001,  # $0.0001 por token
+            'completion': 0.0002  # $0.0002 por token
+        }
