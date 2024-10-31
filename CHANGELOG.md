@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.3.0 (2024-10-31)
+
+### Chores
+
+* chore(version): bump version to 1.2.1 in pyproject.toml ([`d873f68`](https://github.com/felipepimentel/pepperpy/commit/d873f6818212a9f13a8d68997d14bfe058599a2b))
+
+### Features
+
+* feat(config): add release configuration file for GitHub actions ([`a4b3393`](https://github.com/felipepimentel/pepperpy/commit/a4b3393078f751ff9a497c746729fd8dffef6f26))
+
+
 ## v1.2.0 (2024-10-31)
 
 ### Unknown
