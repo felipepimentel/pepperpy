@@ -1,7 +1,7 @@
 """Modern file format handlers with enhanced capabilities."""
-
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Optional
+from datetime import datetime
 
 import chardet
 import filetype
@@ -9,13 +9,43 @@ import openpyxl
 import orjson
 import pandas as pd
 import polars as pl
+import msgpack
+import cattrs
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
-from python_epub3 import EpubReader  # Biblioteca atualizada para EPUB
+from python_epub3 import EpubReader
 
+class SerializationHandler:
+    """Handle serialization with cattrs and msgpack."""
+    
+    def __init__(self):
+        self.converter = cattrs.GenConverter()
+        # Registrar conversores personalizados
+        self.converter.register_structure_hook(
+            datetime,
+            lambda d, _: datetime.fromisoformat(d)
+        )
+        self.converter.register_unstructure_hook(
+            datetime,
+            lambda d: d.isoformat()
+        )
+
+    def serialize(self, data: Any) -> bytes:
+        """Serialize data to bytes."""
+        unstructured = self.converter.unstructure(data)
+        return msgpack.packb(unstructured, use_bin_type=True)
+
+    def deserialize(self, data: bytes, cls: Optional[type] = None) -> Any:
+        """Deserialize bytes to data."""
+        unpacked = msgpack.unpackb(data, raw=False)
+        if cls:
+            return self.converter.structure(unpacked, cls)
+        return unpacked
 
 class FileHandler:
     """Base class for file handlers with enhanced features."""
+    
+    _serializer = SerializationHandler()
 
     @classmethod
     def detect_encoding(cls, path: Union[str, Path]) -> str:
@@ -28,7 +58,6 @@ class FileHandler:
         """Detect file MIME type."""
         kind = filetype.guess(path)
         return kind.mime if kind else "application/octet-stream"
-
 
 class JSONHandler(FileHandler):
     """JSON handler using orjson for better performance."""
@@ -48,7 +77,6 @@ class JSONHandler(FileHandler):
                     default=str,
                 )
             )
-
 
 class PDFHandler(FileHandler):
     """Modern PDF handler with enhanced features."""
@@ -74,7 +102,6 @@ class PDFHandler(FileHandler):
         }
 
         return result
-
 
 class ExcelHandler(FileHandler):
     """Excel file handler with Pandas/Polars support."""
@@ -107,7 +134,6 @@ class ExcelHandler(FileHandler):
                     sheet.append(row)
             workbook.save(path)
 
-
 class EbookHandler(FileHandler):
     """Modern ebook handler supporting EPUB format using python-epub3."""
 
@@ -130,6 +156,22 @@ class EbookHandler(FileHandler):
 
         return {"content": content, "metadata": metadata}
 
+class BinaryHandler(FileHandler):
+    """Binary data handler with improved serialization."""
+    
+    @classmethod
+    def read(cls, path: Union[str, Path], target_cls: Optional[type] = None, **kwargs) -> Any:
+        """Read binary data with optional deserialization to class."""
+        with open(path, "rb") as f:
+            data = f.read()
+            return cls._serializer.deserialize(data, target_cls)
+
+    @classmethod
+    def write(cls, data: Any, path: Union[str, Path], **kwargs) -> None:
+        """Write data in binary format."""
+        serialized = cls._serializer.serialize(data)
+        with open(path, "wb") as f:
+            f.write(serialized)
 
 # Register handlers
 HANDLERS = {
@@ -138,4 +180,6 @@ HANDLERS = {
     ".xlsx": ExcelHandler,
     ".xls": ExcelHandler,
     ".epub": EbookHandler,
+    ".bin": BinaryHandler,  # Add binary handler for serialized data
+    ".msg": BinaryHandler,  # Alternative extension for message-pack data
 }
