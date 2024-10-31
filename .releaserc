@@ -1,0 +1,7 @@
+{
+  "branch": "main",
+  "repositoryUrl": "https://github.com/felipepimentel/pepperpy",
+  "github": {
+    "token": "${GH_TOKEN}"
+  }
+}
