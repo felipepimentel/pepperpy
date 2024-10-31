@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v1.1.0 (2024-10-31)
+
+### Features
+
+* feat(infrastructure): add examples for distributed caching, job processing, and metrics collection ([`0f33a08`](https://github.com/felipepimentel/pepperpy/commit/0f33a08a9fb123400c7c8f2cd315061175cbac79))
+
+* feat(api): enhance API endpoints for improved performance and scalability ([`6a87e99`](https://github.com/felipepimentel/pepperpy/commit/6a87e991f1240cd95a61390f9fced0e3f98ee1a6))
+
+
 ## v1.0.0 (2024-10-31)
 
 ### Breaking
@@ -202,6 +211,12 @@ The new architecture provides:
 * fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
 * fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+### Features
+
+* feat(logging): implement structured logging for better traceability and debugging ([`812407b`](https://github.com/felipepimentel/pepperpy/commit/812407b23dda5237e123cd522ee27a15fa626391))
+
+* feat(modules): add initial implementation of LLM and data processing modules with examples ([`e8119fe`](https://github.com/felipepimentel/pepperpy/commit/e8119fef79c1bd9fec921e79fe960031586eaf45))
 
 
 ## v0.0.0 (2024-10-30)
