@@ -1,45 +1,69 @@
+"""Core interfaces for Pepperpy components."""
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Any, Dict, Optional, TypeVar, Generic
 
-class LLMInterface(ABC):
-    """Interface base para Large Language Models."""
+T = TypeVar('T')
+R = TypeVar('R')
+
+class PepperpyComponent(ABC):
+    """Base interface for all Pepperpy components."""
     
     @abstractmethod
-    def chat(self, 
-            messages: list[dict[str, str]], 
-            model: Optional[str] = None,
-            temperature: float = 0.7,
-            max_tokens: Optional[int] = None) -> dict:
-        """
-        Envia mensagens para o LLM e retorna a resposta.
-        
-        Args:
-            messages: Lista de mensagens no formato [{role: str, content: str}]
-            model: Nome do modelo (opcional)
-            temperature: Temperatura para geração (0.0 a 1.0)
-            max_tokens: Limite máximo de tokens na resposta
-            
-        Returns:
-            dict: Resposta do modelo com campos 'content' e 'usage'
-        """
+    async def initialize(self) -> None:
+        """Initialize component resources."""
         pass
     
     @abstractmethod
-    def complete(self, 
-                prompt: str,
-                model: Optional[str] = None,
-                temperature: float = 0.7,
-                max_tokens: Optional[int] = None) -> dict:
-        """
-        Envia um prompt único para completar.
-        
-        Args:
-            prompt: Texto do prompt
-            model: Nome do modelo (opcional)
-            temperature: Temperatura para geração (0.0 a 1.0)
-            max_tokens: Limite máximo de tokens na resposta
-            
-        Returns:
-            dict: Resposta do modelo com campos 'content' e 'usage'
-        """
-        pass 
+    async def shutdown(self) -> None:
+        """Cleanup component resources."""
+        pass
+    
+    @property
+    @abstractmethod
+    def is_ready(self) -> bool:
+        """Check if component is ready."""
+        pass
+
+class ProcessorComponent(PepperpyComponent, Generic[T, R]):
+    """Base interface for components that process data."""
+    
+    @abstractmethod
+    async def process(self, input_data: T) -> R:
+        """Process input data and return result."""
+        pass
+    
+    @abstractmethod
+    async def validate(self, input_data: T) -> bool:
+        """Validate input data before processing."""
+        pass
+
+class StateManageable(ABC):
+    """Interface for components with state management."""
+    
+    @abstractmethod
+    async def save_state(self) -> Dict[str, Any]:
+        """Save component state."""
+        pass
+    
+    @abstractmethod
+    async def load_state(self, state: Dict[str, Any]) -> None:
+        """Load component state."""
+        pass
+    
+    @abstractmethod
+    async def reset_state(self) -> None:
+        """Reset component state."""
+        pass
+
+class Observable(ABC):
+    """Interface for observable components."""
+    
+    @abstractmethod
+    def subscribe(self, event_type: str, handler: callable) -> None:
+        """Subscribe to component events."""
+        pass
+    
+    @abstractmethod
+    def unsubscribe(self, event_type: str, handler: callable) -> None:
+        """Unsubscribe from component events."""
+        pass

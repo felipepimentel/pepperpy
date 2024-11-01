@@ -1,0 +1,41 @@
+**Objective**: This project, **pepperpy**, aims to accelerate Python development by providing a flexible and extensible library with core and common functionalities that developers can use without worrying about complex configurations. It should be simple and intuitive, with the possibility of customization for specific cases.
+
+### Language and Code Practices
+- The default language for the project is **English** for comments, messages, and documentation.
+- All code should follow **modern Python best practices**, adhering to PEP 8 and PEP 257.
+- Modular and cohesive code: each module should have a single responsibility, making the library easy to understand and maintain.
+- Use of **static typing** with `typing` for clarity and robustness, facilitating extensions and maintenance.
+
+### Project Structure (Python 3.13)
+```plaintext
+📦project_root
+ ┣ 📂pepperpy/
+ ┃ ┣ 📂pepperpy/
+ ┃ ┃ ┣ 📂core/            # Core modules of the library (logging, configurations, etc.)
+ ┃ ┃ ┣ 📂utils/           # Utility functions and helpers
+ ┃ ┃ ┣ 📜__init__.py      # Package initializer
+ ┃ ┃ ┣ 📜config.py        # Default configuration with configurable classes and functions
+ ┃ ┃ ┗ 📜logging.py       # Logging implementation with customization options
+ ┣ 📂tests/               # Unit and integration tests
+ ┃ ┣ 📜test_config.py
+ ┃ ┗ 📜test_logging.py
+ ┣ 📂docs/                # Project documentation, must be updated with each significant change
+ ┣ 📜pyproject.toml       # Poetry configuration, dependencies, and scripts
+ ┣ 📜README.md            # Project description and usage instructions
+ ┗ 📜CONTRIBUTING.md      # Contribution guidelines
+```
+
+### Development and Coding Standards
+- **Variable Naming**: Use snake_case for variables and functions; PascalCase for classes.
+- **Modularity**: Each module should have well-defined, testable functions.
+- **Documentation**: Every module and function should include clear docstrings explaining usage. The `docs` folder should be updated whenever significant changes occur.
+- **Logging**: Implement logging with a default level of `INFO`, with options for easy customization.
+- **Automated Testing**: Every module should have tests covering at least 90% of the code. Use `pytest` as the standard testing framework.
+- **Configuration**: Default configuration should initialize automatically, allowing developers to customize parameters as needed.
+
+### Engineering Practices and Tools
+- **Linter and Formatter**: Use `ruff` for linting and `black` for code formatting, ensuring clean and consistent code.
+- **Type Checking**: Integrate `mypy` for type checking, ensuring consistency and safety in data handling.
+- **CI/CD Automation**: Configure CI/CD using GitHub Actions to include testing, documentation updates (in `docs`), and publishing to PyPI.
+- **Version Control**: Use `semantic-release` for versioning and publishing, following a conventional commit style (`feat`, `fix`, etc.).
+- **Documentation**: Keep technical documentation up-to-date in the `docs` folder and consider using a tool like `Sphinx` to generate HTML documentation for easy reference.

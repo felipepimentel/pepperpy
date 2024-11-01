@@ -34,4 +34,4 @@ class ResourceManager:
         for key, resource in self._resources.items():
             if hasattr(resource, 'close'):
                 await resource.close()
-        self._resources.clear() 
+        self._resources.clear()

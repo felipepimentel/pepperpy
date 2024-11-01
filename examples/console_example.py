@@ -1,106 +1,70 @@
-"""Example of enhanced console capabilities."""
-from pepperpy.console import (
-    PeppyConsole,
-    ConsoleConfig,
-    print_message,
-    print_table,
-    print_code,
-    print_markdown,
-    get_input,
-    get_confirmation
-)
+from pepperpy.console import Console, CLI, ProgressBar, ProgressConfig, TaskConfig
+import time
+import random
 
-def demonstrate_console():
-    # Custom console with configuration
-    config = ConsoleConfig(
-        theme={
-            "info": "cyan",
-            "success": "green bold",
-            "warning": "yellow",
-            "error": "red bold",
-            "title": "blue bold"
-        },
-        emoji=True
-    )
-    console = PeppyConsole(config)
+console = Console()
+progress = ProgressBar(ProgressConfig(
+    style="rich",
+    show_speed=True,
+    show_eta=True
+))
+
+cli = CLI("myapp", version="1.0.0")
+
+@cli.command(help="Demonstração interativa")
+def demo():
+    # Demonstração de tabela live
+    with console.live_table(
+        ["Métrica", "Valor"],
+        title="Monitoramento",
+        border_style="blue"
+    ) as add_row:
+        for _ in range(5):
+            add_row(
+                "CPU",
+                f"{random.randint(0, 100)}%"
+            )
+            time.sleep(0.5)
     
-    # Title and messages
-    console.title("🚀 Pepperpy Console Demo")
-    console.info("Starting demonstration...")
-    console.success("Operation completed!")
-    console.warning("Resource usage high")
-    console.error("Connection failed")
+    # Demonstração de prompt dict
+    config = console.prompt_dict({
+        "debug": False,
+        "log_level": ["INFO", "DEBUG", "WARNING"],
+        "max_retries": 3
+    })
+    console.dict_view(config, "Configuração:")
     
-    # Tables
-    data = [
-        {"Name": "Alice", "Role": "Developer", "Team": "Backend"},
-        {"Name": "Bob", "Role": "Designer", "Team": "UI/UX"},
-        {"Name": "Charlie", "Role": "Manager", "Team": "Product"}
-    ]
-    console.title("📊 Team Members")
-    console.table(data)
-    
-    # Code highlighting
-    code = '''
-def hello_world():
-    """Say hello to the world."""
-    print("Hello, World!")
-    return True
-    '''
-    console.title("💻 Sample Code")
-    console.code(code, language="python")
-    
-    # Markdown
-    markdown = """
-    # Project Overview
-    
-    ## Features
-    - Easy to use
-    - Highly configurable
-    - Beautiful output
-    
-    ## Installation
-    ```bash
-    pip install pepperpy
-    ```
-    """
-    console.title("📝 Documentation")
-    console.markdown(markdown)
-    
-    # Tree structure
-    data = {
-        "project": {
-            "src": {
-                "main.py": "Main module",
-                "utils.py": "Utilities"
-            },
-            "tests": {
-                "test_main.py": "Main tests",
-                "test_utils.py": "Utility tests"
-            },
-            "docs": {
-                "index.md": "Documentation"
-            }
-        }
-    }
-    console.title("🌳 Project Structure")
-    console.tree(data)
-    
-    # Progress tracking
-    console.title("⏳ Processing")
-    with console.progress("Processing items") as update:
-        for i in range(100):
-            # Simulate work
-            update()
-    
-    # User input
-    name = console.prompt("What's your name?", default="User")
-    console.info(f"Hello, {name}!")
-    
-    if console.confirm("Would you like to continue?"):
-        console.success("Continuing...")
-    else:
-        console.warning("Stopping...")
+    # Demonstração de progresso com configs específicas
+    with progress.task_group() as tasks:
+        # Download task
+        tasks.add_task("download", TaskConfig(
+            description="Baixando dados",
+            total=100,
+            start_message="Iniciando download...",
+            complete_message="✅ Download completo em {elapsed}"
+        ))
+        
+        # Process task
+        tasks.add_task("process", TaskConfig(
+            description="Processando",
+            total=50,
+            start_message="Iniciando processamento...",
+            complete_message="✅ Processamento completo em {elapsed}"
+        ))
+        
+        try:
+            for i in range(100):
+                tasks.update("download")
+                if i % 2 == 0:
+                    tasks.update("process")
+                time.sleep(0.05)
+                
+            tasks.complete_task("download")
+            tasks.complete_task("process")
+            
+        except Exception as e:
+            tasks.error_task("download", e)
+            tasks.error_task("process", e)
 
 if __name__ == "__main__":
-    demonstrate_console() 
+    cli.run()
