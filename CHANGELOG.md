@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.4.0 (2024-10-31)
+
+### Chores
+
+* chore(version): bump version to 1.2.2 in pyproject.toml ([`82dfa57`](https://github.com/felipepimentel/pepperpy/commit/82dfa57988d13e738af5750aa41ca36f2a564178))
+
+### Features
+
+* feat(config): add GitHub token to workflow and update repository URL in pyproject.toml ([`5722f08`](https://github.com/felipepimentel/pepperpy/commit/5722f0849a18502a59c8751911c6eb1707a1db82))
+
+
 ## v1.3.0 (2024-10-31)
 
 ### Chores
