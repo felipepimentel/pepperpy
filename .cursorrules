@@ -7,22 +7,22 @@
 - Use of **static typing** with `typing` for clarity and robustness, facilitating extensions and maintenance.
 
 ### Project Structure (Python 3.13)
+All modules should follow the convention of being under `pepperpy/<module_name>/*` for a clean and organized layout.
+
 ```plaintext
-📦project_root
+📦pepperpy
  ┣ 📂pepperpy/
- ┃ ┣ 📂pepperpy/
- ┃ ┃ ┣ 📂core/            # Core modules of the library (logging, configurations, etc.)
- ┃ ┃ ┣ 📂utils/           # Utility functions and helpers
- ┃ ┃ ┣ 📜__init__.py      # Package initializer
- ┃ ┃ ┣ 📜config.py        # Default configuration with configurable classes and functions
- ┃ ┃ ┗ 📜logging.py       # Logging implementation with customization options
- ┣ 📂tests/               # Unit and integration tests
+ ┃ ┣ 📂core/        # Core modules of the library (logging, configurations, etc.)
+ ┃ ┣ 📂utils/       # Utility functions and helpers
+ ┃ ┣ 📂<module_name>/ # New module of the library
+ ┃ ┣ 📜__init__.py  # Package initializer
+ ┣ 📂tests/                  # Unit and integration tests
  ┃ ┣ 📜test_config.py
  ┃ ┗ 📜test_logging.py
- ┣ 📂docs/                # Project documentation, must be updated with each significant change
- ┣ 📜pyproject.toml       # Poetry configuration, dependencies, and scripts
- ┣ 📜README.md            # Project description and usage instructions
- ┗ 📜CONTRIBUTING.md      # Contribution guidelines
+ ┣ 📂docs/                   # Project documentation, must be updated with each significant change
+ ┣ 📜pyproject.toml          # Poetry configuration, dependencies, and scripts
+ ┣ 📜README.md               # Project description and usage instructions
+ ┗ 📜CONTRIBUTING.md         # Contribution guidelines
 ```
 
 ### Development and Coding Standards
