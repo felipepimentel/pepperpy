@@ -64,8 +64,9 @@ async def process_with_streaming():
             print(token.content, end="", flush=True)
             print(f"\nToken stats: {token.metadata}")  # Show token metadata
 
-        # Get processing results
+        # Get and display processing results
         results = await processing_task
+        print("\nProcessing results:", results)
 
         # Show processor stats
         print("\nProcessor stats:", ai_module._batch_processor.stats)

@@ -1,40 +1,35 @@
-from contextlib import contextmanager
 from typing import Any, Dict, Optional, Type, TypeVar
 
-from .exceptions import ServiceNotFoundError
+from .exceptions import ContextError, ServiceNotFoundError
 
 T = TypeVar("T")
 
 
 class Context:
-    """Dependency injection container"""
+    """Application context for dependency injection."""
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._services: Dict[str, Any] = {}
-        self._parent: Optional["Context"] = None
 
-    def register(self, key: str, instance: Any) -> None:
-        """Register a service"""
-        self._services[key] = instance
+    def register(self, name: str, service: Any) -> None:
+        """Register a service in the context."""
+        if name in self._services:
+            raise ContextError(f"Service {name} already registered")
+        self._services[name] = service
 
-    def get(self, key: str, expected_type: Type[T]) -> T:
-        """Get a service by key and type"""
-        service = self._services.get(key)
-
-        if service is None and self._parent:
-            return self._parent.get(key, expected_type)
-
+    def get(self, name: str, expected_type: Optional[Type[T]] = None) -> T:
+        """Get a service from the context."""
+        service = self._services.get(name)
         if service is None:
-            raise ServiceNotFoundError(f"Service not found: {key}")
+            raise ServiceNotFoundError(f"Service {name} not found in context")
 
-        if not isinstance(service, expected_type):
-            raise TypeError(f"Invalid service type for {key}")
+        if expected_type and not isinstance(service, expected_type):
+            raise ContextError(
+                f"Service {name} is of type {type(service)}, expected {expected_type}"
+            )
 
         return service
 
-    @contextmanager
-    def scope(self):
-        """Create a new context scope"""
-        child = Context()
-        child._parent = self
-        yield child
+    def has(self, name: str) -> bool:
+        """Check if a service exists in the context."""
+        return name in self._services

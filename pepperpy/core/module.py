@@ -79,18 +79,21 @@ class BaseModule(ABC):
         """Set health monitor instance"""
         self._health_monitor = monitor
 
+    @abstractmethod
     async def pre_initialize(self) -> None:
-        """Hook called before initialization"""
-        pass
+        """Optional hook called before initialization. Override to add custom pre-init logic."""
 
+    @abstractmethod
     async def post_initialize(self) -> None:
         """Hook called after initialization"""
         pass
 
+    @abstractmethod
     async def pre_shutdown(self) -> None:
         """Hook called before shutdown"""
         pass
 
+    @abstractmethod
     async def post_shutdown(self) -> None:
         """Hook called after shutdown"""
         pass

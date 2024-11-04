@@ -87,6 +87,11 @@ class MoELayer(nn.Module):
         )
         expert_mask[flat_indices, top_k_indices.view(-1, k)] = top_k_probs.view(-1, k)
 
+        # Limit tokens per expert using capacity
+        expert_mask = expert_mask.scatter_add_(
+            0, top_k_indices.view(-1, k), top_k_probs.view(-1, k)
+        ).clamp_(max=expert_capacity)
+
         # Reshape inputs for expert computation
         flat_inputs = inputs.view(-1, d_model)
         expert_inputs = torch.einsum("be,ed->bed", expert_mask, flat_inputs)

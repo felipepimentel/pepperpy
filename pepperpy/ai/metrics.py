@@ -74,7 +74,7 @@ class MetricsCollector:
             stats["total_tokens"] += metric.tokens
 
         # Calculate averages
-        for op, stats in op_stats.items():
+        for stats in op_stats.values():
             stats["success_rate"] = stats["success"] / stats["count"]
             stats["avg_duration"] = stats["total_duration"] / stats["count"]
             stats["avg_tokens"] = stats["total_tokens"] / stats["count"]

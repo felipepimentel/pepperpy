@@ -68,8 +68,8 @@ class VectorCache:
     async def search(self, query: np.ndarray, k: int = 1) -> List[Dict[str, Any]]:
         """Search for similar vectors"""
         if self.config.engine == "faiss":
-            D, I = self.index.search(query.reshape(1, -1), k)
-            return [self.metadata[i] for i in I[0]]
+            _, indices = self.index.search(query.reshape(1, -1), k)
+            return [self.metadata[i] for i in indices[0]]
         else:
             results = self.client.search(
                 collection_name=self.config.collection,

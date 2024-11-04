@@ -40,6 +40,7 @@ async def main():
         embeddings = await ai.embed_batch(
             ["First text to embed", "Second text to embed", "Third text to embed"]
         )
+        print(f"Generated embeddings: {embeddings}")
 
         # Search similar texts
         results = await ai.search_similar("Query text", k=2)

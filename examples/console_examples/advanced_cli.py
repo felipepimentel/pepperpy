@@ -36,7 +36,7 @@ async def main():
     )
     async def greet(name: str, count: int) -> None:
         """Greet user multiple times"""
-        for i in range(count):
+        for _ in range(count):
             console.success(f"Hello {name}!")
 
     @cli.command(name="process", help="Process items with progress")

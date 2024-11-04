@@ -43,6 +43,7 @@ async def main():
             [chunk.content for chunk in chunks],
             batch_size=20,  # Adjust based on memory
         )
+        print(f"Generated embeddings: {embeddings}")
 
         # Process multiple queries efficiently
         questions = [

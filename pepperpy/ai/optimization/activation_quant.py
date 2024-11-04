@@ -29,9 +29,8 @@ class ActivationQuantizer(nn.Module):
         """Calibrate quantization parameters"""
         if self.config.per_channel:
             dims = [0, 2, 3] if len(x.shape) == 4 else [0]
-            values = x.abs().permute(1, 0, 2, 3).reshape(x.size(1), -1)
+            values = torch.abs(x).permute(1, *range(len(dims))).reshape(x.size(1), -1)
         else:
-            dims = None
             values = x.abs().reshape(-1)
 
         # Calculate scale using percentile
