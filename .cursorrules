@@ -1,41 +1,271 @@
-**Objective**: This project, **pepperpy**, aims to accelerate Python development by providing a flexible and extensible library with core and common functionalities that developers can use without worrying about complex configurations. It should be simple and intuitive, with the possibility of customization for specific cases.
+**pepperpy** is a Python development accelerator that provides a feature-based, vertical architecture library. Each module is self-contained with all necessary components, making it simple to use while maintaining extensibility and customization options.
 
-### Language and Code Practices
-- The default language for the project is **English** for comments, messages, and documentation.
-- All code should follow **modern Python best practices**, adhering to PEP 8 and PEP 257.
-- Modular and cohesive code: each module should have a single responsibility, making the library easy to understand and maintain.
-- Use of **static typing** with `typing` for clarity and robustness, facilitating extensions and maintenance.
+### Core Architecture Principles
+- **Vertical (Feature-Based) Architecture**: Each module is a complete, self-contained feature
+- **Single Responsibility**: Each module handles one specific domain completely
+- **Minimal Configuration**: Ready to use with smart defaults
+- **Extensible Design**: Easy to extend and customize when needed
 
 ### Project Structure (Python 3.13)
-All modules should follow the convention of being under `pepperpy/<module_name>/*` for a clean and organized layout.
-
 ```plaintext
 📦pepperpy
- ┣ 📂pepperpy/
- ┃ ┣ 📂core/        # Core modules of the library (logging, configurations, etc.)
- ┃ ┣ 📂utils/       # Utility functions and helpers
- ┃ ┣ 📂<module_name>/ # New module of the library
- ┃ ┣ 📜__init__.py  # Package initializer
- ┣ 📂tests/                  # Unit and integration tests
- ┃ ┣ 📜test_config.py
- ┃ ┗ 📜test_logging.py
- ┣ 📂docs/                   # Project documentation, must be updated with each significant change
- ┣ 📜pyproject.toml          # Poetry configuration, dependencies, and scripts
- ┣ 📜README.md               # Project description and usage instructions
- ┗ 📜CONTRIBUTING.md         # Contribution guidelines
+ ┣ 📂src/
+ ┃ ┗ 📂pepperpy/
+ ┃   ┣ 📂core/                # Framework core
+ ┃   ┃ ┣ 📜__init__.py
+ ┃   ┃ ┣ 📜app.py            # Main application
+ ┃   ┃ ┣ 📜module.py         # Base module system
+ ┃   ┃ ┗ 📜exceptions.py     # Core exceptions
+ ┃   ┃
+ ┃   ┣ 📂database/           # Database Module (Complete Feature)
+ ┃   ┃ ┣ 📜__init__.py
+ ┃   ┃ ┣ 📜module.py         # Module implementation
+ ┃   ┃ ┣ 📜models.py         # Data models
+ ┃   ┃ ┣ 📜query.py          # Query system
+ ┃   ┃ ┣ 📜exceptions.py     # Module exceptions
+ ┃   ┃ ┗ 📂events/           # Module events
+ ┃   ┃   ┣ 📜__init__.py
+ ┃   ┃   ┗ 📜handlers.py
+ ┃   ┃
+ ┃   ┣ 📂cache/              # Cache Module (Complete Feature)
+ ┃   ┃ ┣ 📜__init__.py
+ ┃   ┃ ┣ 📜module.py
+ ┃   ┃ ┣ 📜decorators.py
+ ┃   ┃ ┗ 📂backend/
+ ┃   ┃   ┣ 📜__init__.py
+ ┃   ┃   ┗ 📜memory.py
+ ┃   ┃
+ ┃   ┗ 📂<feature_name>/     # New features follow same pattern
+ ┃     ┣ 📜__init__.py
+ ┃     ┣ 📜module.py
+ ┃     ┣ 📜models.py
+ ┃     ┗ 📜exceptions.py
+ ┃
+ ┣ 📂tests/                  # Tests follow feature structure
+ ┃ ┣ 📂database/
+ ┃ ┃ ┣ 📜test_models.py
+ ┃ ┃ ┗ 📜test_queries.py
+ ┃ ┣ 📂cache/
+ ┃ ┃ ┗ 📜test_backend.py
+ ┃ ┗ 📂<feature_name>/
+ ┃   ┗ 📜test_feature.py
+ ┃
+ ┣ 📂examples/              # Examples by feature
+ ┃ ┣ 📂database_examples/
+ ┃ ┗ 📂cache_examples/
+ ┃
+ ┣ 📜pyproject.toml
+ ┣ 📜README.md
+ ┗ 📜LICENSE
 ```
 
-### Development and Coding Standards
-- **Variable Naming**: Use snake_case for variables and functions; PascalCase for classes.
-- **Modularity**: Each module should have well-defined, testable functions.
-- **Documentation**: Every module and function should include clear docstrings explaining usage. The `docs` folder should be updated whenever significant changes occur.
-- **Logging**: Implement logging with a default level of `INFO`, with options for easy customization.
-- **Automated Testing**: Every module should have tests covering at least 90% of the code. Use `pytest` as the standard testing framework.
-- **Configuration**: Default configuration should initialize automatically, allowing developers to customize parameters as needed.
+### Module Structure Guidelines
+Each feature module MUST follow this structure:
+```python
+# module.py - Main module implementation
+class FeatureModule(BaseModule):
+    __module_name__ = 'feature_name'
+    
+    async def setup(self):
+        """Module initialization"""
+        pass
+        
+    async def cleanup(self):
+        """Resource cleanup"""
+        pass
 
-### Engineering Practices and Tools
-- **Linter and Formatter**: Use `ruff` for linting and `black` for code formatting, ensuring clean and consistent code.
-- **Type Checking**: Integrate `mypy` for type checking, ensuring consistency and safety in data handling.
-- **CI/CD Automation**: Configure CI/CD using GitHub Actions to include testing, documentation updates (in `docs`), and publishing to PyPI.
-- **Version Control**: Use `semantic-release` for versioning and publishing, following a conventional commit style (`feat`, `fix`, etc.).
-- **Documentation**: Keep technical documentation up-to-date in the `docs` folder and consider using a tool like `Sphinx` to generate HTML documentation for easy reference.
+# models.py - Domain models
+class FeatureModel:
+    """Feature specific models"""
+    pass
+
+# exceptions.py - Feature exceptions
+class FeatureError(Exception):
+    """Feature specific exceptions"""
+    pass
+```
+
+### Development Standards
+- **Language**: English for all code, comments, and documentation
+- **Python Version**: 3.13+
+- **Type Hints**: Mandatory for all public interfaces
+- **Documentation**: Clear docstrings for all public components
+- **Testing**: Feature-based test organization, 90%+ coverage
+
+### Code Style and Quality
+- **Formatting**: `black` for consistent formatting
+- **Linting**: `ruff` for code quality
+- **Type Checking**: `mypy` with strict mode
+- **Import Order**: `isort` for consistent imports
+- **Documentation**: Google style docstrings
+
+### Feature Module Template
+New features should follow this template:
+```python
+from pepperpy.core import BaseModule
+
+class NewFeatureModule(BaseModule):
+    """
+    Feature description
+    
+    Attributes:
+        name (str): Module name
+        config (dict): Module configuration
+    
+    Examples:
+        >>> module = NewFeatureModule()
+        >>> await module.setup()
+    """
+    __module_name__ = 'new_feature'
+    
+    async def setup(self):
+        """Initialize the module"""
+        pass
+    
+    async def cleanup(self):
+        """Cleanup resources"""
+        pass
+    
+    def feature_method(self):
+        """Feature specific functionality"""
+        pass
+```
+
+### Documentation Requirements
+Each feature module must include:
+- README.md with usage examples
+- API documentation
+- Configuration options
+- Example implementations
+
+### Quality Checks
+- All tests passing
+- No type check errors
+- Code formatting verified
+- Documentation updated
+- Examples tested and working
+
+### PepperPy Development Guidelines
+
+## Core Principles
+
+1. Module Independence
+   - Self-contained functionality
+   - Explicit dependencies
+   - Clear boundaries
+
+2. Composition First
+   - Builder pattern for configuration
+   - Event-based communication
+   - Lifecycle hooks
+
+3. Developer Experience
+   - Type safety
+   - Clear error messages
+   - Consistent patterns
+
+## Module Structure
+
+```plaintext
+📂module_name/
+ ┣ 📜__init__.py        # Public API
+ ┣ 📜module.py          # Module implementation
+ ┣ 📜exceptions.py      # Module exceptions
+ ┣ 📜events.py          # Module events
+ ┗ 📂components/        # Internal components
+   ┣ 📜__init__.py
+   ┗ 📜{component}.py
+```
+
+## Implementation Guidelines
+
+1. Module Definition
+```python
+class MyModule(BaseModule):
+    """
+    Clear module description
+    
+    Attributes:
+        config (ModuleConfig): Module configuration
+    
+    Examples:
+        >>> module = MyModule.create()\\
+        ...     .configure(setting="value")\\
+        ...     .build()
+    """
+    __module_name__ = "my_module"
+    __dependencies__ = ["other_module"]
+    
+    async def initialize(self) -> None:
+        await super().initialize()
+        # Setup resources
+        
+    async def shutdown(self) -> None:
+        await super().shutdown()
+        # Cleanup resources
+```
+
+2. Event Handling
+```python
+async def post_initialize(self) -> None:
+    """Subscribe to events after initialization"""
+    self._event_bus.subscribe("other.event", self._handle_event)
+    
+def _handle_event(self, event: Event) -> None:
+    """Handle specific event"""
+    pass
+```
+
+## Testing Requirements
+
+1. Unit Tests
+   - Test each component in isolation
+   - Mock dependencies
+   - Test error paths
+
+2. Integration Tests
+   - Test module lifecycle
+   - Test event handling
+   - Test with dependencies
+
+3. Coverage Requirements
+   - 100% for public API
+   - 90%+ overall coverage
+   - Error handling tested
+
+## Documentation Standards
+
+1. Module Documentation
+   - Purpose and features
+   - Configuration options
+   - Event descriptions
+   - Error scenarios
+
+2. API Documentation
+   - Type hints
+   - Parameters
+   - Return values
+   - Exceptions
+
+3. Examples
+   - Basic usage
+   - Common patterns
+   - Error handling
+
+## Quality Checks
+
+1. Code Quality
+   - Black formatting
+   - Ruff linting
+   - isort imports
+   - mypy strict mode
+
+2. Runtime Checks
+   - Type validation
+   - Config validation
+   - Resource cleanup
+
+3. Documentation
+   - Google style docstrings
+   - Up-to-date examples
+   - Changelog maintained
