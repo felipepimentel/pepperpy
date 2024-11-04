@@ -1,176 +1,164 @@
+import json
 from contextlib import contextmanager
-from dataclasses import dataclass, field
-from typing import Any, Dict, Generator, List, Optional
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Generator, List, Optional, Union
 
+import yaml
 from rich.console import Console as RichConsole
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Prompt
-from rich.status import Status
-from rich.style import Style
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
+from rich.prompt import Confirm, Prompt
 from rich.table import Table
 from rich.theme import Theme
-from textual.app import App
-
-from pepperpy.core import BaseModule
 
 
-@dataclass
-class ConsoleConfig:
-    """Configuration for console module"""
+class Console:
+    """
+    Console simplificado para desenvolvimento rápido
+    """
 
-    theme: Dict[str, str] = field(
-        default_factory=lambda: {
-            "info": "cyan",
-            "warning": "yellow",
-            "error": "red bold",
-            "success": "green",
-            "heading": "blue bold",
-            "prompt": "magenta",
-            "table.header": "blue bold",
-            "table.row": "white",
-            "panel.border": "blue",
-        }
-    )
-    width: Optional[int] = None
-    height: Optional[int] = None
-    enable_rich: bool = True
-    enable_tui: bool = True
-    enable_cli: bool = True
-    show_timestamps: bool = True
+    def __init__(self):
+        self.theme = Theme(
+            {
+                "info": "cyan",
+                "warning": "yellow",
+                "error": "red",
+                "success": "green",
+                "highlight": "magenta",
+                "muted": "dim white",
+                "code": "blue",
+                "data": "green",
+                "url": "underline cyan",
+            }
+        )
 
+        self.console = RichConsole(theme=self.theme)
 
-class ConsoleModule(BaseModule):
-    """Enhanced console capabilities"""
+    # Métodos de logging melhorados e práticos
+    def log(self, message: str, style: Optional[str] = None) -> None:
+        """Log com timestamp"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.console.print(f"[muted]{timestamp}[/muted] {message}", style=style)
 
-    __module_name__ = "console"
-    __version__ = "0.1.0"
-    __description__ = "Rich console, TUI and CLI capabilities"
+    def info(self, message: str) -> None:
+        self.log(f"ℹ {message}", style="info")
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        super().__init__(config)
-        self._console: Optional[RichConsole] = None
-        self._theme: Optional[Theme] = None
-        self._tui_app: Optional[App] = None
+    def success(self, message: str) -> None:
+        self.log(f"✓ {message}", style="success")
 
-    async def initialize(self) -> None:
-        """Initialize console components"""
-        await super().initialize()
+    def warning(self, message: str) -> None:
+        self.log(f"⚠ {message}", style="warning")
 
-        # Setup rich console
-        if self.config.settings.get("enable_rich", True):
-            theme = Theme(
-                {
-                    k: Style.parse(v)
-                    for k, v in self.config.settings.get("theme", {}).items()
-                }
-            )
-            self._console = RichConsole(
-                theme=theme,
-                width=self.config.settings.get("width"),
-                height=self.config.settings.get("height"),
-            )
+    def error(self, message: str) -> None:
+        self.log(f"✗ {message}", style="error")
 
-    def print(self, *args, style: Optional[str] = None, **kwargs) -> None:
-        """Print with rich formatting"""
-        if self._console:
-            self._console.print(*args, style=style, **kwargs)
-        else:
-            print(*args, **kwargs)
-
-    def info(self, message: str, **kwargs) -> None:
-        """Print info message"""
-        self.print(f"ℹ️ {message}", style="info", **kwargs)
-
-    def warning(self, message: str, **kwargs) -> None:
-        """Print warning message"""
-        self.print(f"⚠️ {message}", style="warning", **kwargs)
-
-    def error(self, message: str, **kwargs) -> None:
-        """Print error message"""
-        self.print(f"❌ {message}", style="error", **kwargs)
-
-    def success(self, message: str, **kwargs) -> None:
-        """Print success message"""
-        self.print(f"✅ {message}", style="success", **kwargs)
-
-    def heading(self, message: str, **kwargs) -> None:
-        """Print heading"""
-        self.print(f"\n=== {message} ===\n", style="heading", **kwargs)
-
-    async def prompt(
+    # Entrada de dados simplificada
+    def ask(
         self,
         message: str,
         choices: Optional[List[str]] = None,
         default: Optional[str] = None,
         password: bool = False,
-        **kwargs,
     ) -> str:
-        """Get user input with validation"""
-        if password:
-            return Prompt.ask(
-                message,
-                password=True,
-                style="prompt",
-                console=self._console,
-                default=default,
-                **kwargs,
-            )
-
-        if choices:
-            return Prompt.ask(
-                message,
-                choices=choices,
-                style="prompt",
-                console=self._console,
-                default=default,
-                show_choices=True,
-                **kwargs,
-            )
-
         return Prompt.ask(
-            message, style="prompt", console=self._console, default=default, **kwargs
+            message,
+            choices=choices,
+            default=default,
+            password=password,
+            console=self.console,
         )
 
-    def create_table(
-        self, title: Optional[str] = None, headers: Optional[List[str]] = None
-    ) -> Table:
-        """Create rich table"""
-        table = Table(
-            title=title,
-            show_header=bool(headers),
-            header_style="table.header",
-            row_styles=["table.row"],
-        )
+    def confirm(self, message: str, default: bool = True) -> bool:
+        return Confirm.ask(message, default=default, console=self.console)
 
-        if headers:
-            for header in headers:
-                table.add_column(header)
+    # Utilitários práticos
+    def clear(self) -> None:
+        """Limpa a tela"""
+        self.console.clear()
 
-        return table
+    def title(self, text: str) -> None:
+        """Exibe título destacado"""
+        self.console.print(f"\n[bold]{text}[/bold]\n")
 
-    def create_panel(
-        self, content: Any, title: Optional[str] = None, **kwargs
-    ) -> Panel:
-        """Create rich panel"""
-        return Panel(content, title=title, border_style="panel.border", **kwargs)
+    def divider(self) -> None:
+        """Exibe linha divisória"""
+        self.console.print("─" * 40)
 
+    # Exibição de dados
+    def show(self, data: Any, title: Optional[str] = None) -> None:
+        """Exibe dados de forma inteligente"""
+        if isinstance(data, (dict, list)):
+            self.show_table(data, title)
+        elif isinstance(data, str) and (data.startswith("{") or data.startswith("[")):
+            self.show_json(data, title)
+        else:
+            self.console.print(str(data))
+
+    def show_table(self, data: Union[Dict, List], title: Optional[str] = None) -> None:
+        """Exibe dados em formato tabular"""
+        table = Table(title=title)
+
+        if isinstance(data, dict):
+            table.add_column("Key")
+            table.add_column("Value")
+            for k, v in data.items():
+                table.add_row(str(k), str(v))
+        elif isinstance(data, list) and data and isinstance(data[0], dict):
+            # Lista de dicionários
+            headers = list(data[0].keys())
+            for h in headers:
+                table.add_column(h)
+            for item in data:
+                table.add_row(*[str(item.get(h, "")) for h in headers])
+        else:
+            # Lista simples
+            table.add_column("Value")
+            for item in data:
+                table.add_row(str(item))
+
+        self.console.print(table)
+
+    def show_json(self, data: Union[str, Dict], title: Optional[str] = None) -> None:
+        """Exibe JSON formatado"""
+        if isinstance(data, str):
+            data = json.loads(data)
+        self.console.print(json.dumps(data, indent=2))
+
+    # Progress tracking simplificado
     @contextmanager
     def progress(
-        self, description: str = "Processing", total: Optional[int] = None
+        self, message: str = "Processing..."
     ) -> Generator[Progress, None, None]:
-        """Show progress indicator"""
+        """Barra de progresso simples"""
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            console=self._console,
+            BarColumn(),
+            console=self.console,
         ) as progress:
-            task_id = progress.add_task(description, total=total)
+            task = progress.add_task(message)
             yield progress
-            progress.update(task_id, completed=True)
+            progress.update(task, completed=True)
 
-    @contextmanager
-    def status(self, message: str) -> Generator[Status, None, None]:
-        """Show status spinner"""
-        with self._console.status(message) as status:
-            yield status
+    # File operations
+    def save_json(self, data: Any, path: Union[str, Path]) -> None:
+        """Salva dados em arquivo JSON"""
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+        self.success(f"Saved to {path}")
+
+    def load_json(self, path: Union[str, Path]) -> Any:
+        """Carrega dados de arquivo JSON"""
+        with open(path) as f:
+            return json.load(f)
+
+    def save_yaml(self, data: Any, path: Union[str, Path]) -> None:
+        """Salva dados em arquivo YAML"""
+        with open(path, "w") as f:
+            yaml.dump(data, f)
+        self.success(f"Saved to {path}")
+
+    def load_yaml(self, path: Union[str, Path]) -> Any:
+        """Carrega dados de arquivo YAML"""
+        with open(path) as f:
+            return yaml.safe_load(f)

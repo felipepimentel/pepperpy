@@ -1,8 +1,8 @@
 import asyncio
 
 from pepperpy.console import ConsoleModule
-from pepperpy.console.cli.builder import CLIBuilder
 from pepperpy.core import Application
+from pepperpy.core.builder import CLIBuilder
 
 
 async def main():

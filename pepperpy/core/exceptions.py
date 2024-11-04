@@ -1,55 +1,66 @@
 """Core exceptions for PepperPy."""
 
+from typing import Any, Dict, Optional
+
 
 class PepperError(Exception):
-    """Base exception for all PepperPy errors."""
+    """Exceção base para todos os erros"""
 
-    pass
+    def __init__(
+        self,
+        message: str,
+        code: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        self.message = message
+        self.code = code or self.__class__.__name__
+        self.details = details or {}
+        super().__init__(message)
 
 
-class ConfigurationError(PepperError):
-    """Raised when there is a configuration error."""
+class ConfigError(PepperError):
+    """Erro de configuração"""
 
     pass
 
 
 class ValidationError(PepperError):
-    """Raised when validation fails."""
+    """Erro de validação"""
+
+    def __init__(self, message: str, field: Optional[str] = None):
+        super().__init__(
+            message,
+            code="VALIDATION_ERROR",
+            details={"field": field} if field else None,
+        )
+
+
+class ModuleError(PepperError):
+    """Erro relacionado a módulos"""
+
+    def __init__(self, message: str, module_name: str):
+        super().__init__(message, code="MODULE_ERROR", details={"module": module_name})
+
+
+class DependencyError(ModuleError):
+    """Erro de dependência entre módulos"""
 
     pass
 
 
-class ModuleInitializationError(PepperError):
-    """Raised when a module fails to initialize."""
+class StateError(PepperError):
+    """Erro de estado da aplicação"""
 
     pass
 
 
-class ModuleNotFoundError(PepperError):
-    """Raised when a required module is not found."""
+class ResourceError(PepperError):
+    """Erro relacionado a recursos"""
 
     pass
 
 
-class ServiceNotFoundError(PepperError):
-    """Raised when a required service is not found in the context."""
-
-    pass
-
-
-class ApplicationStartupError(PepperError):
-    """Raised when the application fails to start."""
-
-    pass
-
-
-class DependencyError(PepperError):
-    """Raised when there is a dependency error."""
-
-    pass
-
-
-class ContextError(PepperError):
-    """Raised when there is a context error."""
+class OperationError(PepperError):
+    """Erro em operações"""
 
     pass

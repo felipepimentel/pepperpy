@@ -1,130 +1,149 @@
+import asyncio
+import signal
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional, Type, TypeVar
+from typing import Dict, List, Optional, Type, TypeVar
 
-from .config import ConfigurationProvider
+from .config import Config, ConfigProvider
 from .context import Context
-from .events import EventBus
+from .events import Event, EventBus, SystemEvents
 from .exceptions import (
     ApplicationStartupError,
     DependencyError,
-    ModuleInitializationError,
     ValidationError,
 )
-from .health import HealthCheck, HealthMonitor
-from .logging import ContextLogger
-from .metadata import MetadataProvider, ModuleMetadata
-from .module import BaseModule
+from .health import HealthCheck, HealthMonitor, HealthStatus
+from .logging import get_logger
+from .module import Module
 
-T = TypeVar("T", bound=BaseModule)
+T = TypeVar("T", bound=Module)
 
 
 class Application:
-    """Main application container"""
+    """Aplicação principal"""
 
-    def __init__(self, config_provider: Optional[ConfigurationProvider] = None) -> None:
-        self._modules: Dict[str, BaseModule] = {}
+    def __init__(
+        self,
+        name: str,
+        config_provider: Optional[ConfigProvider] = None,
+        debug: bool = False,
+    ):
+        self.name = name
+        self.debug = debug
+        self.logger = get_logger("app")
+
+        # Core components
+        self._modules: Dict[str, Module] = {}
         self._event_bus = EventBus()
         self._context = Context()
-        self._config_provider = config_provider
-        self._metadata = MetadataProvider()
+        self._config = Config(config_provider)
+        self._health = HealthMonitor()
+
+        # State
         self._initialized = False
-        self._health_monitor = HealthMonitor()
-        self.logger = ContextLogger("application")
+        self._shutting_down = False
 
-    def register_service(self, key: str, instance: Any) -> "Application":
-        """Register a service in the context"""
-        self._context.register(key, instance)
-        return self
+        # Setup signal handlers
+        self._setup_signal_handlers()
 
-    def add_module(self, module: BaseModule) -> "Application":
-        """Add a module with all required components"""
+    def _setup_signal_handlers(self) -> None:
+        """Configura handlers de sinais"""
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, self._handle_shutdown_signal)
+
+    def _handle_shutdown_signal(self, signum, frame) -> None:
+        """Handler para sinais de shutdown"""
+        if not self._shutting_down:
+            self.logger.info("Shutdown signal received")
+            self._shutting_down = True
+            asyncio.create_task(self._shutdown())
+
+    def register_module(self, module: Module) -> "Application":
+        """Registra um módulo"""
         module._set_event_bus(self._event_bus)
         module._set_context(self._context)
-        module._set_health_monitor(self._health_monitor)
 
-        with self.logger.context(module=module.__module_name__):
+        with self.logger.context(module=module.name):
             self.logger.info("Registering module")
 
-            # Register metadata
-            self._metadata.register(module.get_metadata())
+            # Apply configuration
+            config = self._config.get(f"modules.{module.name}", {})
+            module.config.settings.update(config)
 
-            # Apply and validate configuration
-            if self._config_provider:
-                config = self._config_provider.get_config(module.__module_name__)
-                module.configure(config)
-                errors = module.validate_config()
+            # Validate
+            if module._validator:
+                errors = module._validator.validate(module.config.settings)
                 if errors:
-                    self.logger.error("Invalid configuration", extra={"errors": errors})
-                    raise ValidationError(
-                        f"Invalid configuration for module '{module.__module_name__}': {errors}"
-                    )
+                    raise ValidationError(f"Invalid configuration: {errors}")
 
-            self._modules[module.config.name] = module
-            self.logger.info("Module registered successfully")
+            self._modules[module.name] = module
+            self.logger.info("Module registered")
 
         return self
 
-    def get_module(self, name: str, expected_type: Type[T]) -> T:
-        """Get a module by name and type"""
+    def get_module(self, name: str, expected_type: Type[T] = None) -> T:
+        """Obtém um módulo"""
         module = self._modules.get(name)
         if not module:
-            raise ModuleNotFoundError(f"Module '{name}' not found")
-        if not isinstance(module, expected_type):
-            raise TypeError(f"Module '{name}' is not of type {expected_type.__name__}")
+            raise KeyError(f"Module '{name}' not found")
+
+        if expected_type and not isinstance(module, expected_type):
+            raise TypeError(f"Module '{name}' is not of type {expected_type}")
+
         return module
 
-    def list_modules(self, tag: Optional[str] = None) -> List[ModuleMetadata]:
-        """List registered modules"""
-        return self._metadata.list_modules(tag)
-
-    @asynccontextmanager
-    async def run(self):
-        """Run the application"""
-        await self._start()
-        try:
-            yield self
-        finally:
-            await self._shutdown()
-
     async def _start(self) -> None:
-        """Start all modules"""
+        """Inicia a aplicação"""
         if self._initialized:
             return
 
         try:
+            self.logger.info("Starting application")
+            await self._event_bus.publish(Event(SystemEvents.STARTUP, "app"))
+
+            # Validate dependencies
             self._validate_dependencies()
 
-            # Initialize modules in order
+            # Initialize modules
             for module in self._get_initialization_order():
                 if module.config.enabled:
-                    try:
-                        await module.initialize()
-                    except Exception as e:
-                        raise ModuleInitializationError(
-                            f"Failed to initialize module '{module.config.name}': {str(e)}"
-                        ) from e
+                    self.logger.info(f"Initializing module: {module.name}")
+                    await module.initialize()
 
             self._initialized = True
+            self.logger.info("Application started")
+            await self._event_bus.publish(Event(SystemEvents.STARTUP, "app"))
 
         except Exception as e:
-            # Cleanup any initialized modules on error
+            self.logger.error(f"Startup error: {str(e)}")
             await self._shutdown()
-            raise ApplicationStartupError("Failed to start application") from e
+            raise ApplicationStartupError(str(e)) from e
 
     async def _shutdown(self) -> None:
-        """Shutdown all modules"""
-        if not self._initialized:
+        """Finaliza a aplicação"""
+        if not self._initialized or self._shutting_down:
             return
 
-        # Shutdown in reverse order
-        for module in reversed(self._get_initialization_order()):
-            if module._initialized:
-                await module.shutdown()
+        self._shutting_down = True
+        self.logger.info("Shutting down application")
 
-        self._initialized = False
+        try:
+            await self._event_bus.publish(Event(SystemEvents.SHUTDOWN, "app"))
+
+            # Shutdown modules in reverse order
+            for module in reversed(self._get_initialization_order()):
+                if module._initialized:
+                    self.logger.info(f"Shutting down module: {module.name}")
+                    await module.shutdown()
+
+            self._initialized = False
+            self.logger.info("Application stopped")
+
+        except Exception as e:
+            self.logger.error(f"Shutdown error: {str(e)}")
+            raise
 
     def _validate_dependencies(self) -> None:
-        """Validate module dependencies"""
+        """Valida dependências entre módulos"""
         for name, module in self._modules.items():
             for dep in module.__dependencies__:
                 if dep not in self._modules:
@@ -132,8 +151,8 @@ class Application:
                         f"Module '{name}' depends on '{dep}' which is not registered"
                     )
 
-    def _get_initialization_order(self) -> list[BaseModule]:
-        """Get modules in dependency order"""
+    def _get_initialization_order(self) -> List[Module]:
+        """Determina ordem de inicialização dos módulos"""
         visited = set()
         order = []
 
@@ -151,10 +170,31 @@ class Application:
 
         return order
 
-    async def check_health(self) -> Dict[str, HealthCheck]:
-        """Check health of all modules"""
-        for module in self._modules.values():
+    @asynccontextmanager
+    async def run(self):
+        """Contexto de execução da aplicação"""
+        await self._start()
+        try:
+            yield self
+        finally:
+            await self._shutdown()
+
+    async def check_health(self) -> HealthCheck:
+        """Verifica saúde do sistema"""
+        checks = {}
+
+        for name, module in self._modules.items():
             if module.config.enabled:
-                check = await module.check_health()
-                self._health_monitor.update(module.config.name, check)
-        return self._health_monitor.get_all()
+                try:
+                    check = await module.check_health()
+                    checks[name] = check
+                except Exception as e:
+                    checks[name] = HealthCheck(
+                        status=HealthStatus.UNHEALTHY, message=str(e)
+                    )
+
+        return HealthCheck(
+            status=self._health.status,
+            message=f"Application is {self._health.status}",
+            checks=checks,
+        )

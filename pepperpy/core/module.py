@@ -1,170 +1,165 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
+from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar
 
 from .context import Context
-from .events import EventBus
-from .health import HealthCheck, HealthMonitor, HealthStatus
-from .logging import ContextLogger
-from .metadata import ModuleMetadata
-from .validation import ModuleValidator, ValidationError
+from .events import Event, EventBus
+from .exceptions import ModuleError, ValidationError
+from .logging import get_logger
+from .types import Metadata, ModuleConfig, Status
+from .validation import Validator
 
-T = TypeVar("T", bound="BaseModule")
-
-
-@dataclass
-class ModuleConfig:
-    """Base configuration for all modules"""
-
-    name: str
-    enabled: bool = True
-    debug: bool = False
-    settings: Dict[str, Any] = field(default_factory=dict)
+T = TypeVar("T", bound="Module")
 
 
-class ModuleBuilder(Generic[T]):
-    """Builder pattern for module configuration"""
+class Module(ABC):
+    """Classe base para módulos"""
 
-    def __init__(self, module_class: Type[T]) -> None:
-        self._module_class = module_class
-        self._config = ModuleConfig(name=module_class.__module_name__)
+    # Atributos de classe
+    __module_name__: ClassVar[str]
+    __version__: ClassVar[str] = "0.1.0"
+    __description__: ClassVar[str] = ""
+    __dependencies__: ClassVar[List[str]] = []
 
-    def configure(self, **settings) -> "ModuleBuilder[T]":
-        """Configure module settings"""
-        self._config.settings.update(settings)
-        return self
-
-    def enable_debug(self) -> "ModuleBuilder[T]":
-        """Enable debug mode"""
-        self._config.debug = True
-        return self
-
-    def disable(self) -> "ModuleBuilder[T]":
-        """Disable module"""
-        self._config.enabled = False
-        return self
-
-    def build(self) -> T:
-        """Build module instance"""
-        return self._module_class(self._config)
-
-
-class BaseModule(ABC):
-    """Base class for all PepperPy modules"""
-
-    __module_name__: str
-    __version__: str = "0.1.0"
-    __description__: str = ""
-    __metadata__: Optional[ModuleMetadata] = None
-    __validator__: Optional[ModuleValidator] = None
-    __dependencies__: list[str] = []
-
-    def __init__(self, config: ModuleConfig) -> None:
+    def __init__(self, config: ModuleConfig):
         self.config = config
-        self._initialized = False
+        self.logger = get_logger(self.__module_name__)
+
+        # Componentes injetados
         self._event_bus: Optional[EventBus] = None
         self._context: Optional[Context] = None
-        self._health_monitor: Optional[HealthMonitor] = None
-        self.logger = ContextLogger(self.__module_name__)
+        self._validator: Optional[Validator] = None
+
+        # Estado
+        self._initialized = False
+        self._status = Status.INACTIVE
+
+    @property
+    def name(self) -> str:
+        return self.__module_name__
+
+    @property
+    def status(self) -> Status:
+        return self._status
 
     def _set_event_bus(self, event_bus: EventBus) -> None:
-        """Set event bus instance"""
         self._event_bus = event_bus
 
     def _set_context(self, context: Context) -> None:
-        """Set context instance"""
         self._context = context
 
-    def _set_health_monitor(self, monitor: HealthMonitor) -> None:
-        """Set health monitor instance"""
-        self._health_monitor = monitor
+    def _set_validator(self, validator: Validator) -> None:
+        self._validator = validator
 
+    async def initialize(self) -> None:
+        """Inicializa o módulo"""
+        try:
+            # Validação
+            if self._validator:
+                errors = self._validator.validate(self.config.settings)
+                if errors:
+                    raise ValidationError(f"Invalid configuration: {errors}")
+
+            # Hooks
+            await self.pre_initialize()
+            await self._initialize()
+            await self.post_initialize()
+
+            self._initialized = True
+            self._status = Status.ACTIVE
+
+            # Evento
+            if self._event_bus:
+                await self._event_bus.publish(
+                    Event(
+                        name="module.initialized",
+                        source=self.name,
+                        data={"status": self.status},
+                    )
+                )
+
+        except Exception as e:
+            self._status = Status.ERROR
+            raise ModuleError(str(e), self.name) from e
+
+    async def shutdown(self) -> None:
+        """Finaliza o módulo"""
+        try:
+            await self.pre_shutdown()
+            await self._shutdown()
+            await self.post_shutdown()
+
+            self._initialized = False
+            self._status = Status.INACTIVE
+
+            if self._event_bus:
+                await self._event_bus.publish(
+                    Event(name="module.shutdown", source=self.name)
+                )
+
+        except Exception as e:
+            self._status = Status.ERROR
+            raise ModuleError(str(e), self.name) from e
+
+    # Hooks
     @abstractmethod
     async def pre_initialize(self) -> None:
-        """Optional hook called before initialization. Override to add custom pre-init logic."""
+        """Hook executado antes da inicialização"""
+        pass
+
+    @abstractmethod
+    async def _initialize(self) -> None:
+        """Implementação da inicialização"""
+        pass
 
     @abstractmethod
     async def post_initialize(self) -> None:
-        """Hook called after initialization"""
+        """Hook executado após a inicialização"""
         pass
 
     @abstractmethod
     async def pre_shutdown(self) -> None:
-        """Hook called before shutdown"""
+        """Hook executado antes do shutdown"""
+        pass
+
+    @abstractmethod
+    async def _shutdown(self) -> None:
+        """Implementação do shutdown"""
         pass
 
     @abstractmethod
     async def post_shutdown(self) -> None:
-        """Hook called after shutdown"""
+        """Hook executado após o shutdown"""
         pass
 
-    @classmethod
-    def create(cls: Type[T]) -> ModuleBuilder[T]:
-        """Create a new module builder"""
-        return ModuleBuilder(cls)
+    # Utilitários
+    def get_metadata(self) -> Metadata:
+        """Obtém metadados do módulo"""
+        return Metadata(
+            name=self.name,
+            version=self.__version__,
+            description=self.__description__,
+            tags=self.__dependencies__,
+        )
 
-    @classmethod
-    def get_metadata(cls) -> ModuleMetadata:
-        """Get module metadata"""
-        if not cls.__metadata__:
-            cls.__metadata__ = ModuleMetadata(
-                name=cls.__module_name__,
-                version=cls.__version__,
-                description=cls.__description__,
-                dependencies=cls.__dependencies__,
-            )
-        return cls.__metadata__
-
-    def validate_config(self) -> List[ValidationError]:
-        """Validate module configuration"""
-        if not self.__validator__:
-            return []
-        return self.__validator__.validate(self.config.settings)
-
-    async def initialize(self) -> None:
-        """Initialize module with validation"""
-        errors = self.validate_config()
-        if errors:
-            raise ValidationError(f"Invalid configuration: {errors}")
-
-        await self.pre_initialize()
-        self._initialized = True
-        await self.post_initialize()
-
-    @abstractmethod
-    async def shutdown(self) -> None:
-        """Cleanup module resources"""
-        await self.pre_shutdown()
-        self._initialized = False
-        await self.post_shutdown()
-
-    def configure(self, settings: Dict[str, Any]) -> None:
-        """Update module configuration"""
-        self.config.settings.update(settings)
-
-    def get_service(self, key: str, service_type: Type[T]) -> T:
-        """Get a service from the context"""
+    def get_service(self, name: str, service_type: Optional[Type[T]] = None) -> Any:
+        """Obtém serviço do contexto"""
         if not self._context:
-            raise RuntimeError("Context not initialized")
-        return self._context.get(key, service_type)
+            raise ModuleError("Context not available", self.name)
+        return self._context.get(name, service_type)
 
-    def update_health(
-        self,
-        status: HealthStatus,
-        message: str,
-        details: Optional[Dict[str, Any]] = None,
+    async def emit(
+        self, event_name: str, data: Optional[Dict[str, Any]] = None
     ) -> None:
-        """Update module health status"""
-        if self._health_monitor:
-            check = HealthCheck(status, message, details=details)
-            self._health_monitor.update(self.__module_name__, check)
+        """Emite evento"""
+        if not self._event_bus:
+            raise ModuleError("Event bus not available", self.name)
 
-    async def check_health(self) -> HealthCheck:
-        """Perform module health check"""
-        try:
-            # Default implementation
-            if not self._initialized:
-                return HealthCheck(HealthStatus.UNHEALTHY, "Module not initialized")
-            return HealthCheck(HealthStatus.HEALTHY, "Module operational")
-        except Exception as e:
-            return HealthCheck(HealthStatus.UNHEALTHY, f"Health check failed: {str(e)}")
+        await self._event_bus.publish(
+            Event(name=event_name, source=self.name, data=data)
+        )
+
+    @classmethod
+    def create(cls: Type[T], **settings) -> T:
+        """Factory method para criar módulo"""
+        config = ModuleConfig(name=cls.__module_name__, settings=settings)
+        return cls(config)
