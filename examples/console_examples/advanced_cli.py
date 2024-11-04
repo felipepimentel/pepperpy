@@ -5,7 +5,7 @@ from pepperpy.core import Application
 from pepperpy.core.builder import CLIBuilder
 
 
-async def main():
+async def main() -> None:
     # Create application
     app = Application()
 

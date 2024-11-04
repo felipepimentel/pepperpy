@@ -1,6 +1,6 @@
-# Pepperpy 🚀
+# PepperPy 🌶️
 
-A modern, feature-rich Python library designed to accelerate development with elegant abstractions and powerful utilities.
+A modern, feature-rich Python utility library designed to accelerate development with elegant abstractions and powerful utilities.
 
 [![PyPI version](https://badge.fury.io/py/pepperpy.svg)](https://badge.fury.io/py/pepperpy)
 [![Python Support](https://img.shields.io/pypi/pyversions/pepperpy.svg)](https://pypi.org/project/pepperpy/)
@@ -9,30 +9,14 @@ A modern, feature-rich Python library designed to accelerate development with el
 
 ## Features 🌟
 
-### Core Capabilities
-- **Configuration Management**: Hierarchical, modular configuration system
-- **Database Operations**: Flexible database abstraction with multiple drivers
-- **File Operations**: Advanced file handling for multiple formats
-- **Markdown Processing**: Enhanced Markdown generation with Obsidian support
-- **Error Management**: Comprehensive error handling system
-- **Caching**: Modular caching system with multiple backends
-- **Plugin System**: Extensible plugin architecture
-- **API Integration**: Robust HTTP client with retry and caching
-- **Dependency Injection**: IoC container for better modularity
-- **Observability**: Integrated logging, monitoring, and metrics
-- **Documentation**: Dynamic, self-documenting capabilities
-- **Testing**: Automated testing with contract-based validation
-- **Event System**: Asynchronous inter-module communication
-- **GitHub Integration**: Complete GitHub operations management
+- **Modular Architecture**: Each feature is self-contained and independently usable
+- **Type Safety**: Full type hints and runtime type checking
+- **Modern Python**: Leverages Python 3.10+ features
+- **Extensible Design**: Easy to customize and extend
+- **Rich Console Support**: Beautiful terminal outputs and interactive features
+- **AI/ML Ready**: Optional modules for AI and machine learning tasks
+- **Async First**: Built with asyncio for modern async applications
 
-### Additional Features
-- **Task Scheduling**: Background jobs and scheduling
-- **Authentication**: Integrated auth system
-- **WebSocket Support**: Real-time communication
-- **Data Analysis**: Data processing and visualization tools
-- **Message Queue**: RabbitMQ/Kafka integration
-- **Parallel Computing**: Async and parallel processing support
-- **Workflow Management**: Custom workflow orchestration
-- **Machine Learning**: ML model integration and processing
+## Installation 🚀
 
-## Installation 📦
+PepperPy uses Poetry for dependency management. Install the base package:

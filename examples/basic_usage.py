@@ -3,7 +3,7 @@ from pepperpy.core import PepperApp
 from pepperpy.database import DatabaseModule
 
 
-async def main():
+async def main() -> None:
     # Create application
     app = PepperApp()
 

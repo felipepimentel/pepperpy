@@ -7,7 +7,7 @@ from pepperpy.core import Application
 from pepperpy.core.builder import CLIBuilder
 
 
-async def main():
+async def main() -> None:
     # Create application
     app = Application()
 
@@ -27,13 +27,13 @@ async def main():
     async def greet(
         name: str = typer.Argument(..., help="User name"),
         count: int = typer.Option(1, help="Number of greetings"),
-    ):
+    ) -> None:
         """Greet user multiple times"""
         for i in range(count):
             console.success(f"Hello {name}! (greeting {i+1}/{count})")
 
     @cli.command(help="Process items")
-    async def process():
+    async def process() -> None:
         """Process items with progress"""
         items = ["item1", "item2", "item3"]
 

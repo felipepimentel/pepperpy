@@ -11,24 +11,67 @@ python = "^3.10"
 pydantic = "^2.9.2"
 typer = "^0.12.5"
 rich = "^13.9.3"
-torch = "^2.2.0"
-sentence-transformers = "^2.5.1"
-scikit-learn = "^1.4.1"
-wandb = "^0.16.3"
-textual = "^0.52.1"
-questionary = "^2.0.1"
 tokenizers = "^0.20.1"
-plotext = "^5.3.2"
-faiss-cpu = "^1.9.0"
-qdrant-client = "^1.12.1"
+
+# Database dependencies
+sqlalchemy = { version = "^2.0.27", optional = true }
+alembic = { version = "^1.13.1", optional = true }
+greenlet = { version = "^3.0.3", optional = true }  # Required for async SQLAlchemy
+
+# Extras for specific database backends
+asyncpg = { version = "^0.29.0", optional = true }  # PostgreSQL async driver
+psycopg = { version = "^3.1.18", optional = true }  # Modern PostgreSQL driver
+pymysql = { version = "^1.1.0", optional = true }   # MySQL driver
+aiosqlite = { version = "^0.19.0", optional = true } # SQLite async driver
+aiomysql = { version = "^0.2.0", optional = true }   # MySQL async driver
+duckdb = { version = "^0.10.0", optional = true }    # DuckDB integration
+
+# Cache dependencies
+redis = { version = "^5.0.1", optional = true }      # Redis cache backend
+msgpack = { version = "^1.0.7", optional = true }    # Serialization for Redis
+
+# Monitoring and profiling
+prometheus-client = { version = "^0.19.0", optional = true }  # For metrics export
+opentelemetry-api = { version = "^1.23.0", optional = true }
+opentelemetry-sdk = { version = "^1.23.0", optional = true }
+opentelemetry-instrumentation-sqlalchemy = { version = "^0.44b0", optional = true }
+
+# Grouped dependencies
+[tool.poetry.extras]
+# Specific database groups
+postgresql = ["sqlalchemy", "asyncpg", "psycopg", "alembic", "greenlet"]
+mysql = ["sqlalchemy", "pymysql", "aiomysql", "alembic", "greenlet"]
+sqlite = ["sqlalchemy", "aiosqlite", "alembic", "greenlet"]
+duckdb = ["duckdb"]  # Only DuckDB
+
+# Cache backend groups
+redis_cache = ["redis", "msgpack"]
+
+# Monitoring and profiling group
+monitoring = ["prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy"]
+
+# AI and UI grouped dependencies
+ai = ["torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client"]
+ui = ["textual", "questionary", "plotext"]
+
+# Group for installing all dependencies
+all = [
+  "postgresql", "mysql", "sqlite", "duckdb", "redis_cache",
+  "prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy",
+  "torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client",
+  "textual", "questionary", "plotext"
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
 pytest-asyncio = "^0.23.5"
+pytest-cov = "^4.1.0"
 black = "^24.10.0"
 ruff = "^0.7.1"
 mypy = "^1.13.0"
 python-semantic-release = "^9.12.0"
+types-redis = "^4.6.0.20240311"
+sqlalchemy-stubs = "^0.4"
 
 [build-system]
 requires = ["poetry-core"]
@@ -36,17 +79,23 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 select = [
-    "E", "F", "B", "I", "N"
+    "E", "F", "B", "I", "N",
+    "RUF",
+    "UP",
+    "ANN",
 ]
 ignore = [
     "E501",
     "N812",
     "B006",
+    "ANN101",
+    "ANN102",
 ]
 line-length = 100
 
 [tool.ruff.per-file-ignores]
 "pepperpy/ai/optimization/*.py" = ["N803"]
+"tests/*" = ["ANN"]
 
 [tool.black]
 line-length = 100
@@ -67,11 +116,13 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
+plugins = ["sqlalchemy.ext.mypy.plugin"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+addopts = "--cov=pepperpy --cov-report=term-missing"
 
 [tool.semantic_release]
 version_variable = [
