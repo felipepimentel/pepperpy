@@ -24,14 +24,31 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          cache: "poetry"
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
-      - name: Update lockfile and install dependencies
-        run: |
-          poetry lock --no-update
-          poetry install --no-root
+      - name: Install dependencies
+        run: poetry install --no-root
+
+      - name: Run Linters
+        run: poetry run ruff check . && poetry run black --check .
+      
+      - name: Run Tests
+        run: poetry run pytest
+        env:
+          PYTHON_ENV: test
 
       - name: Configure Git User
         run: |
@@ -41,11 +58,9 @@ jobs:
       - name: Run Python Semantic Release
         id: versioning
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry run semantic-release version
           poetry run semantic-release publish
 
       - name: Clean Previous Builds
@@ -60,5 +75,4 @@ jobs:
         if: steps.versioning.outcome == 'success'
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry publish --username __token__ --password $PYPI_TOKEN
+        run: poetry publish --username __token__ --password $PYPI_TOKEN
