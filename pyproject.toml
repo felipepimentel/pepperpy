@@ -3,7 +3,7 @@ name = "pepperpy"
 description = "A modern Python utility library"
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 readme = "README.md"
-version = "1.2.4"
+version = "1.2.5"
 repository = "https://github.com/felipepimentel/pepperpy"
 
 [tool.poetry.dependencies]
@@ -13,50 +13,42 @@ typer = "^0.12.5"
 rich = "^13.9.3"
 tokenizers = "^0.20.1"
 
-# Database dependencies
 sqlalchemy = { version = "^2.0.27", optional = true }
 alembic = { version = "^1.13.1", optional = true }
-greenlet = { version = "^3.0.3", optional = true }  # Required for async SQLAlchemy
+greenlet = { version = "^3.0.3", optional = true }
 
-# Extras for specific database backends
-asyncpg = { version = "^0.29.0", optional = true }  # PostgreSQL async driver
-psycopg = { version = "^3.1.18", optional = true }  # Modern PostgreSQL driver
-pymysql = { version = "^1.1.0", optional = true }   # MySQL driver
-aiosqlite = { version = "^0.19.0", optional = true } # SQLite async driver
-aiomysql = { version = "^0.2.0", optional = true }   # MySQL async driver
-duckdb = { version = "^0.10.0", optional = true }    # DuckDB integration
+asyncpg = { version = "^0.29.0", optional = true }
+psycopg = { version = "^3.1.18", optional = true }
+pymysql = { version = "^1.1.0", optional = true }
+aiosqlite = { version = "^0.19.0", optional = true }
+aiomysql = { version = "^0.2.0", optional = true }
+duckdb = { version = "^0.10.0", optional = true }
 
-# Cache dependencies
-redis = { version = "^5.0.1", optional = true }      # Redis cache backend
-msgpack = { version = "^1.0.7", optional = true }    # Serialization for Redis
+redis = { version = "^5.0.1", optional = true }
+msgpack = { version = "^1.0.7", optional = true }
 
-# Monitoring and profiling
-prometheus-client = { version = "^0.19.0", optional = true }  # For metrics export
+prometheus-client = { version = "^0.19.0", optional = true }
 opentelemetry-api = { version = "^1.23.0", optional = true }
 opentelemetry-sdk = { version = "^1.23.0", optional = true }
 opentelemetry-instrumentation-sqlalchemy = { version = "^0.44b0", optional = true }
 
-# Grouped dependencies
 [tool.poetry.extras]
-# Specific database groups
 postgresql = ["sqlalchemy", "asyncpg", "psycopg", "alembic", "greenlet"]
 mysql = ["sqlalchemy", "pymysql", "aiomysql", "alembic", "greenlet"]
 sqlite = ["sqlalchemy", "aiosqlite", "alembic", "greenlet"]
-duckdb = ["duckdb"]  # Only DuckDB
+duckdb = ["duckdb"]
 
-# Cache backend groups
 redis_cache = ["redis", "msgpack"]
 
-# Monitoring and profiling group
 monitoring = ["prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy"]
 
-# AI and UI grouped dependencies
 ai = ["torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client"]
 ui = ["textual", "questionary", "plotext"]
 
-# Group for installing all dependencies
 all = [
-  "postgresql", "mysql", "sqlite", "duckdb", "redis_cache",
+  "sqlalchemy", "alembic", "greenlet",
+  "asyncpg", "psycopg", "pymysql", "aiomysql", "aiosqlite", "duckdb",
+  "redis", "msgpack",
   "prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy",
   "torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client",
   "textual", "questionary", "plotext"
