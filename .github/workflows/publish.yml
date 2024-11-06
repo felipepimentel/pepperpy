@@ -28,7 +28,6 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
-      # Novo passo: Verificar e Incrementar Versão se necessário
       - name: Check and Bump Version if Necessary
         id: check-version
         run: |
