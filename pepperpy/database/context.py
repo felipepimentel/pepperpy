@@ -26,7 +26,7 @@ class DatabaseContext:
         return self._session
 
     @asynccontextmanager
-    async def transaction(self):
+    async def transaction(self) -> AsyncSession:
         """Transaction context manager"""
         if not self._session:
             raise DatabaseError("No active database session")

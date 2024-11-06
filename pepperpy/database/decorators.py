@@ -1,6 +1,9 @@
 import time
 from functools import wraps
-from typing import Any, Callable, Optional, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Type, TypeVar, Union
+
+if TYPE_CHECKING:
+    from .module import DatabaseClass
 
 from .constants import DatabaseEvents
 from .events import QueryExecuted
@@ -9,12 +12,14 @@ from .exceptions import DatabaseError, TransactionError
 T = TypeVar("T")
 
 
-def transactional(auto_commit: bool = True):
+def transactional(auto_commit: bool = True) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator for transactional operations"""
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        async def wrapper(self, *args: Any, **kwargs: Any) -> T:
+        async def wrapper(
+            self: "DatabaseClass", *args: tuple[Any, ...], **kwargs: dict[str, Any]
+        ) -> T:
             async with self.transaction.begin() as session:
                 result = await func(self, session, *args, **kwargs)
                 if auto_commit:
@@ -26,12 +31,14 @@ def transactional(auto_commit: bool = True):
     return decorator
 
 
-def measure_query(name: Optional[str] = None):
+def measure_query(name: Optional[str] = None) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator for measuring query execution time"""
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        async def wrapper(self, *args: Any, **kwargs: Any) -> T:
+        async def wrapper(
+            self: "DatabaseClass", *args: tuple[Any, ...], **kwargs: dict[str, Any]
+        ) -> T:
             query_name = name or func.__name__
             start_time = time.time()
             try:
@@ -58,12 +65,14 @@ def measure_query(name: Optional[str] = None):
 def retry_on_error(
     exceptions: Optional[Union[Type[Exception], tuple[Type[Exception], ...]]] = None,
     max_attempts: int = 3,
-):
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator for retrying operations on specific errors"""
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        async def wrapper(self, *args: Any, **kwargs: Any) -> T:
+        async def wrapper(
+            self: "DatabaseClass", *args: tuple[Any, ...], **kwargs: dict[str, Any]
+        ) -> T:
             if not hasattr(self, "_retry_handler"):
                 raise DatabaseError("RetryHandler not initialized")
 

@@ -12,5 +12,19 @@
         "dist": true,
         "venv": true,
         ".venv": true
-    }
+    },
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+        }
+    },
+    "ruff.lint.args": [],
+    "ruff.format.args": [],
+    "python.analysis.exclude": [
+         "/usr/lib/python3.10/**"
+    ],
+    "ruff.enable": true
 }

@@ -1,6 +1,6 @@
 import time
 from functools import wraps
-from typing import Callable
+from typing import Any, Callable
 
 from .console import Console
 
@@ -11,7 +11,7 @@ def timer(func: Callable) -> Callable:
     """Mede o tempo de execução"""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: tuple, **kwargs: dict) -> Any:
         start = time.time()
         result = func(*args, **kwargs)
         elapsed = time.time() - start
@@ -25,19 +25,19 @@ def log_calls(func: Callable) -> Callable:
     """Loga chamadas de função"""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: tuple, **kwargs: dict) -> Any:
         console.info(f"Calling {func.__name__}")
         return func(*args, **kwargs)
 
     return wrapper
 
 
-def retry(attempts: int = 3, delay: float = 1.0):
+def retry(attempts: int = 3, delay: float = 1.0) -> Callable:
     """Tenta executar função múltiplas vezes"""
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: tuple, **kwargs: dict) -> Any:
             for i in range(attempts):
                 try:
                     return func(*args, **kwargs)

@@ -3,7 +3,9 @@ from datetime import datetime
 from typing import Any, Dict, Optional, Type
 
 from pepperpy.core.events import Event
+
 from .models import BaseModel
+
 
 @dataclass
 class DatabaseEvent(Event):

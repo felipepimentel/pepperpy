@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, TypeVar
+from typing import Any, AsyncGenerator, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,12 +13,12 @@ class Transaction:
     Transaction manager with support for nested transactions and savepoints
     """
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
         self._depth = 0
 
     @asynccontextmanager
-    async def begin(self, **kwargs) -> AsyncGenerator[AsyncSession, None]:
+    async def begin(self, **kwargs: Any) -> AsyncGenerator[AsyncSession, None]:
         """Begin a new transaction or savepoint"""
         self._depth += 1
         try:

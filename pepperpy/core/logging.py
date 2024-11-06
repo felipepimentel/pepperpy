@@ -85,7 +85,7 @@ class ContextLogger:
         self._log(logging.CRITICAL, message, **kwargs)
 
     @contextmanager
-    def context(self, **kwargs: Any):
+    def context(self, **kwargs: Any) -> contextmanager:
         """Adiciona contexto temporário ao logger"""
         token = context.set({**context.get(), **kwargs})
         try:
@@ -118,9 +118,7 @@ class LoggerManager:
         return cls._loggers[name]
 
     @classmethod
-    def configure(
-        cls, level: Optional[int] = None, rich_output: Optional[bool] = None
-    ) -> None:
+    def configure(cls, level: Optional[int] = None, rich_output: Optional[bool] = None) -> None:
         """Configura comportamento global dos loggers"""
         if level is not None:
             cls._default_level = level
