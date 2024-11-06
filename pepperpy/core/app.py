@@ -52,9 +52,7 @@ class Application:
         for sig in (signal.SIGTERM, signal.SIGINT):
             signal.signal(sig, self._handle_shutdown_signal)
 
-    def _handle_shutdown_signal(
-        self, signum: int, frame: Optional[types.FrameType]
-    ) -> None:
+    def _handle_shutdown_signal(self, signum: int, frame: Optional[types.FrameType]) -> None:
         """Handler para sinais de shutdown"""
         if not self._shutting_down:
             self.logger.info("Shutdown signal received")
@@ -193,9 +191,7 @@ class Application:
                     check = await module.check_health()
                     checks[name] = check
                 except Exception as e:
-                    checks[name] = HealthCheck(
-                        status=HealthStatus.UNHEALTHY, message=str(e)
-                    )
+                    checks[name] = HealthCheck(status=HealthStatus.UNHEALTHY, message=str(e))
 
         return HealthCheck(
             status=self._health.status,

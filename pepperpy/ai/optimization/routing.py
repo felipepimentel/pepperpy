@@ -38,9 +38,7 @@ class RoutingExpert(nn.Module):
         # Optional online clustering
         if config.clustering_algorithm == "online":
             self.register_buffer("cluster_counts", torch.zeros(config.num_clusters))
-            self.register_buffer(
-                "cluster_sum", torch.zeros(config.num_clusters, input_size)
-            )
+            self.register_buffer("cluster_sum", torch.zeros(config.num_clusters, input_size))
 
     def update_clusters(self, inputs: torch.Tensor) -> None:
         """Update cluster centroids with online algorithm"""

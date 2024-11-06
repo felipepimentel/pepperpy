@@ -84,9 +84,6 @@ class ContinuousBatchProcessor:
         sorted_entries = sorted(self.kv_cache.items(), key=lambda x: x[1]["position"])
 
         # Remove oldest entries until under limit
-        while (
-            len(self.kv_cache) * sorted_entries[-1][1]["length"]
-            > self.config.kv_cache_size
-        ):
+        while len(self.kv_cache) * sorted_entries[-1][1]["length"] > self.config.kv_cache_size:
             req_id, _ = sorted_entries.pop(0)
             del self.kv_cache[req_id]

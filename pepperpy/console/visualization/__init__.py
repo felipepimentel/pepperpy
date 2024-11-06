@@ -1,3 +1,3 @@
 from .charts import ConsoleCharts
 
-__all__ = ['ConsoleCharts'] 
+__all__ = ["ConsoleCharts"]

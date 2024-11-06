@@ -14,7 +14,7 @@ class QueryResult(Result[T], Generic[T]):
     query: str
     params: Optional[Dict[str, Any]] = None
     execution_time: float = 0.0
-    
+
     rows_affected: int = 0
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 

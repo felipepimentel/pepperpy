@@ -26,9 +26,7 @@ class QueryMetrics:
             self.total_duration += duration
             self.min_duration = min(self.min_duration, duration)
             self.max_duration = max(self.max_duration, duration)
-            self.avg_duration = self.total_duration / (
-                self.total_queries - self.error_count
-            )
+            self.avg_duration = self.total_duration / (self.total_queries - self.error_count)
 
             elapsed = (datetime.utcnow() - self.start_time).total_seconds()
             self.queries_per_second = (self.total_queries - self.error_count) / elapsed

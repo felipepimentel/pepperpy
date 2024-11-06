@@ -55,9 +55,7 @@ async def demo_interactive_input(console: Console) -> None:
     console.info(f"Hello, {name}!")
 
     # Choice selection
-    role = console.ask(
-        "Select your role:", choices=["Admin", "User", "Guest"], default="User"
-    )
+    role = console.ask("Select your role:", choices=["Admin", "User", "Guest"], default="User")
     console.success(f"Role selected: {role}")
 
     # Confirmation

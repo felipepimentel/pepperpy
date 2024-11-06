@@ -51,9 +51,7 @@ class MetricsCollector:
 
         success_count = sum(1 for m in self._metrics if m.success)
         stats["success_rate"] = success_count / len(self._metrics)
-        stats["avg_duration"] = sum(m.duration for m in self._metrics) / len(
-            self._metrics
-        )
+        stats["avg_duration"] = sum(m.duration for m in self._metrics) / len(self._metrics)
         stats["total_tokens"] = sum(m.tokens for m in self._metrics)
 
         # Per operation stats

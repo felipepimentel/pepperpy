@@ -69,16 +69,21 @@ class DatabaseProfile:
             "total_duration": total_duration,
             "average_duration": avg_duration,
             "slow_queries": len(self.get_slow_queries()),
-            "cache_hit_ratio": self.cache_hits / (self.cache_hits + self.cache_misses)
-            if (self.cache_hits + self.cache_misses) > 0
-            else 0,
-            "transaction_success_ratio": self.transactions_committed
-            / self.transactions_started
-            if self.transactions_started > 0
-            else 0,
-            "connection_utilization": self.active_connections / self.total_connections
-            if self.total_connections > 0
-            else 0,
+            "cache_hit_ratio": (
+                self.cache_hits / (self.cache_hits + self.cache_misses)
+                if (self.cache_hits + self.cache_misses) > 0
+                else 0
+            ),
+            "transaction_success_ratio": (
+                self.transactions_committed / self.transactions_started
+                if self.transactions_started > 0
+                else 0
+            ),
+            "connection_utilization": (
+                self.active_connections / self.total_connections
+                if self.total_connections > 0
+                else 0
+            ),
         }
 
 

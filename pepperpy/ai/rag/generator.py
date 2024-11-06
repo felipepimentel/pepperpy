@@ -113,9 +113,7 @@ class AnswerGenerator:
 
         return "\n\n".join(selected_chunks)
 
-    def _group_comparative_context(
-        self, chunks: List[str], plan: QueryPlan
-    ) -> List[str]:
+    def _group_comparative_context(self, chunks: List[str], plan: QueryPlan) -> List[str]:
         """Group context for comparative queries"""
         if len(plan.sub_queries) < 2:
             return ["\n\n".join(chunks)]
@@ -123,9 +121,7 @@ class AnswerGenerator:
         # Group chunks by relevance to each sub-query
         groups = []
         for sub_query in plan.sub_queries:
-            relevant_chunks = [
-                chunk for chunk in chunks if self._is_relevant(chunk, sub_query)
-            ]
+            relevant_chunks = [chunk for chunk in chunks if self._is_relevant(chunk, sub_query)]
             groups.append("\n\n".join(relevant_chunks))
 
         return groups

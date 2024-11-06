@@ -28,9 +28,7 @@ class CommandBuilder:
     """Builder for CLI commands."""
 
     def __init__(self, name: str, help_text: str = "", hidden: bool = False) -> None:
-        self.config = CommandConfig(
-            name=name, help=help_text, callback=lambda: None, hidden=hidden
-        )
+        self.config = CommandConfig(name=name, help=help_text, callback=lambda: None, hidden=hidden)
 
     def option(
         self,

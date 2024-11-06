@@ -36,12 +36,8 @@ class PagedAttention:
         n_pages = (seq_len + self.config.page_size - 1) // self.config.page_size
 
         # Reshape inputs into pages
-        key_pages = key.view(
-            batch_size, n_heads, n_pages, self.config.page_size, d_head
-        )
-        value_pages = value.view(
-            batch_size, n_heads, n_pages, self.config.page_size, d_head
-        )
+        key_pages = key.view(batch_size, n_heads, n_pages, self.config.page_size, d_head)
+        value_pages = value.view(batch_size, n_heads, n_pages, self.config.page_size, d_head)
 
         # Process attention in blocks
         output = torch.zeros_like(query)

@@ -42,10 +42,7 @@ class MoELayer(nn.Module):
 
         # Create experts
         self.experts = nn.ModuleList(
-            [
-                ExpertLayer(input_size, config.expert_size)
-                for _ in range(config.num_experts)
-            ]
+            [ExpertLayer(input_size, config.expert_size) for _ in range(config.num_experts)]
         )
 
         # Router
@@ -67,9 +64,7 @@ class MoELayer(nn.Module):
 
         # Calculate expert capacity
         capacity_factor = (
-            self.config.capacity_factor
-            if is_training
-            else self.config.eval_capacity_factor
+            self.config.capacity_factor if is_training else self.config.eval_capacity_factor
         )
         expert_capacity = max(
             int((batch_size * seq_len * capacity_factor) / self.config.num_experts),
@@ -81,9 +76,7 @@ class MoELayer(nn.Module):
             (batch_size * seq_len, self.config.num_experts), device=inputs.device
         )
         flat_indices = (
-            torch.arange(batch_size * seq_len, device=inputs.device)
-            .unsqueeze(1)
-            .expand(-1, k)
+            torch.arange(batch_size * seq_len, device=inputs.device).unsqueeze(1).expand(-1, k)
         )
         expert_mask[flat_indices, top_k_indices.view(-1, k)] = top_k_probs.view(-1, k)
 
@@ -116,10 +109,7 @@ class MoEOptimizer:
     def convert_to_moe(model: nn.Module, config: MoEConfig) -> nn.Module:
         """Convert transformer layers to MoE"""
         for name, module in model.named_children():
-            if (
-                isinstance(module, nn.Linear)
-                and module.in_features == module.out_features
-            ):
+            if isinstance(module, nn.Linear) and module.in_features == module.out_features:
                 # Replace feed-forward layers with MoE
                 setattr(model, name, MoELayer(config, module.in_features))
             elif len(list(module.children())) > 0:

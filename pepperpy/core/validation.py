@@ -50,9 +50,7 @@ class ValidationBuilder:
 
     @staticmethod
     def required(message: str = "Field is required") -> ValidationRule:
-        return ValidationRule(
-            lambda x: x is not None and str(x).strip() != "", message, "REQUIRED"
-        )
+        return ValidationRule(lambda x: x is not None and str(x).strip() != "", message, "REQUIRED")
 
     @staticmethod
     def min_length(min_len: int, message: Optional[str] = None) -> ValidationRule:
@@ -72,9 +70,7 @@ class ValidationBuilder:
 
     @staticmethod
     def pattern(regex: str, message: str) -> ValidationRule:
-        return ValidationRule(
-            lambda x: bool(re.match(regex, str(x))), message, "PATTERN"
-        )
+        return ValidationRule(lambda x: bool(re.match(regex, str(x))), message, "PATTERN")
 
     @staticmethod
     def email(message: str = "Invalid email format") -> ValidationRule:

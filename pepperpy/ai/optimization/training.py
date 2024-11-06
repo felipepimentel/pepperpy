@@ -22,9 +22,7 @@ class TrainingConfig:
 class MemoryEfficientTrainer:
     """Memory-efficient model training"""
 
-    def __init__(
-        self, model: nn.Module, optimizer: torch.optim.Optimizer, config: TrainingConfig
-    ):
+    def __init__(self, model: nn.Module, optimizer: torch.optim.Optimizer, config: TrainingConfig):
         self.model = model
         self.optimizer = optimizer
         self.config = config
@@ -80,15 +78,11 @@ class MemoryEfficientTrainer:
         # Optimize step
         if self.scaler is not None:
             self.scaler.unscale_(self.optimizer)
-            torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(), self.config.max_grad_norm
-            )
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.max_grad_norm)
             self.scaler.step(self.optimizer)
             self.scaler.update()
         else:
-            torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(), self.config.max_grad_norm
-            )
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.max_grad_norm)
             self.optimizer.step()
 
         self.optimizer.zero_grad()

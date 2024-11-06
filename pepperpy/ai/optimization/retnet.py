@@ -37,9 +37,7 @@ class MultiScaleRetention(nn.Module):
 
         # Initialize decay factors
         if config.use_decay:
-            self.decay = nn.Parameter(
-                torch.ones(config.n_heads, 1, 1) * config.decay_rate
-            )
+            self.decay = nn.Parameter(torch.ones(config.n_heads, 1, 1) * config.decay_rate)
 
         self.dropout = nn.Dropout(config.dropout)
 
@@ -80,9 +78,7 @@ class MultiScaleRetention(nn.Module):
 
             # Apply decay if enabled
             if self.config.use_decay:
-                position_ids = torch.arange(chunk_length, device=x.device).view(
-                    1, -1, 1, 1
-                )
+                position_ids = torch.arange(chunk_length, device=x.device).view(1, -1, 1, 1)
                 scores = scores * (self.decay**position_ids)
 
             # Apply attention

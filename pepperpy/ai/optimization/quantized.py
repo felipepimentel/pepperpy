@@ -22,9 +22,7 @@ class QuantizedInference:
     def __init__(self, config: QuantConfig):
         self.config = config
 
-    def quantize_model(
-        self, model: PreTrainedModel, dtype: str = "int8"
-    ) -> PreTrainedModel:
+    def quantize_model(self, model: PreTrainedModel, dtype: str = "int8") -> PreTrainedModel:
         """Quantize model weights"""
         if self.config.bits == 4:
             return self._quantize_4bit(model)
@@ -40,9 +38,7 @@ class QuantizedInference:
                     module.in_features,
                     module.out_features,
                     bias=module.bias is not None,
-                    compute_dtype=torch.float16
-                    if self.config.use_cuda
-                    else torch.float32,
+                    compute_dtype=torch.float16 if self.config.use_cuda else torch.float32,
                     compress_statistics=self.config.double_quant,
                     quant_type="nf4",  # Normal Float 4
                 )

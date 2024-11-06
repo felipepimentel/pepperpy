@@ -84,9 +84,9 @@ class OptimizedLLM(LLMBase):
 
     async def embed(self, text: str) -> torch.Tensor:
         """Generate optimized embeddings"""
-        inputs = self.tokenizer(
-            text, return_tensors="pt", padding=True, truncation=True
-        ).to(self.model.device)
+        inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True).to(
+            self.model.device
+        )
 
         with torch.inference_mode():
             outputs = self.model.get_input_embeddings()(inputs.input_ids)

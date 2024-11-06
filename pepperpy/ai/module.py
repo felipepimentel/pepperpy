@@ -58,9 +58,7 @@ class BaseProvider(ABC):
     """Base class for AI providers"""
 
     @abstractmethod
-    async def generate(
-        self, prompt: str, model: Optional[str] = None, **kwargs
-    ) -> AIResponse:
+    async def generate(self, prompt: str, model: Optional[str] = None, **kwargs) -> AIResponse:
         """Generate AI response"""
         pass
 
@@ -93,9 +91,7 @@ class AIModule(BaseModule):
 
         # Load templates if configured
         if "templates_file" in self.config.settings:
-            self._template_manager.load_from_file(
-                self.config.settings["templates_file"]
-            )
+            self._template_manager.load_from_file(self.config.settings["templates_file"])
 
     async def initialize(self) -> None:
         """Initialize AI providers and components"""
@@ -184,18 +180,11 @@ class AIModule(BaseModule):
             )
 
             # Find most relevant chunks
-            similarities = [
-                np.dot(query_embedding, chunk_emb) for chunk_emb in chunk_embeddings
-            ]
-            top_chunks = [
-                chunks[i].content
-                for i in np.argsort(similarities)[-3:]  # Top 3 chunks
-            ]
+            similarities = [np.dot(query_embedding, chunk_emb) for chunk_emb in chunk_embeddings]
+            top_chunks = [chunks[i].content for i in np.argsort(similarities)[-3:]]  # Top 3 chunks
 
             # Build prompt with context
-            context_prompt = (
-                "Context:\n" + "\n---\n".join(top_chunks) + "\n\nQuestion: " + prompt
-            )
+            context_prompt = "Context:\n" + "\n---\n".join(top_chunks) + "\n\nQuestion: " + prompt
         else:
             # Without embeddings, use simple concatenation
             context_prompt = f"Context:\n{context}\n\nQuestion: {prompt}"
@@ -272,9 +261,7 @@ class AIModule(BaseModule):
             # Process uncached texts
             if any(isinstance(x, str) for x in batch_embeddings):
                 uncached_texts = [x for x in batch_embeddings if isinstance(x, str)]
-                new_embeddings = await self._embedding_provider.embed_batch(
-                    uncached_texts
-                )
+                new_embeddings = await self._embedding_provider.embed_batch(uncached_texts)
 
                 # Update cache
                 for text, embedding in zip(uncached_texts, new_embeddings):
@@ -319,9 +306,7 @@ class AIModule(BaseModule):
         async def process_query(query: str) -> Tuple[str, AIResponse]:
             # Find relevant chunks
             query_embedding = await self.embed_text(query)
-            similarities = [
-                np.dot(query_embedding, chunk_emb) for chunk_emb in chunk_embeddings
-            ]
+            similarities = [np.dot(query_embedding, chunk_emb) for chunk_emb in chunk_embeddings]
 
             # Get top chunks
             top_indices = np.argsort(similarities)[-3:]
@@ -335,9 +320,7 @@ class AIModule(BaseModule):
 
         return dict(results)
 
-    async def analyze_similarities(
-        self, texts: List[str], batch_size: int = 50
-    ) -> np.ndarray:
+    async def analyze_similarities(self, texts: List[str], batch_size: int = 50) -> np.ndarray:
         """Compute similarity matrix for texts efficiently"""
         # Generate embeddings in batches
         embeddings = await self._batch_processor.process_batch(texts, self.embed_text)
@@ -352,9 +335,7 @@ class AIModule(BaseModule):
                     matrix[j, i] = sim
             return matrix
 
-        return await self._batch_processor.run_in_thread(
-            compute_similarities, embeddings
-        )
+        return await self._batch_processor.run_in_thread(compute_similarities, embeddings)
 
     async def generate_from_template(
         self, template_name: str, variables: Dict[str, Any], **kwargs

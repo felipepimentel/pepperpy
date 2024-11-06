@@ -13,9 +13,7 @@ class StackSpotProvider(BaseProvider):
         self.base_url = "https://api.stackspot.ai/v1"
         self.workspace_id = config.get("workspace_id")
 
-    async def generate(
-        self, prompt: str, model: Optional[str] = None, **kwargs
-    ) -> AIResponse:
+    async def generate(self, prompt: str, model: Optional[str] = None, **kwargs) -> AIResponse:
         """Generate response using StackSpot AI"""
         headers = {
             "Authorization": f"Bearer {self.api_key}",

@@ -53,9 +53,7 @@ class ActivationQuantizer(nn.Module):
 
         # Quantize
         x_scaled = x / self.scale
-        x_clipped = x_scaled.clamp(
-            -(2 ** (self.config.bits - 1)), 2 ** (self.config.bits - 1) - 1
-        )
+        x_clipped = x_scaled.clamp(-(2 ** (self.config.bits - 1)), 2 ** (self.config.bits - 1) - 1)
         x_rounded = torch.round(x_clipped)
 
         # Dequantize
@@ -67,9 +65,7 @@ class ActivationQuantOptimizer:
     """Optimizer for activation quantization"""
 
     @staticmethod
-    def add_activation_quantization(
-        model: nn.Module, config: ActivationQuantConfig
-    ) -> nn.Module:
+    def add_activation_quantization(model: nn.Module, config: ActivationQuantConfig) -> nn.Module:
         """Add activation quantization to model"""
         for name, module in model.named_children():
             if isinstance(module, (nn.ReLU, nn.GELU, nn.SiLU)):

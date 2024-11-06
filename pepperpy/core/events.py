@@ -51,9 +51,7 @@ class EventBus:
     def unsubscribe(self, event_name: str, handler: EventHandler) -> None:
         """Remove handler de um evento"""
         if event_name in self._handlers:
-            self._handlers[event_name] = [
-                h for h in self._handlers[event_name] if h != handler
-            ]
+            self._handlers[event_name] = [h for h in self._handlers[event_name] if h != handler]
 
     async def publish(self, event: Event) -> None:
         """Publica um evento"""

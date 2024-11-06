@@ -27,9 +27,7 @@ class BlockSparseLinear(nn.Module):
         self.out_features = out_features
 
         # Initialize dense weights
-        self.weight = nn.Parameter(
-            torch.randn(out_features, in_features) / np.sqrt(in_features)
-        )
+        self.weight = nn.Parameter(torch.randn(out_features, in_features) / np.sqrt(in_features))
         self.bias = nn.Parameter(torch.zeros(out_features))
 
         # Initialize sparsity mask
@@ -39,9 +37,7 @@ class BlockSparseLinear(nn.Module):
         """Update sparsity mask"""
         with torch.no_grad():
             # Get block view of weights
-            block_view = self.weight.view(
-                -1, self.config.block_size, self.config.block_size
-            )
+            block_view = self.weight.view(-1, self.config.block_size, self.config.block_size)
 
             # Calculate block norms
             block_norms = torch.norm(block_view, dim=(1, 2))
@@ -85,9 +81,7 @@ class SparseOptimizer:
         for name, module in model.named_children():
             if isinstance(module, nn.Linear):
                 # Replace with block-sparse layer
-                sparse_layer = BlockSparseLinear(
-                    module.in_features, module.out_features, config
-                )
+                sparse_layer = BlockSparseLinear(module.in_features, module.out_features, config)
                 # Copy weights
                 sparse_layer.weight.data.copy_(module.weight.data)
                 sparse_layer.bias.data.copy_(module.bias.data)

@@ -13,9 +13,7 @@ class OpenRouterProvider(BaseProvider):
         self.base_url = "https://openrouter.ai/api/v1"
         self.default_model = config.get("default_model", "openai/gpt-3.5-turbo")
 
-    async def generate(
-        self, prompt: str, model: Optional[str] = None, **kwargs
-    ) -> AIResponse:
+    async def generate(self, prompt: str, model: Optional[str] = None, **kwargs) -> AIResponse:
         """Generate response using OpenRouter"""
         model = model or self.default_model
 

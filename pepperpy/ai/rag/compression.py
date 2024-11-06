@@ -42,9 +42,7 @@ class ContextCompressor:
 
         # Filter by relevance
         relevant_chunks = [
-            chunk
-            for chunk, score in zip(chunks, scores)
-            if score >= self.config.min_relevance
+            chunk for chunk, score in zip(chunks, scores) if score >= self.config.min_relevance
         ]
 
         if not relevant_chunks:
@@ -55,9 +53,7 @@ class ContextCompressor:
             compressed_chunks = self._cluster_chunks(relevant_chunks)
         else:
             # Take top chunks based on compression ratio
-            num_chunks = max(
-                1, int(len(relevant_chunks) * self.config.compression_ratio)
-            )
+            num_chunks = max(1, int(len(relevant_chunks) * self.config.compression_ratio))
             compressed_chunks = relevant_chunks[:num_chunks]
 
         return compressed_chunks
@@ -102,9 +98,7 @@ class ContextCompressor:
         # Select representative chunks
         compressed = []
         for i in range(n_clusters):
-            cluster_chunks = [
-                chunk for chunk, cluster in zip(chunks, clusters) if cluster == i
-            ]
+            cluster_chunks = [chunk for chunk, cluster in zip(chunks, clusters) if cluster == i]
             if cluster_chunks:
                 # Take chunk closest to cluster center
                 cluster_center = kmeans.cluster_centers_[i]

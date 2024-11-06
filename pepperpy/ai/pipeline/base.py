@@ -58,14 +58,10 @@ class Pipeline:
                             timeout=step.timeout,
                         )
                     else:
-                        current_data = await step.function(
-                            current_data, **(step.config or {})
-                        )
+                        current_data = await step.function(current_data, **(step.config or {}))
                     break
                 except Exception as e:
-                    self.logger.error(
-                        f"Step {step.name} failed (attempt {attempt + 1}): {str(e)}"
-                    )
+                    self.logger.error(f"Step {step.name} failed (attempt {attempt + 1}): {str(e)}")
                     if attempt == step.retry_count - 1:
                         raise
                     await asyncio.sleep(2**attempt)  # Exponential backoff

@@ -8,9 +8,7 @@ class FlashAttention:
 
     @staticmethod
     @triton.jit
-    def _flash_attn_forward(
-        q, k, v, sm_scale, BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr
-    ):
+    def _flash_attn_forward(q, k, v, sm_scale, BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr):
         """Optimized flash attention kernel"""
         # Flash attention implementation
         # This is a placeholder for the actual implementation
@@ -32,9 +30,7 @@ class ContinuousBatcher:
         self.current_batch = []
         self.prefetch_queue = []
 
-    async def add_request(
-        self, input_ids: torch.Tensor, attention_mask: torch.Tensor
-    ) -> None:
+    async def add_request(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> None:
         """Add request to batch"""
         self.current_batch.append((input_ids, attention_mask))
 

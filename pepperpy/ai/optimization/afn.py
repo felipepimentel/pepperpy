@@ -19,9 +19,7 @@ class AFNOptimizer:
     """Optimize models using Attention Free Networks"""
 
     @staticmethod
-    async def convert_to_afn(
-        model: PreTrainedModel, config: AFNConfig
-    ) -> PreTrainedModel:
+    async def convert_to_afn(model: PreTrainedModel, config: AFNConfig) -> PreTrainedModel:
         """Convert transformer model to AFN architecture"""
         # Replace self-attention with AFN blocks
         for layer in model.encoder.layer:
@@ -38,9 +36,7 @@ class AFNOptimizer:
         return model
 
     @staticmethod
-    async def optimize_memory_access(
-        model: PreTrainedModel, config: AFNConfig
-    ) -> PreTrainedModel:
+    async def optimize_memory_access(model: PreTrainedModel, config: AFNConfig) -> PreTrainedModel:
         """Optimize memory access patterns"""
 
         def chunk_and_pad(tensor: torch.Tensor) -> torch.Tensor:
@@ -48,9 +44,7 @@ class AFNOptimizer:
             chunks = tensor.split(config.chunk_size, dim=1)
             if len(chunks[-1]) < config.chunk_size:
                 pad_size = config.chunk_size - len(chunks[-1])
-                chunks = chunks[:-1] + (
-                    torch.nn.functional.pad(chunks[-1], (0, pad_size)),
-                )
+                chunks = chunks[:-1] + (torch.nn.functional.pad(chunks[-1], (0, pad_size)),)
             return torch.cat(chunks, dim=1)
 
         # Add chunking to forward pass

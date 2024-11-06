@@ -31,12 +31,14 @@ class DuckDBBackend(DatabaseBackend):
 
     def _create_tables(self, connection: duckdb.DuckDBPyConnection) -> None:
         """Create necessary tables"""
-        connection.execute("""
+        connection.execute(
+            """
             CREATE TABLE IF NOT EXISTS metadata (
                 key TEXT PRIMARY KEY,
                 value TEXT
             )
-        """)
+        """
+        )
 
     async def verify_connection(self, engine: AsyncEngine) -> bool:
         """Verify DuckDB connection"""

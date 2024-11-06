@@ -23,9 +23,7 @@ class QueryBuilder(Generic[T]):
 
     def filter_by(self, **kwargs: object) -> "QueryBuilder[T]":
         """Add equality conditions"""
-        conditions = [
-            getattr(self.model_class, key) == value for key, value in kwargs.items()
-        ]
+        conditions = [getattr(self.model_class, key) == value for key, value in kwargs.items()]
         return self.filter(*conditions)
 
     def order_by(self, *criteria: object) -> "QueryBuilder[T]":

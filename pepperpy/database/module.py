@@ -12,11 +12,7 @@ from .config import DatabaseConfigProvider
 from .constants import DatabaseEvents
 from .context import DatabaseContext
 from .decorators import measure_query, retry_on_error, transactional
-from .events import (
-    DatabaseEvent,
-    ModelCreated,
-    QueryExecuted,
-)
+from .events import DatabaseEvent, ModelCreated, QueryExecuted
 from .exceptions import ConnectionError, DatabaseError
 from .hooks import HookManager
 from .logging import DatabaseLogger
@@ -237,9 +233,7 @@ class DatabaseModule(BaseModule):
                         query_results.append(result)
                     else:
                         failed += 1
-                        errors.append(
-                            {"query": query_data, "error": result.error_message}
-                        )
+                        errors.append({"query": query_data, "error": result.error_message})
                 except Exception as e:
                     failed += 1
                     errors.append({"query": query_data, "error": str(e)})
@@ -308,9 +302,7 @@ class DatabaseModule(BaseModule):
 
     async def _handle_query_executed(self, event: QueryExecuted) -> None:
         """Handle query executed event"""
-        self.logger.debug(
-            f"Query executed: {event.query} (duration: {event.duration:.2f}s)"
-        )
+        self.logger.debug(f"Query executed: {event.query} (duration: {event.duration:.2f}s)")
 
     # Public API
     @property
@@ -324,9 +316,7 @@ class DatabaseModule(BaseModule):
         """Create query builder for model"""
         return QueryBuilder(model)
 
-    async def create(
-        self, model: Type[ModelType], **data: Dict[str, object]
-    ) -> Result[ModelType]:
+    async def create(self, model: Type[ModelType], **data: Dict[str, object]) -> Result[ModelType]:
         """Create model instance with hooks"""
         try:
             instance = model(**data)

@@ -101,9 +101,7 @@ class ParallelLinear(nn.Module):
             torch.empty(out_features, in_features, dtype=self.parallel.config.dtype)
         )
         if bias:
-            self.bias = nn.Parameter(
-                torch.empty(out_features, dtype=self.parallel.config.dtype)
-            )
+            self.bias = nn.Parameter(torch.empty(out_features, dtype=self.parallel.config.dtype))
         else:
             self.register_parameter("bias", None)
 

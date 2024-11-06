@@ -40,6 +40,7 @@ textual = { version = "^0.85.2", optional = true }
 questionary = { version = "^2.0.0", optional = true }
 sqlalchemy-stubs = { version = "^0.4", optional = true }
 types-redis = { version = "^4.6.0.20240311", optional = true }
+bitsandbytes = { version = "0.44.1", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
@@ -56,7 +57,7 @@ sqlite = ["SQLAlchemy", "greenlet", "aiosqlite", "alembic", "sqlalchemy-stubs"]
 duckdb = ["duckdb"]
 redis_cache = ["redis", "msgpack", "types-redis"]
 monitoring = ["prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy"]
-ai = ["numpy", "tokenizers", "torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client"]
+ai = ["numpy", "tokenizers", "torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client", "bitsandbytes"]
 ui = ["plotext", "typer", "rich", "textual", "questionary"]
 
 all = [
@@ -64,7 +65,7 @@ all = [
     "redis", "msgpack", "types-redis", "prometheus-client", "opentelemetry-api", "opentelemetry-sdk",
     "opentelemetry-instrumentation-sqlalchemy", "numpy", "tokenizers", "torch", "sentence-transformers",
     "scikit-learn", "wandb", "faiss-cpu", "qdrant-client", "plotext", "typer", "rich", "textual",
-    "questionary"
+    "questionary", "bitsandbytes"
 ]
 
 [build-system]

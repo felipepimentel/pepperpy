@@ -98,9 +98,7 @@ class AdvancedPipelines:
 
             results = {}
             if "accuracy" in metrics:
-                results["accuracy"] = accuracy_score(
-                    data["ground_truth"], data["predictions"]
-                )
+                results["accuracy"] = accuracy_score(data["ground_truth"], data["predictions"])
             if "f1" in metrics:
                 results["f1"] = f1_score(
                     data["ground_truth"], data["predictions"], average="weighted"
@@ -144,9 +142,7 @@ class AdvancedPipelines:
             valid_variations = []
             for i, var_emb in enumerate(variation_embeddings):
                 # Find closest original
-                similarities = [
-                    np.dot(var_emb, orig_emb) for orig_emb in original_embeddings
-                ]
+                similarities = [np.dot(var_emb, orig_emb) for orig_emb in original_embeddings]
                 max_sim = max(similarities)
 
                 # Keep if similar enough but not too similar

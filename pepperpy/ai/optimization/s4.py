@@ -53,9 +53,7 @@ class S4Layer(nn.Module):
             outputs = []
             for t in range(length):
                 # Update state
-                h = h + dt * (
-                    torch.matmul(h, self.A.T) + torch.matmul(u[:, t], self.B.T)
-                )
+                h = h + dt * (torch.matmul(h, self.A.T) + torch.matmul(u[:, t], self.B.T))
 
                 # Compute output
                 y = torch.matmul(h, self.C.T) + torch.matmul(u[:, t], self.D.T)

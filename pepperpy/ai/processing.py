@@ -50,9 +50,7 @@ class BatchProcessor:
 
         # Process in batches respecting priority
         while len(results) < len(items):
-            batch = await self._get_next_batch(
-                min(self.max_batch_size, len(items) - len(results))
-            )
+            batch = await self._get_next_batch(min(self.max_batch_size, len(items) - len(results)))
 
             batch_results = await asyncio.gather(
                 *(self._process_item(task.item, processor) for task in batch)

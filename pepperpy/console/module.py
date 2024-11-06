@@ -14,9 +14,7 @@ from rich.theme import Theme
 from .exceptions import ConsoleDisplayError, ConsoleInputError
 from .types import ConsoleConfig, Style
 
-JSONValue = Union[
-    Dict[str, "JSONValue"], List["JSONValue"], str, int, float, bool, None
-]
+JSONValue = Union[Dict[str, "JSONValue"], List["JSONValue"], str, int, float, bool, None]
 
 
 class Console:
@@ -158,9 +156,7 @@ class Console:
 
     # Progress tracking
     @contextmanager
-    def progress(
-        self, message: str = "Processing..."
-    ) -> Generator[Progress, None, None]:
+    def progress(self, message: str = "Processing...") -> Generator[Progress, None, None]:
         """Show progress indicator"""
         with Progress(
             SpinnerColumn(),

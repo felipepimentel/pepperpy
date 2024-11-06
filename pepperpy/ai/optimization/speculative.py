@@ -39,9 +39,7 @@ class SpeculativeDecoder:
             draft_outputs = await self._generate_draft(current_ids, current_mask)
 
             # Verify with target model
-            target_outputs = await self._verify_draft(
-                current_ids, current_mask, draft_outputs
-            )
+            target_outputs = await self._verify_draft(current_ids, current_mask, draft_outputs)
 
             # Accept verified tokens
             current_ids = torch.cat([current_ids, target_outputs], dim=-1)
@@ -78,9 +76,7 @@ class SpeculativeDecoder:
             # Get target model probabilities
             target_outputs = self.target_model(
                 input_ids=torch.cat([input_ids, draft_tokens], dim=-1),
-                attention_mask=torch.ones_like(
-                    torch.cat([input_ids, draft_tokens], dim=-1)
-                ),
+                attention_mask=torch.ones_like(torch.cat([input_ids, draft_tokens], dim=-1)),
             )
 
             # Accept tokens that match target distribution
@@ -88,16 +84,12 @@ class SpeculativeDecoder:
                 target_outputs.logits[:, input_ids.size(1) - 1 : -1], dim=-1
             )
             draft_probs = torch.softmax(
-                self.draft_model(
-                    input_ids=input_ids, attention_mask=attention_mask
-                ).logits[:, -1:],
+                self.draft_model(input_ids=input_ids, attention_mask=attention_mask).logits[:, -1:],
                 dim=-1,
             )
 
             # Compare distributions
-            kl_div = torch.nn.functional.kl_div(
-                draft_probs.log(), target_probs, reduction="none"
-            )
+            kl_div = torch.nn.functional.kl_div(draft_probs.log(), target_probs, reduction="none")
 
             # Accept tokens with low divergence
             accepted_mask = (kl_div.mean(dim=-1) < 0.5).float()

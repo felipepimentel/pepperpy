@@ -42,9 +42,7 @@ class VectorCache:
         # Create collection if needed
         self.client.recreate_collection(
             collection_name=self.config.collection,
-            vectors_config=VectorParams(
-                size=self.config.dimension, distance=Distance.COSINE
-            ),
+            vectors_config=VectorParams(size=self.config.dimension, distance=Distance.COSINE),
         )
 
     async def add(self, vector: np.ndarray, metadata: Dict[str, Any]) -> None:

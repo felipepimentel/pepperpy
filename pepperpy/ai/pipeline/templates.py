@@ -46,9 +46,7 @@ class AIPipelines:
         # Add generation step
         async def generate_response(context: List[str], query: str, **kwargs) -> str:
             context_text = "\n---\n".join(context)
-            response = await ai_module.generate_with_context(
-                query, context_text, **kwargs
-            )
+            response = await ai_module.generate_with_context(query, context_text, **kwargs)
             return response.content
 
         pipeline.add_step("generate", generate_response)
@@ -56,9 +54,7 @@ class AIPipelines:
         return pipeline
 
     @staticmethod
-    def create_batch_processing_pipeline(
-        ai_module: "AIModule", batch_size: int = 5
-    ) -> Pipeline:
+    def create_batch_processing_pipeline(ai_module: "AIModule", batch_size: int = 5) -> Pipeline:
         """Create batch processing pipeline"""
         pipeline = Pipeline("batch_processing")
 

@@ -58,9 +58,7 @@ def with_retry(
         async def wrapper(self: object, *args: object, **kwargs: object) -> T:
             if not hasattr(self, "_retry_handler"):
                 raise DatabaseError("RetryHandler not initialized")
-            return await self._retry_handler.retry(
-                func, self, *args, retry_on=retry_on, **kwargs
-            )
+            return await self._retry_handler.retry(func, self, *args, retry_on=retry_on, **kwargs)
 
         return wrapper
 

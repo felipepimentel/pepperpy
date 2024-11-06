@@ -66,9 +66,7 @@ class AIVisualizer:
         self, matrix: np.ndarray, labels: Optional[List[str]] = None
     ) -> go.Figure:
         """Plot similarity matrix heatmap"""
-        fig = go.Figure(
-            data=go.Heatmap(z=matrix, x=labels, y=labels, colorscale="Viridis")
-        )
+        fig = go.Figure(data=go.Heatmap(z=matrix, x=labels, y=labels, colorscale="Viridis"))
 
         fig.update_layout(
             title="Text Similarity Matrix",
@@ -116,20 +114,14 @@ class AIVisualizer:
 
         # Add bars for each metric
         fig.add_trace(
-            go.Bar(
-                name="Success Rate", x=df["operation"], y=df["success_rate"], yaxis="y"
-            )
+            go.Bar(name="Success Rate", x=df["operation"], y=df["success_rate"], yaxis="y")
         )
 
         fig.add_trace(
-            go.Bar(
-                name="Avg Duration", x=df["operation"], y=df["avg_duration"], yaxis="y2"
-            )
+            go.Bar(name="Avg Duration", x=df["operation"], y=df["avg_duration"], yaxis="y2")
         )
 
-        fig.add_trace(
-            go.Bar(name="Avg Tokens", x=df["operation"], y=df["avg_tokens"], yaxis="y3")
-        )
+        fig.add_trace(go.Bar(name="Avg Tokens", x=df["operation"], y=df["avg_tokens"], yaxis="y3"))
 
         # Update layout
         fig.update_layout(

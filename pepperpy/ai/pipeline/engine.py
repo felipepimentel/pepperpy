@@ -22,9 +22,7 @@ class PipelineEngine:
         self.stages = stages
         self.logger = logging.getLogger("pipeline")
 
-    async def process(
-        self, data: Any, context: Dict[str, Any] = None
-    ) -> AsyncIterator[Any]:
+    async def process(self, data: Any, context: Dict[str, Any] = None) -> AsyncIterator[Any]:
         """Process data through pipeline"""
         context = context or {}
         current = data

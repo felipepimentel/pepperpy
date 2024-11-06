@@ -35,11 +35,7 @@ class HybridSearch:
     def preprocess_text(self, text: str) -> List[str]:
         """Preprocess text for lexical search"""
         doc = self.nlp(text)
-        tokens = [
-            token.lemma_.lower()
-            for token in doc
-            if not token.is_stop and not token.is_punct
-        ]
+        tokens = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct]
         return tokens
 
     def build_index(
@@ -69,9 +65,7 @@ class HybridSearch:
         lexical_scores = np.array(bm25_index.get_scores(tokenized_query))
 
         # Get semantic scores
-        semantic_scores = cosine_similarity(
-            query_embedding.reshape(1, -1), embedding_matrix
-        )[0]
+        semantic_scores = cosine_similarity(query_embedding.reshape(1, -1), embedding_matrix)[0]
 
         # Combine scores
         combined_scores = (

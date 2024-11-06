@@ -23,9 +23,7 @@ class DataConfig:
 class MemoryMappedDataset(IterableDataset):
     """Memory-efficient dataset using memory mapping"""
 
-    def __init__(
-        self, data_path: str, tokenizer: Any, max_length: int = 512, stride: int = 128
-    ):
+    def __init__(self, data_path: str, tokenizer: Any, max_length: int = 512, stride: int = 128):
         self.data_path = data_path
         self.tokenizer = tokenizer
         self.max_length = max_length
@@ -47,11 +45,7 @@ class MemoryMappedDataset(IterableDataset):
             per_worker = int(self.file_size / worker_info.num_workers)
             worker_id = worker_info.id
             start = worker_id * per_worker
-            end = (
-                start + per_worker
-                if worker_id < worker_info.num_workers - 1
-                else self.file_size
-            )
+            end = start + per_worker if worker_id < worker_info.num_workers - 1 else self.file_size
 
         # Seek to start position
         self.mmap.seek(start)
@@ -91,9 +85,7 @@ class MemoryMappedDataset(IterableDataset):
 class PrefetchLoader:
     """Optimized data loader with prefetching"""
 
-    def __init__(
-        self, loader: DataLoader, device: torch.device, prefetch_factor: int = 2
-    ):
+    def __init__(self, loader: DataLoader, device: torch.device, prefetch_factor: int = 2):
         self.loader = loader
         self.device = device
         self.prefetch_factor = prefetch_factor
@@ -112,9 +104,7 @@ class PrefetchLoader:
 
                 # Move batch to device
                 device_batch = {
-                    k: v.to(self.device, non_blocking=True)
-                    if isinstance(v, torch.Tensor)
-                    else v
+                    k: v.to(self.device, non_blocking=True) if isinstance(v, torch.Tensor) else v
                     for k, v in batch.items()
                 }
 

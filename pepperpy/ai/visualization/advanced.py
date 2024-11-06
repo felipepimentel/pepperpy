@@ -34,9 +34,7 @@ class AdvancedVisualizer:
 
         # Add nodes for each step
         for step in pipeline_steps:
-            success_rate = (
-                metrics["operations"].get(step["name"], {}).get("success_rate", 0)
-            )
+            success_rate = metrics["operations"].get(step["name"], {}).get("success_rate", 0)
             color = self._get_health_color(success_rate)
 
             net.add_node(
@@ -97,20 +95,14 @@ class AdvancedVisualizer:
                 ]
             )
 
-            fig.update_layout(
-                xaxis_title="X", yaxis_title="Y", title="Embedding Clusters (2D)"
-            )
+            fig.update_layout(xaxis_title="X", yaxis_title="Y", title="Embedding Clusters (2D)")
 
         return fig
 
-    def plot_attention_heatmap(
-        self, attention_weights: np.ndarray, tokens: List[str]
-    ) -> go.Figure:
+    def plot_attention_heatmap(self, attention_weights: np.ndarray, tokens: List[str]) -> go.Figure:
         """Plot attention weights heatmap"""
         fig = go.Figure(
-            data=go.Heatmap(
-                z=attention_weights, x=tokens, y=tokens, colorscale="Viridis"
-            )
+            data=go.Heatmap(z=attention_weights, x=tokens, y=tokens, colorscale="Viridis")
         )
 
         fig.update_layout(

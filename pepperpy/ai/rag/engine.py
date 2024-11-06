@@ -23,9 +23,7 @@ class RAGConfig:
 class RAGEngine:
     """Retrieval Augmented Generation engine"""
 
-    def __init__(
-        self, chunker: ChunkingStrategy, embedder: EmbeddingProvider, config: RAGConfig
-    ):
+    def __init__(self, chunker: ChunkingStrategy, embedder: EmbeddingProvider, config: RAGConfig):
         self.chunker = chunker
         self.embedder = embedder
         self.config = config
@@ -36,16 +34,12 @@ class RAGEngine:
         chunks = self.chunker.split(document, max_chunk_size=self.config.chunk_size)
 
         # Get embeddings
-        chunk_embeddings = await self.embedder.embed_batch(
-            [chunk.content for chunk in chunks]
-        )
+        chunk_embeddings = await self.embedder.embed_batch([chunk.content for chunk in chunks])
         query_embedding = await self.embedder.embed_text(query)
 
         # Get initial top-k chunks
         if self.config.use_mmr:
-            selected_chunks = await self._mmr_selection(
-                query_embedding, chunks, chunk_embeddings
-            )
+            selected_chunks = await self._mmr_selection(query_embedding, chunks, chunk_embeddings)
         else:
             selected_chunks = await self._similarity_selection(
                 query_embedding, chunks, chunk_embeddings

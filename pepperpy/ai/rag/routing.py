@@ -56,9 +56,7 @@ class SemanticRouter:
     ) -> List[Tuple[int, float]]:
         """Find most relevant clusters for query"""
         # Calculate similarities to cluster centers
-        similarities = [
-            np.dot(query_embedding, center) for center in self.cluster_centers
-        ]
+        similarities = [np.dot(query_embedding, center) for center in self.cluster_centers]
 
         # Get top-k clusters
         top_indices = np.argsort(similarities)[-top_k:][::-1]
@@ -68,9 +66,7 @@ class SemanticRouter:
             if similarities[idx] >= self.config.similarity_threshold
         ]
 
-    def get_cluster_documents(
-        self, cluster_id: int, limit: Optional[int] = None
-    ) -> List[str]:
+    def get_cluster_documents(self, cluster_id: int, limit: Optional[int] = None) -> List[str]:
         """Get documents from cluster"""
         docs = self.document_clusters.get(cluster_id, [])
         if limit:

@@ -47,13 +47,9 @@ class ModelCompressor:
         )
 
     @staticmethod
-    async def optimize_onnx(
-        model_path: str, save_path: str, dtype: str = "int8"
-    ) -> None:
+    async def optimize_onnx(model_path: str, save_path: str, dtype: str = "int8") -> None:
         """Optimize ONNX model"""
-        conf = PostTrainingQuantConfig(
-            backend="onnxruntime", approach="dynamic", precision=dtype
-        )
+        conf = PostTrainingQuantConfig(backend="onnxruntime", approach="dynamic", precision=dtype)
         quantizer = quantization.Quantization(conf)
         quantizer.model = model_path
         quantizer.calib_dataloader = None

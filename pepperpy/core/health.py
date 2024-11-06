@@ -63,14 +63,10 @@ class HealthMonitor:
         if not self._checks:
             return self._status
 
-        if any(
-            check.status == HealthStatus.UNHEALTHY for check in self._checks.values()
-        ):
+        if any(check.status == HealthStatus.UNHEALTHY for check in self._checks.values()):
             return HealthStatus.UNHEALTHY
 
-        if any(
-            check.status == HealthStatus.DEGRADED for check in self._checks.values()
-        ):
+        if any(check.status == HealthStatus.DEGRADED for check in self._checks.values()):
             return HealthStatus.DEGRADED
 
         return HealthStatus.HEALTHY

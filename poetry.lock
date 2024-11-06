@@ -150,6 +150,25 @@ gssauth = ["gssapi", "sspilib"]
 test = ["distro (>=1.9.0,<1.10.0)", "flake8 (>=6.1,<7.0)", "flake8-pyi (>=24.1.0,<24.2.0)", "gssapi", "k5test", "mypy (>=1.8.0,<1.9.0)", "sspilib", "uvloop (>=0.15.3)"]
 
 [[package]]
+name = "bitsandbytes"
+version = "0.44.1"
+description = "k-bit optimizers and matrix multiplication routines."
+optional = true
+python-versions = "*"
+files = [
+    {file = "bitsandbytes-0.44.1-py3-none-manylinux_2_24_x86_64.whl", hash = "sha256:b2f24c6cbf11fc8c5d69b3dcecee9f7011451ec59d6ac833e873c9f105259668"},
+    {file = "bitsandbytes-0.44.1-py3-none-win_amd64.whl", hash = "sha256:8e68e12aa25d2cf9a1730ad72890a5d1a19daa23f459a6a4679331f353d58cb4"},
+]
+
+[package.dependencies]
+numpy = "*"
+torch = "*"
+
+[package.extras]
+benchmark = ["matplotlib", "pandas"]
+test = ["lion-pytorch", "scipy"]
+
+[[package]]
 name = "black"
 version = "24.10.0"
 description = "The uncompromising code formatter."
@@ -3971,8 +3990,8 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 type = ["pytest-mypy"]
 
 [extras]
-ai = ["faiss-cpu", "numpy", "qdrant-client", "scikit-learn", "sentence-transformers", "tokenizers", "torch", "wandb"]
-all = ["SQLAlchemy", "aiosqlite", "alembic", "asyncpg", "duckdb", "faiss-cpu", "greenlet", "msgpack", "numpy", "opentelemetry-api", "opentelemetry-instrumentation-sqlalchemy", "opentelemetry-sdk", "plotext", "prometheus-client", "psycopg", "qdrant-client", "questionary", "redis", "rich", "scikit-learn", "sentence-transformers", "sqlalchemy-stubs", "textual", "tokenizers", "torch", "typer", "types-redis", "wandb"]
+ai = ["bitsandbytes", "faiss-cpu", "numpy", "qdrant-client", "scikit-learn", "sentence-transformers", "tokenizers", "torch", "wandb"]
+all = ["SQLAlchemy", "aiosqlite", "alembic", "asyncpg", "bitsandbytes", "duckdb", "faiss-cpu", "greenlet", "msgpack", "numpy", "opentelemetry-api", "opentelemetry-instrumentation-sqlalchemy", "opentelemetry-sdk", "plotext", "prometheus-client", "psycopg", "qdrant-client", "questionary", "redis", "rich", "scikit-learn", "sentence-transformers", "sqlalchemy-stubs", "textual", "tokenizers", "torch", "typer", "types-redis", "wandb"]
 duckdb = ["duckdb"]
 monitoring = ["opentelemetry-api", "opentelemetry-instrumentation-sqlalchemy", "opentelemetry-sdk", "prometheus-client"]
 postgresql = ["SQLAlchemy", "alembic", "asyncpg", "greenlet", "psycopg", "sqlalchemy-stubs"]
@@ -3983,4 +4002,4 @@ ui = ["plotext", "questionary", "rich", "textual", "typer"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "62b94d85f0738877d9c8e35756ebf0add719e7efaefc25d9bd5cfa76a1664b07"
+content-hash = "69a3c695099959006e02ba1dffa5e5feaa3a0484519500ea58512e9098d60a17"

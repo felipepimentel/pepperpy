@@ -47,9 +47,7 @@ class StreamingResponse:
         self._queue = asyncio.Queue(maxsize=buffer_size)
         self._stats = StreamingStats()
 
-    async def add_token(
-        self, content: str, metadata: Optional[dict] = None
-    ) -> StreamingToken:
+    async def add_token(self, content: str, metadata: Optional[dict] = None) -> StreamingToken:
         """Add token to response with backpressure"""
         token = StreamingToken(content, self._index, metadata)
 
