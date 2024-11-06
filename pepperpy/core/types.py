@@ -14,6 +14,7 @@ T = TypeVar("T")
 
 class Status(Enum):
     """Module status states"""
+
     INACTIVE = auto()
     ACTIVE = auto()
     ERROR = auto()

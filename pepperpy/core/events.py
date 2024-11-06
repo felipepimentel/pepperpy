@@ -28,10 +28,10 @@ class Event:
 
 class EventBus:
     """Simple event bus implementation"""
-    
+
     def __init__(self) -> None:
         self._handlers: Dict[str, List[Callable]] = {}
-    
+
     def subscribe(self, event: str, handler: Callable) -> None:
         """Subscribe to an event"""
         if event not in self._handlers:
