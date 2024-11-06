@@ -26,5 +26,10 @@
     "python.analysis.exclude": [
          "/usr/lib/python3.10/**"
     ],
-    "ruff.enable": true
+    "ruff.enable": true,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

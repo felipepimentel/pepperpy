@@ -27,26 +27,16 @@ class Event:
 
 
 class EventBus:
-    """
-    Sistema de eventos com suporte a handlers síncronos e assíncronos
-    """
-
+    """Simple event bus implementation"""
+    
     def __init__(self) -> None:
-        self._handlers: Dict[str, List[EventHandler]] = {}
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
-
-    @property
-    def loop(self) -> asyncio.AbstractEventLoop:
-        """Obtém loop de eventos"""
-        if self._loop is None:
-            self._loop = asyncio.get_event_loop()
-        return self._loop
-
-    def subscribe(self, event_name: str, handler: EventHandler) -> None:
-        """Registra handler para um evento"""
-        if event_name not in self._handlers:
-            self._handlers[event_name] = []
-        self._handlers[event_name].append(handler)
+        self._handlers: Dict[str, List[Callable]] = {}
+    
+    def subscribe(self, event: str, handler: Callable) -> None:
+        """Subscribe to an event"""
+        if event not in self._handlers:
+            self._handlers[event] = []
+        self._handlers[event].append(handler)
 
     def unsubscribe(self, event_name: str, handler: EventHandler) -> None:
         """Remove handler de um evento"""

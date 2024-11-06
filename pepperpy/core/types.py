@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
@@ -12,13 +12,13 @@ PathLike = Union[str, Path]
 T = TypeVar("T")
 
 
-class Status(str, Enum):
-    """Status padrão para operações"""
-
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    ERROR = "error"
-    WARNING = "warning"
+class Status(Enum):
+    """Module status states"""
+    INACTIVE = auto()
+    ACTIVE = auto()
+    ERROR = auto()
+    STARTING = auto()
+    STOPPING = auto()
 
 
 @dataclass

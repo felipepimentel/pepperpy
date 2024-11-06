@@ -34,6 +34,22 @@ class Module(ABC):
         self._event_bus = EventBus()
         self._context = Context()
 
+    def _validate_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate module configuration.
+
+        Args:
+            config: Configuration dictionary to validate
+
+        Returns:
+            The validated configuration dictionary
+
+        Raises:
+            ValueError: If configuration is invalid
+        """
+        # Default implementation accepts any config
+        # Subclasses should override to add specific validation
+        return config
+
     @abstractmethod
     async def setup(self) -> None:
         """Initialize module resources"""
@@ -48,7 +64,7 @@ class Module(ABC):
         """Perform module health check"""
         return HealthStatus(
             module=self.__module_name__,
-            status=self._status,
+            state=self._status,
             details=self._get_health_details(),
         )
 
