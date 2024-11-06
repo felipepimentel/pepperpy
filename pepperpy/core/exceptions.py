@@ -1,21 +1,36 @@
 """Core exceptions for PepperPy."""
 
 from typing import Any, Dict, Optional
+from datetime import datetime, UTC
 
 
 class PepperError(Exception):
-    """Exceção base para todos os erros"""
+    """Base exception with improved error context"""
 
     def __init__(
         self,
         message: str,
         code: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
-    ):
+        cause: Optional[Exception] = None
+    ) -> None:
         self.message = message
         self.code = code or self.__class__.__name__
         self.details = details or {}
-        super().__init__(message)
+        self.cause = cause
+        self.timestamp = datetime.now(UTC)
+        
+        super().__init__(f"{self.code}: {message}")
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert error to dictionary format"""
+        return {
+            "code": self.code,
+            "message": self.message,
+            "details": self.details,
+            "timestamp": self.timestamp.isoformat(),
+            "cause": str(self.cause) if self.cause else None
+        }
 
 
 class ConfigError(PepperError):

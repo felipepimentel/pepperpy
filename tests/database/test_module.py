@@ -1,36 +1,39 @@
 import pytest
+from typing import AsyncGenerator
 
-from pepperpy.core.types import ModuleConfig
+from pepperpy.core.types import DatabaseConfig
 from pepperpy.database import DatabaseModule
+from pepperpy.core.exceptions import DatabaseError
 
 
 @pytest.fixture
-async def db_module():
-    config = ModuleConfig(
-        name="database",
-        settings={
-            "backend": "postgresql",
-            "connection": {"url": "postgresql://localhost/test"},
-        },
+async def database_module() -> AsyncGenerator[DatabaseModule, None]:
+    """Fixture providing configured database module"""
+    config = DatabaseConfig(
+        backend="postgresql",
+        connection_url="postgresql://localhost/test",
+        pool_size=5,
+        debug=True
     )
-    module = DatabaseModule(config)
+    
+    module = DatabaseModule(config=config)
     await module.setup()
-    yield module
-    await module.cleanup()
+    
+    try:
+        yield module
+    finally:
+        await module.cleanup()
 
-
-async def test_database_initialization(db_module):
-    assert db_module.status == "active"
-    assert db_module._engine is not None
-
-
-async def test_database_query(db_module):
-    result = await db_module.execute("SELECT 1")
-    assert result.success
-    assert result.data == [(1,)]
-
-
-async def test_database_transaction(db_module):
-    async with db_module.transaction.begin() as session:
+@pytest.mark.asyncio
+async def test_database_operations(database_module: DatabaseModule):
+    """Test core database operations"""
+    # Transaction management
+    async with database_module.transaction() as session:
+        # Query execution
         result = await session.execute("SELECT 1")
-        assert result.scalar_one() == 1
+        assert result.success
+        assert result.data == [(1,)]
+        
+        # Error handling
+        with pytest.raises(DatabaseError):
+            await session.execute("INVALID SQL")

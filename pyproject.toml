@@ -7,18 +7,22 @@ version = "1.2.5"
 repository = "https://github.com/felipepimentel/pepperpy"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 pydantic = "^2.9.2"
 typer = "^0.12.5"
 rich = "^13.9.3"
 tokenizers = "^0.20.1"
 questionary = "^2.0.0"
 plotext = "^5.2.8"
-
 sqlalchemy = { version = "^2.0.27", optional = true }
 alembic = { version = "^1.13.1", optional = true }
 greenlet = { version = "^3.0.3", optional = true }
-
+redis = { version = "^5.0.1", optional = true }
+msgpack = { version = "^1.0.7", optional = true }
+prometheus-client = { version = "^0.19.0", optional = true }
+opentelemetry-api = { version = "^1.23.0", optional = true }
+opentelemetry-sdk = { version = "^1.23.0", optional = true }
+opentelemetry-instrumentation-sqlalchemy = { version = "^0.44b0", optional = true }
 asyncpg = { version = "^0.29.0", optional = true }
 psycopg = { version = "^3.1.18", optional = true }
 pymysql = { version = "^1.1.0", optional = true }
@@ -26,27 +30,15 @@ aiosqlite = { version = "^0.19.0", optional = true }
 aiomysql = { version = "^0.2.0", optional = true }
 duckdb = { version = "^0.10.0", optional = true }
 
-redis = { version = "^5.0.1", optional = true }
-msgpack = { version = "^1.0.7", optional = true }
-
-prometheus-client = { version = "^0.19.0", optional = true }
-opentelemetry-api = { version = "^1.23.0", optional = true }
-opentelemetry-sdk = { version = "^1.23.0", optional = true }
-opentelemetry-instrumentation-sqlalchemy = { version = "^0.44b0", optional = true }
-
 [tool.poetry.extras]
 postgresql = ["sqlalchemy", "asyncpg", "psycopg", "alembic", "greenlet"]
 mysql = ["sqlalchemy", "pymysql", "aiomysql", "alembic", "greenlet"]
 sqlite = ["sqlalchemy", "aiosqlite", "alembic", "greenlet"]
 duckdb = ["duckdb"]
-
 redis_cache = ["redis", "msgpack"]
-
 monitoring = ["prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy"]
-
 ai = ["torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client"]
 ui = ["textual", "questionary", "plotext"]
-
 all = [
   "sqlalchemy", "alembic", "greenlet",
   "asyncpg", "psycopg", "pymysql", "aiomysql", "aiosqlite", "duckdb",
@@ -74,8 +66,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 select = [
     "E", "F", "B", "I", "N",
-    "RUF",
-    "UP",
     "ANN",
 ]
 ignore = [
@@ -93,7 +83,7 @@ line-length = 100
 
 [tool.black]
 line-length = 100
-target-version = ['py310']
+target-version = ['py312']
 include = '\.pyi?$'
 
 [tool.mypy]

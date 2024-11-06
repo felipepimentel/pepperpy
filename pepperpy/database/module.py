@@ -35,8 +35,32 @@ from .validation import database_validator
 T = TypeVar("T", bound=BaseModel)
 
 
-class DatabaseModule(BaseModule, IQueryExecutor, ITransactionManager):
-    """Database management module with multiple backend support"""
+class DatabaseModule(BaseModule):
+    """Database management module with comprehensive backend support.
+    
+    This module provides a unified interface for database operations across different
+    backends, with built-in support for:
+    - Connection pooling and management
+    - Transaction handling
+    - Query execution and result processing
+    - Performance monitoring and profiling
+    
+    Args:
+        config (Optional[Dict[str, Any]]): Module configuration including:
+            - backend: Database backend type
+            - connection_url: Database connection URL
+            - pool_size: Connection pool size
+            - debug: Enable debug mode
+    
+    Examples:
+        >>> module = DatabaseModule({
+        ...     "backend": "postgresql",
+        ...     "connection_url": "postgresql://localhost/db"
+        ... })
+        >>> await module.setup()
+        >>> async with module.transaction() as session:
+        ...     result = await session.execute("SELECT * FROM users")
+    """
 
     __module_name__ = "database"
     __version__ = "1.0.0"
