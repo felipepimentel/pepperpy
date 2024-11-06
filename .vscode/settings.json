@@ -12,7 +12,7 @@
         "dist": true,
         "venv": true,
         ".venv": true,
-        ".git": false
+        "**/.git": false
     },
     "[python]": {
         "editor.formatOnSave": true,
