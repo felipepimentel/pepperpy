@@ -3,7 +3,7 @@ name = "pepperpy"
 description = "A modern Python utility library"
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 readme = "README.md"
-version = "1.2.6"
+version = "1.2.7"
 repository = "https://github.com/felipepimentel/pepperpy"
 
 [tool.poetry.dependencies]
