@@ -20,3 +20,7 @@ A modern, feature-rich Python utility library designed to accelerate development
 ## Installation 🚀
 
 PepperPy uses Poetry for dependency management. Install the base package:
+
+```bash
+poetry install --only main
+```

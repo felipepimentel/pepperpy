@@ -9,60 +9,53 @@ repository = "https://github.com/felipepimentel/pepperpy"
 [tool.poetry.dependencies]
 python = "^3.12"
 pydantic = "^2.9.2"
-typer = "^0.12.5"
-rich = "^13.9.3"
-tokenizers = "^0.20.1"
-questionary = "^2.0.0"
-plotext = "^5.2.8"
-sqlalchemy = { version = "^2.0.27", optional = true }
-alembic = { version = "^1.13.1", optional = true }
-greenlet = { version = "^3.0.3", optional = true }
+sqlalchemy = { version = "^2.0.36", optional = true, extras = ["asyncio"] }
+greenlet = { version = "^3.1.1", optional = true }
+asyncpg = { version = "^0.30.0", optional = true }
+psycopg = { version = "^3.2.3", optional = true }
+alembic = { version = "^1.14.0", optional = true }
+pymysql = { version = "^1.1.0", optional = true }
+aiomysql = { version = "^0.2.0", optional = true }
+aiosqlite = { version = "^0.19.0", optional = true }
+duckdb = { version = "^0.10.0", optional = true }
 redis = { version = "^5.0.1", optional = true }
 msgpack = { version = "^1.0.7", optional = true }
 prometheus-client = { version = "^0.19.0", optional = true }
-opentelemetry-api = { version = "^1.23.0", optional = true }
-opentelemetry-sdk = { version = "^1.23.0", optional = true }
-opentelemetry-instrumentation-sqlalchemy = { version = "^0.44b0", optional = true }
-asyncpg = { version = "^0.29.0", optional = true }
-psycopg = { version = "^3.1.18", optional = true }
-pymysql = { version = "^1.1.0", optional = true }
-aiosqlite = { version = "^0.19.0", optional = true }
-aiomysql = { version = "^0.2.0", optional = true }
-duckdb = { version = "^0.10.0", optional = true }
-numpy = "^2.1.3"
-sentence-transformers = "^2.6.1"
+opentelemetry-api = { version = "^1.28.0", optional = true }
+opentelemetry-sdk = { version = "^1.28.0", optional = true }
+opentelemetry-instrumentation-sqlalchemy = { version = "^0.49b0", optional = true }
+numpy = { version = "^2.1.3", optional = true }
+tokenizers = { version = "^0.20.1", optional = true }
+torch = { version = "^2.0.0", optional = true }
+sentence-transformers = { version = "^2.6.1", optional = true }
+scikit-learn = { version = "^1.3.0", optional = true }
+wandb = { version = "^0.15.0", optional = true }
+faiss-cpu = { version = "^1.7.4", optional = true }
+qdrant-client = { version = "^1.1.0", optional = true }
+plotext = { version = "^5.2.8", optional = true }
+typer = { version = "^0.12.5", optional = true }
+rich = { version = "^13.9.3", optional = true }
+textual = { version = "^0.85.2", optional = true }
+questionary = { version = "^2.0.0", optional = true }
+sqlalchemy-stubs = { version = "^0.4", optional = true }
+types-redis = { version = "^4.6.0.20240311", optional = true }
 
 [tool.poetry.extras]
-postgresql = ["sqlalchemy", "asyncpg", "psycopg", "alembic", "greenlet"]
-mysql = ["sqlalchemy", "pymysql", "aiomysql", "alembic", "greenlet"]
-sqlite = ["sqlalchemy", "aiosqlite", "alembic", "greenlet"]
+postgresql = ["sqlalchemy", "greenlet", "asyncpg", "psycopg", "alembic", "sqlalchemy-stubs"]
+mysql = ["sqlalchemy", "greenlet", "pymysql", "aiomysql", "alembic", "sqlalchemy-stubs"]
+sqlite = ["sqlalchemy", "greenlet", "aiosqlite", "alembic", "sqlalchemy-stubs"]
 duckdb = ["duckdb"]
-redis_cache = ["redis", "msgpack"]
+redis_cache = ["redis", "msgpack", "types-redis"]
 monitoring = ["prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy"]
-ai = ["torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client"]
-ui = ["textual", "questionary", "plotext"]
-all = [
-  "sqlalchemy", "alembic", "greenlet",
-  "asyncpg", "psycopg", "pymysql", "aiomysql", "aiosqlite", "duckdb",
-  "redis", "msgpack",
-  "prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy",
-  "torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client",
-  "textual", "questionary", "plotext"
-]
+ai = ["numpy", "tokenizers", "torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client"]
+ui = ["plotext", "typer", "rich", "textual", "questionary"]
+dev = ["pytest", "pytest-asyncio", "pytest-cov", "black", "ruff", "mypy", "python-semantic-release"]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.3"
-pytest-asyncio = "^0.23.5"
-pytest-cov = "^4.1.0"
-black = "^24.10.0"
-ruff = "^0.7.1"
-mypy = "^1.13.0"
-python-semantic-release = "^9.12.0"
-types-redis = "^4.6.0.20240311"
-sqlalchemy-stubs = "^0.4"
+# Extra "all" inclui todos os extras acima
+all = ["postgresql", "mysql", "sqlite", "duckdb", "redis_cache", "monitoring", "ai", "ui", "dev"]
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]

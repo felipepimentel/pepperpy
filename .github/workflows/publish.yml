@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -32,8 +32,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/pypoetry
+            ~/.cache/pypoetry/virtualenvs
             ~/.cache/pip
+            ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
@@ -43,7 +44,7 @@ jobs:
 
       - name: Run Linters
         run: poetry run ruff check . && poetry run black --check .
-      
+
       - name: Run Tests
         run: poetry run pytest
         env:
@@ -60,11 +61,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry run semantic-release publish
+          poetry run semantic-release publish -v
 
-      - name: Clean Previous Builds
-        if: steps.versioning.outcome == 'success'
-        run: rm -rf dist/
+      - name: Check if Version Incremented
+        if: steps.versioning.outcome == 'success' && steps.versioning.outputs.new_release == 'true'
+        run: echo "New version detected, proceeding with build and publish."
 
       - name: Build the package
         if: steps.versioning.outcome == 'success'
