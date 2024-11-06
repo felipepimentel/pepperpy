@@ -38,7 +38,9 @@ jobs:
             poetry version patch
           else
             echo "Version $VERSION is available. Proceeding with publish."
+          fi  # Adiciona um 'fi' para fechar o bloco if
         shell: bash
+      
 
       - name: Cache dependencies
         uses: actions/cache@v3
