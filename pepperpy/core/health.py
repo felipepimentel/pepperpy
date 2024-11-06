@@ -52,7 +52,7 @@ class HealthCheck:
 class HealthMonitor:
     """Monitor de saúde do sistema"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._checks: Dict[str, HealthCheck] = {}
         self._status = HealthStatus.STARTING
         self._listeners: List[callable] = []

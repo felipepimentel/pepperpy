@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Dict, Generic, Optional, TypeVar, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -59,16 +59,16 @@ class IModelManager(ABC, Generic[T]):
     """Interface for model management"""
 
     @abstractmethod
-    async def create(self, **data: Any) -> Result[T]:
+    async def create(self, **data: object) -> Result[T]:
         """Create model instance"""
         pass
 
     @abstractmethod
-    async def update(self, id: Any, **data: Any) -> Result[T]:
+    async def update(self, id: Union[int, str], **data: object) -> Result[T]:
         """Update model instance"""
         pass
 
     @abstractmethod
-    async def delete(self, id: Any) -> Result[bool]:
+    async def delete(self, id: Union[int, str]) -> Result[bool]:
         """Delete model instance"""
         pass

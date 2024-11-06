@@ -1,7 +1,7 @@
 """Core exceptions for PepperPy."""
 
+from datetime import UTC, datetime
 from typing import Any, Dict, Optional
-from datetime import datetime, UTC
 
 
 class PepperError(Exception):
@@ -12,14 +12,14 @@ class PepperError(Exception):
         message: str,
         code: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None
+        cause: Optional[Exception] = None,
     ) -> None:
         self.message = message
         self.code = code or self.__class__.__name__
         self.details = details or {}
         self.cause = cause
         self.timestamp = datetime.now(UTC)
-        
+
         super().__init__(f"{self.code}: {message}")
 
     def to_dict(self) -> Dict[str, Any]:
@@ -29,7 +29,7 @@ class PepperError(Exception):
             "message": self.message,
             "details": self.details,
             "timestamp": self.timestamp.isoformat(),
-            "cause": str(self.cause) if self.cause else None
+            "cause": str(self.cause) if self.cause else None,
         }
 
 
@@ -42,7 +42,7 @@ class ConfigError(PepperError):
 class ValidationError(PepperError):
     """Erro de validação"""
 
-    def __init__(self, message: str, field: Optional[str] = None):
+    def __init__(self, message: str, field: Optional[str] = None) -> None:
         super().__init__(
             message,
             code="VALIDATION_ERROR",
@@ -53,7 +53,7 @@ class ValidationError(PepperError):
 class ModuleError(PepperError):
     """Erro relacionado a módulos"""
 
-    def __init__(self, message: str, module_name: str):
+    def __init__(self, message: str, module_name: str) -> None:
         super().__init__(message, code="MODULE_ERROR", details={"module": module_name})
 
 

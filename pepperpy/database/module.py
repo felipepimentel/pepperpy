@@ -19,7 +19,6 @@ from .events import (
 )
 from .exceptions import ConnectionError, DatabaseError
 from .hooks import HookManager
-from .interfaces import IQueryExecutor, ITransactionManager
 from .logging import DatabaseLogger
 from .metrics import DatabaseMetrics
 from .models import BaseModel
@@ -33,25 +32,26 @@ from .types import DatabaseConfig
 from .validation import database_validator
 
 T = TypeVar("T", bound=BaseModel)
+ModelType = TypeVar("ModelType", bound=BaseModel)
 
 
 class DatabaseModule(BaseModule):
     """Database management module with comprehensive backend support.
-    
+
     This module provides a unified interface for database operations across different
     backends, with built-in support for:
     - Connection pooling and management
     - Transaction handling
     - Query execution and result processing
     - Performance monitoring and profiling
-    
+
     Args:
         config (Optional[Dict[str, Any]]): Module configuration including:
             - backend: Database backend type
             - connection_url: Database connection URL
             - pool_size: Connection pool size
             - debug: Enable debug mode
-    
+
     Examples:
         >>> module = DatabaseModule({
         ...     "backend": "postgresql",
@@ -148,7 +148,10 @@ class DatabaseModule(BaseModule):
     @measure_query()
     @retry_on_error()
     async def execute(
-        self, query: str, params: Optional[Dict] = None
+        self,
+        query: str,
+        params: Optional[Dict] = None,
+        session: Optional[AsyncSession] = None,
     ) -> QueryResult[Any]:
         """Execute raw SQL query with retry and metrics"""
         # Start profiling
@@ -227,7 +230,7 @@ class DatabaseModule(BaseModule):
             for query_data in queries:
                 try:
                     result = await self.execute(
-                        query_data["query"], query_data.get("params")
+                        query_data["query"], query_data.get("params"), session=session
                     )
                     if result.success:
                         succeeded += 1
@@ -321,7 +324,9 @@ class DatabaseModule(BaseModule):
         """Create query builder for model"""
         return QueryBuilder(model)
 
-    async def create(self, model: Type[T], **data: Any) -> Result[T]:
+    async def create(
+        self, model: Type[ModelType], **data: Dict[str, object]
+    ) -> Result[ModelType]:
         """Create model instance with hooks"""
         try:
             instance = model(**data)

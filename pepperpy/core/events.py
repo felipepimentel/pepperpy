@@ -1,12 +1,14 @@
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar, Union
 
 # Tipos de handlers
 SyncHandler = Callable[["Event"], None]
 AsyncHandler = Callable[["Event"], Awaitable[None]]
 EventHandler = Union[SyncHandler, AsyncHandler]
+
+T = TypeVar("T")  # Add at top of file with other imports
 
 
 @dataclass
@@ -19,7 +21,7 @@ class Event:
     data: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.data is None:
             self.data = {}
 
@@ -29,7 +31,7 @@ class EventBus:
     Sistema de eventos com suporte a handlers síncronos e assíncronos
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._handlers: Dict[str, List[EventHandler]] = {}
         self._loop: Optional[asyncio.AbstractEventLoop] = None
 
@@ -103,15 +105,11 @@ class SystemEvents:
 class StateChangeEvent:
     """Evento de mudança de estado"""
 
-    def __init__(self, key: str, old_value: Any, new_value: Any, source: str):
+    def __init__(self, key: str, old_value: T, new_value: T, source: str) -> None:
         self.event = Event(
             name=SystemEvents.STATE_CHANGED,
             source=source,
-            data={
-                "key": key,
-                "old_value": old_value,
-                "new_value": new_value
-            }
+            data={"key": key, "old_value": old_value, "new_value": new_value},
         )
 
     @property
@@ -119,25 +117,22 @@ class StateChangeEvent:
         return self.event.data["key"]
 
     @property
-    def old_value(self) -> Any:
+    def old_value(self) -> T:
         return self.event.data["old_value"]
 
     @property
-    def new_value(self) -> Any:
+    def new_value(self) -> T:
         return self.event.data["new_value"]
 
 
 class ErrorEvent:
     """Evento de erro"""
 
-    def __init__(self, error: Exception, source: str):
+    def __init__(self, error: Exception, source: str) -> None:
         self.event = Event(
             name=SystemEvents.ERROR,
             source=source,
-            data={
-                "error_type": type(error).__name__,
-                "error_message": str(error)
-            }
+            data={"error_type": type(error).__name__, "error_message": str(error)},
         )
         self.error = error
 

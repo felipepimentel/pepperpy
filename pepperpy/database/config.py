@@ -34,10 +34,12 @@ class DatabaseModuleConfig(BaseModel):
 class DatabaseConfigProvider(ConfigProvider):
     """Configuration provider for database module"""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Dict[str, Any]) -> None:
         self.config = DatabaseModuleConfig(**config)
 
-    def get(self, key: str, default: Any = None) -> Any:
+    def get(
+        self, key: str, default: str | int | bool | dict | None = None
+    ) -> str | int | bool | dict | None:
         """Get configuration value"""
         try:
             parts = key.split(".")
@@ -48,7 +50,7 @@ class DatabaseConfigProvider(ConfigProvider):
         except AttributeError:
             return default
 
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: str | int | bool | dict) -> None:
         """Set configuration value"""
         parts = key.split(".")
         target = self.config

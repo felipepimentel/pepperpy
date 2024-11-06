@@ -16,7 +16,7 @@ class BatchProcessor:
         max_concurrent: int = 3,
         max_batch_size: int = 20,
         executor: Optional[ThreadPoolExecutor] = None,
-    ):
+    ) -> None:
         self.max_concurrent = max_concurrent
         self.max_batch_size = max_batch_size
         self.executor = executor or ThreadPoolExecutor(max_workers=max_concurrent)

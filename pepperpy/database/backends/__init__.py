@@ -11,15 +11,15 @@ class DatabaseBackend(ABC):
 
     @abstractmethod
     async def create_engine(
-        self, connection: ConnectionConfig, **kwargs
+        self,
+        connection: ConnectionConfig,
+        **kwargs: Dict[str, str | int | bool | float],
     ) -> AsyncEngine:
         """Create database engine"""
         pass
 
     @abstractmethod
-    async def run_migrations(
-        self, engine: AsyncEngine, config: DatabaseConfig
-    ) -> None:
+    async def run_migrations(self, engine: AsyncEngine, config: DatabaseConfig) -> None:
         """Run database migrations"""
         pass
 
@@ -42,4 +42,4 @@ def get_backend(name: str) -> DatabaseBackend:
     """Get database backend by name"""
     if name not in _BACKENDS:
         raise ValueError(f"Unknown database backend: {name}")
-    return _BACKENDS[name]() 
+    return _BACKENDS[name]()

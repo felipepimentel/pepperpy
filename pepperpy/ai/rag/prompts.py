@@ -37,7 +37,7 @@ class PromptConfig:
 class DynamicPromptOptimizer:
     """Optimize prompts for RAG"""
 
-    def __init__(self, config: PromptConfig):
+    def __init__(self, config: PromptConfig) -> None:
         self.config = config
         self.template = Template(config.instruction_template)
         self._example_cache: Dict[str, List[Dict[str, str]]] = {}

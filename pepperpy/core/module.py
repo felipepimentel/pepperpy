@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar
+from typing import Any, ClassVar, Dict, List, Optional, TypeVar
+
+from pepperpy.core.health import HealthStatus
+from pepperpy.core.metadata import ModuleMetadata
 
 from .context import Context
-from .events import Event, EventBus
-from .exceptions import ModuleError, ValidationError
+from .events import EventBus
 from .logging import get_logger
-from .types import Metadata, ModuleConfig, Status
-from .validation import Validator
+from .types import Status
 
 T = TypeVar("T", bound="Module")
 
@@ -27,7 +28,7 @@ class Module(ABC):
             name=self.__module_name__,
             version=self.__version__,
             description=self.__description__,
-            dependencies=self.__dependencies__
+            dependencies=self.__dependencies__,
         )
         self._logger = get_logger(self.__module_name__)
         self._event_bus = EventBus()
@@ -48,7 +49,7 @@ class Module(ABC):
         return HealthStatus(
             module=self.__module_name__,
             status=self._status,
-            details=self._get_health_details()
+            details=self._get_health_details(),
         )
 
     def _get_health_details(self) -> Dict[str, Any]:
@@ -56,5 +57,5 @@ class Module(ABC):
         return {
             "version": self.__version__,
             "status": self._status,
-            "config": self._config
+            "config": self._config,
         }

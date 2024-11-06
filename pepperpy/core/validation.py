@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 
 @dataclass
@@ -19,11 +20,11 @@ class ValidationRule(Generic[T]):
         return None if self.validator(value) else self.message
 
 
-class Validator(ABC):
+class Validator(ABC, Generic[T_co]):
     """Interface base para validadores"""
 
     @abstractmethod
-    def validate(self, value: Any) -> List[str]:
+    def validate(self, value: T_co) -> List[str]:
         """Valida um valor"""
         pass
 
@@ -31,7 +32,7 @@ class Validator(ABC):
 class SchemaValidator(Validator):
     """Validador baseado em schema"""
 
-    def __init__(self, schema: Dict[str, List[ValidationRule]]):
+    def __init__(self, schema: Dict[str, List[ValidationRule[T_co]]]) -> None:
         self.schema = schema
 
     def validate(self, data: Dict[str, Any]) -> List[str]:

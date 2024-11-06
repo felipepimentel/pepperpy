@@ -85,7 +85,7 @@ class DatabaseProfile:
 class DatabaseProfiler:
     """Database operation profiler"""
 
-    def __init__(self, slow_threshold: float = 1.0):
+    def __init__(self, slow_threshold: float = 1.0) -> None:
         self._profile = DatabaseProfile(slow_threshold=slow_threshold)
         self._start_time = datetime.utcnow()
 

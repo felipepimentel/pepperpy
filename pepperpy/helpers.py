@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Dict
 
 import requests
 
@@ -18,7 +18,7 @@ def load_config(path: str) -> Dict:
     raise ValueError(f"Unsupported config format: {path.suffix}")
 
 
-def fetch_json(url: str) -> Any:
+def fetch_json(url: str) -> object:
     """Faz request HTTP e retorna JSON"""
     with console.progress(f"Fetching {url}"):
         response = requests.get(url)
@@ -26,7 +26,7 @@ def fetch_json(url: str) -> Any:
         return response.json()
 
 
-def save_data(data: Any, path: str) -> None:
+def save_data(data: object, path: str) -> None:
     """Salva dados em arquivo (formato baseado na extensão)"""
     path = Path(path)
     if path.suffix == ".json":
@@ -37,7 +37,7 @@ def save_data(data: Any, path: str) -> None:
         raise ValueError(f"Unsupported format: {path.suffix}")
 
 
-def prompt_config(schema: Dict[str, Any]) -> Dict[str, Any]:
+def prompt_config(schema: Dict[str, object]) -> Dict[str, object]:
     """Prompt interativo para configuração"""
     config = {}
     console.title("Configuration")

@@ -18,7 +18,7 @@ class GenerationConfig:
 class AnswerGenerator:
     """Generate answers using retrieved context"""
 
-    def __init__(self, config: GenerationConfig):
+    def __init__(self, config: GenerationConfig) -> None:
         self.config = config
         self._prompt_templates = {
             QueryType.FACTUAL: """
@@ -62,7 +62,6 @@ class AnswerGenerator:
         context: List[str],
         plan: QueryPlan,
         examples: Optional[List[Dict[str, str]]] = None,
-        **kwargs,
     ) -> str:
         """Generate answer based on context and plan"""
         # Format context
@@ -82,9 +81,7 @@ class AnswerGenerator:
             "{{ question }}", query
         )
 
-        return await self._generate(
-            prompt, temperature=self.config.temperature, **kwargs
-        )
+        return await self._generate(prompt)
 
     def _format_context(self, context: List[str], plan: QueryPlan) -> str:
         """Format context based on query plan"""
@@ -148,7 +145,7 @@ class AnswerGenerator:
             examples_text += f"Answer: {example['answer']}\n"
         return examples_text + "\n" + template
 
-    async def _generate(self, prompt: str, **kwargs) -> str:
+    async def _generate(self, prompt: str) -> str:
         """Generate text using language model"""
         # Implementation depends on specific LLM being used
         raise NotImplementedError()

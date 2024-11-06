@@ -14,7 +14,7 @@ class PromptTemplate:
     description: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def render(self, **kwargs) -> str:
+    def render(self, **kwargs: str | int | float | bool) -> str:
         """Render template with variables"""
         env = Environment(loader=BaseLoader())
         template = env.from_string(self.template)
@@ -43,7 +43,7 @@ class TemplateManager:
         """Get template by name"""
         return self._templates.get(name)
 
-    def render_template(self, name: str, **kwargs) -> Optional[str]:
+    def render_template(self, name: str, **kwargs: str | int | float | bool) -> Optional[str]:
         """Render template with variables"""
         template = self.get_template(name)
         if template:

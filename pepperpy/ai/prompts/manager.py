@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from jinja2 import BaseLoader, Environment
@@ -15,7 +15,7 @@ class PromptTemplate:
     variables: List[str] = field(default_factory=list)
     examples: List[Dict[str, Any]] = field(default_factory=list)
 
-    def render(self, **kwargs) -> str:
+    def render(self, **kwargs: Union[str, int, float, bool, list, dict]) -> str:
         """Render template with variables"""
         env = Environment(loader=BaseLoader())
         template = env.from_string(self.template)
@@ -33,7 +33,7 @@ class PromptTemplate:
 class PromptManager:
     """Manages prompt templates and generation"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._templates: Dict[str, PromptTemplate] = {}
 
     def load_templates(self, path: str) -> None:

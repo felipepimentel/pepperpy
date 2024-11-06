@@ -3,12 +3,12 @@ from typing import Optional
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy.ext.asyncio import AsyncEngine
+
 
 class MigrationManager:
     """Database migration manager"""
 
-    def __init__(self, migrations_dir: Optional[Path] = None):
+    def __init__(self, migrations_dir: Optional[Path] = None) -> None:
         self.migrations_dir = migrations_dir or Path("migrations")
         self._config = None
 
@@ -35,4 +35,4 @@ class MigrationManager:
     async def current(self, database_url: str) -> str:
         """Get current migration revision"""
         self._init_config(database_url)
-        return command.current(self._config) 
+        return command.current(self._config)

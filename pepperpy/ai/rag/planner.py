@@ -28,7 +28,7 @@ class QueryPlan:
 class QueryPlanner:
     """Plan query processing strategy"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._type_patterns = {
             QueryType.FACTUAL: r"what|who|when|where",
             QueryType.ANALYTICAL: r"why|how|analyze|explain",

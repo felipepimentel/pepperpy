@@ -6,7 +6,7 @@ from pepperpy.core.logging import get_logger
 class DatabaseLogger:
     """Database specific logger with query formatting"""
 
-    def __init__(self, name: str = "database"):
+    def __init__(self, name: str = "database") -> None:
         self._logger = get_logger(name)
         self._query_counter = 0
 

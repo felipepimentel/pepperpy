@@ -60,11 +60,19 @@ class Result(Generic[T]):
     metadata: JsonDict = field(default_factory=dict)
 
     @classmethod
-    def ok(cls, data: T, **metadata) -> "Result[T]":
+    def ok(
+        cls,
+        data: T,
+        **metadata: Union[str, int, float, bool, None, Dict[str, Any], List[Any]],
+    ) -> "Result[T]":
         """Cria resultado de sucesso"""
         return cls(success=True, data=data, metadata=metadata)
 
     @classmethod
-    def fail(cls, message: str, **metadata) -> "Result[T]":
+    def fail(
+        cls,
+        message: str,
+        **metadata: Union[str, int, float, bool, None, Dict[str, Any], List[Any]],
+    ) -> "Result[T]":
         """Cria resultado de erro"""
         return cls(success=False, error_message=message, metadata=metadata)

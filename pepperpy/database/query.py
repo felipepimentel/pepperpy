@@ -1,4 +1,4 @@
-from typing import Any, Generic, Type, TypeVar
+from typing import Generic, Type, TypeVar
 
 from sqlalchemy import Select, and_, select
 from sqlalchemy.sql import Executable
@@ -11,24 +11,24 @@ T = TypeVar("T", bound=BaseModel)
 class QueryBuilder(Generic[T]):
     """Advanced query builder with type support"""
 
-    def __init__(self, model_class: Type[T]):
+    def __init__(self, model_class: Type[T]) -> None:
         self.model_class = model_class
         self._query: Select = select(model_class)
         self._conditions = []
 
-    def filter(self, *conditions: Any) -> "QueryBuilder[T]":
+    def filter(self, *conditions: object) -> "QueryBuilder[T]":
         """Add filter conditions"""
         self._conditions.extend(conditions)
         return self
 
-    def filter_by(self, **kwargs: Any) -> "QueryBuilder[T]":
+    def filter_by(self, **kwargs: object) -> "QueryBuilder[T]":
         """Add equality conditions"""
         conditions = [
             getattr(self.model_class, key) == value for key, value in kwargs.items()
         ]
         return self.filter(*conditions)
 
-    def order_by(self, *criteria: Any) -> "QueryBuilder[T]":
+    def order_by(self, *criteria: object) -> "QueryBuilder[T]":
         """Add ordering criteria"""
         self._query = self._query.order_by(*criteria)
         return self

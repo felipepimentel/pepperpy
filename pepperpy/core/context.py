@@ -1,21 +1,21 @@
 from contextlib import contextmanager
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Dict, Generator, Optional, Type, TypeVar
 
 from .exceptions import ContextError, ServiceNotFoundError
 
 T = TypeVar("T")
 
 
-class Context:
+class Context[T]:
     """
     Contexto da aplicação com gerenciamento de estado e serviços
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._services: Dict[str, Any] = {}
         self._state: Dict[str, Any] = {}
 
-    def register(self, name: str, service: Any) -> None:
+    def register(self, name: str, service: T) -> None:
         """Registra um serviço no contexto"""
         if name in self._services:
             raise ContextError(f"Service '{name}' already registered")
@@ -39,11 +39,11 @@ class Context:
         return name in self._services
 
     # Gerenciamento de estado
-    def set_state(self, key: str, value: Any) -> None:
+    def set_state(self, key: str, value: T) -> None:
         """Define um valor no estado"""
         self._state[key] = value
 
-    def get_state(self, key: str, default: Any = None) -> Any:
+    def get_state(self, key: str, default: T | None = None) -> T | None:
         """Obtém um valor do estado"""
         return self._state.get(key, default)
 
@@ -52,7 +52,7 @@ class Context:
         self._state.pop(key, None)
 
     @contextmanager
-    def state_scope(self, **kwargs):
+    def state_scope(self, **kwargs: T) -> Generator[None, None, None]:
         """Contexto temporário para estado"""
         previous = {}
         try:
