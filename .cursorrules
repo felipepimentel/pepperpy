@@ -1,12 +1,12 @@
 **pepperpy** is a Python development accelerator that provides a feature-based, vertical architecture library. Each module is self-contained with all necessary components, making it simple to use while maintaining extensibility and customization options.
 
 ### Core Architecture Principles
-- **Vertical (Feature-Based) Architecture**: Each module is a complete, self-contained feature
-- **Single Responsibility**: Each module handles one specific domain completely
-- **Minimal Configuration**: Ready to use with smart defaults
-- **Extensible Design**: Easy to extend and customize when needed
+- **Vertical (Feature-Based) Architecture**: Each module is a complete, self-contained feature.
+- **Single Responsibility**: Each module handles one specific domain completely.
+- **Minimal Configuration**: Ready to use with smart defaults.
+- **Extensible Design**: Easy to extend and customize when needed.
 
-### Project Structure (Python 3.13)
+### Project Structure (Python 3.12+)
 ```plaintext
 📦pepperpy
  ┣ 📂src/
@@ -66,43 +66,50 @@ Each feature module MUST follow this structure:
 class FeatureModule(BaseModule):
     __module_name__ = 'feature_name'
     
-    async def setup(self):
-        """Module initialization"""
+    async def setup(self) -> None:
+        """Module initialization."""
         pass
         
-    async def cleanup(self):
-        """Resource cleanup"""
+    async def cleanup(self) -> None:
+        """Resource cleanup."""
         pass
 
 # models.py - Domain models
 class FeatureModel:
-    """Feature specific models"""
+    """Feature-specific models."""
     pass
 
 # exceptions.py - Feature exceptions
 class FeatureError(Exception):
-    """Feature specific exceptions"""
+    """Feature-specific exceptions."""
     pass
 ```
 
 ### Development Standards
-- **Language**: English for all code, comments, and documentation
-- **Python Version**: 3.13+
-- **Type Hints**: Mandatory for all public interfaces
-- **Documentation**: Clear docstrings for all public components
-- **Testing**: Feature-based test organization, 90%+ coverage
+- **Language**: English for all code, comments, and documentation.
+- **Python Version**: 3.12+
+- **Type Hints**: Mandatory for all public interfaces; no use of `typing.Any` where prohibited by Ruff.
+- **Documentation**: Clear docstrings for all public components, following Google style.
+- **Testing**: Feature-based test organization.
 
 ### Code Style and Quality
-- **Formatting**: `black` for consistent formatting
-- **Linting**: `ruff` for code quality
-- **Type Checking**: `mypy` with strict mode
-- **Import Order**: `isort` for consistent imports
-- **Documentation**: Google style docstrings
+- **Formatting**: `black` for consistent formatting.
+- **Linting**: `ruff` for code quality, addressing warnings such as:
+  - Missing return type annotations (`ANN204`).
+  - Missing type annotations for function arguments (`ANN001`).
+  - Implicit `Optional` prohibited (`RUF013`).
+  - Unused imports (`F401`).
+  - Explicit f-string conversions (`RUF010`).
+  - Dangling tasks in asyncio (`RUF006`).
+- **Type Checking**: `mypy` in strict mode.
+- **Import Order**: `isort` for consistent imports.
 
 ### Feature Module Template
 New features should follow this template:
+
 ```python
 from pepperpy.core import BaseModule
+from typing import Optional
 
 class NewFeatureModule(BaseModule):
     """
@@ -118,53 +125,53 @@ class NewFeatureModule(BaseModule):
     """
     __module_name__ = 'new_feature'
     
-    async def setup(self):
-        """Initialize the module"""
+    async def setup(self) -> None:
+        """Initialize the module."""
         pass
     
-    async def cleanup(self):
-        """Cleanup resources"""
+    async def cleanup(self) -> None:
+        """Cleanup resources."""
         pass
     
-    def feature_method(self):
-        """Feature specific functionality"""
+    def feature_method(self) -> Optional[str]:
+        """Feature-specific functionality."""
         pass
 ```
 
 ### Documentation Requirements
 Each feature module must include:
-- README.md with usage examples
-- API documentation
-- Configuration options
-- Example implementations
+- **README.md**: Usage examples.
+- **API documentation**: Type hints, parameters, and return types.
+- **Configuration options**.
+- **Example implementations**.
 
 ### Quality Checks
-- All tests passing
-- No type check errors
-- Code formatting verified
-- Documentation updated
-- Examples tested and working
+- **All tests passing**: Minimum of 90% coverage.
+- **Type check**: No errors in `mypy` strict mode.
+- **Code formatting**: Verified with `black`.
+- **Documentation**: Updated and in Google docstring style.
+- **Examples**: Verified to be working.
 
 ### PepperPy Development Guidelines
 
-## Core Principles
+#### Core Principles
 
-1. Module Independence
-   - Self-contained functionality
-   - Explicit dependencies
-   - Clear boundaries
+1. **Module Independence**
+   - Self-contained functionality.
+   - Explicit dependencies.
+   - Clear boundaries.
 
-2. Composition First
-   - Builder pattern for configuration
-   - Event-based communication
-   - Lifecycle hooks
+2. **Composition First**
+   - Builder pattern for configuration.
+   - Event-based communication.
+   - Lifecycle hooks.
 
-3. Developer Experience
-   - Type safety
-   - Clear error messages
-   - Consistent patterns
+3. **Developer Experience**
+   - Type safety.
+   - Clear error messages.
+   - Consistent patterns.
 
-## Module Structure
+#### Module Structure
 
 ```plaintext
 📂module_name/
@@ -177,95 +184,84 @@ Each feature module must include:
    ┗ 📜{component}.py
 ```
 
-## Implementation Guidelines
+#### Implementation Guidelines
 
-1. Module Definition
-```python
-class MyModule(BaseModule):
-    """
-    Clear module description
-    
-    Attributes:
-        config (ModuleConfig): Module configuration
-    
-    Examples:
-        >>> module = MyModule.create()\\
-        ...     .configure(setting="value")\\
-        ...     .build()
-    """
-    __module_name__ = "my_module"
-    __dependencies__ = ["other_module"]
-    
-    async def initialize(self) -> None:
-        await super().initialize()
-        # Setup resources
-        
-    async def shutdown(self) -> None:
-        await super().shutdown()
-        # Cleanup resources
-```
+1. **Module Definition**
+   ```python
+   from typing import Optional
 
-2. Event Handling
-```python
-async def post_initialize(self) -> None:
-    """Subscribe to events after initialization"""
-    self._event_bus.subscribe("other.event", self._handle_event)
-    
-def _handle_event(self, event: Event) -> None:
-    """Handle specific event"""
-    pass
-```
+   class MyModule(BaseModule):
+       """
+       Clear module description.
+       
+       Attributes:
+           config (ModuleConfig): Module configuration.
+       
+       Examples:
+           >>> module = MyModule.create()\\
+           ...     .configure(setting="value")\\
+           ...     .build()
+       """
+       __module_name__ = "my_module"
+       __dependencies__ = ["other_module"]
+       
+       async def initialize(self) -> None:
+           await super().initialize()
+           # Setup resources
+           
+       async def shutdown(self) -> None:
+           await super().shutdown()
+           # Cleanup resources
+   ```
 
-## Testing Requirements
+2. **Event Handling**
+   ```python
+   async def post_initialize(self) -> None:
+       """Subscribe to events after initialization."""
+       self._event_bus.subscribe("other.event", self._handle_event)
+       
+   def _handle_event(self, event: Event) -> None:
+       """Handle specific event."""
+       pass
+   ```
 
-1. Unit Tests
-   - Test each component in isolation
-   - Mock dependencies
-   - Test error paths
+#### Documentation Standards
 
-2. Integration Tests
-   - Test module lifecycle
-   - Test event handling
-   - Test with dependencies
+1. **Module Documentation**
+   - Purpose and features.
+   - Configuration options.
+   - Event descriptions.
+   - Error scenarios.
 
-3. Coverage Requirements
-   - 100% for public API
-   - 90%+ overall coverage
-   - Error handling tested
+2. **API Documentation**
+   - Type hints.
+   - Parameters.
+   - Return values.
+   - Exceptions.
 
-## Documentation Standards
+3. **Examples**
+   - Basic usage.
+   - Common patterns.
+   - Error handling.
 
-1. Module Documentation
-   - Purpose and features
-   - Configuration options
-   - Event descriptions
-   - Error scenarios
+#### Quality Checks
 
-2. API Documentation
-   - Type hints
-   - Parameters
-   - Return values
-   - Exceptions
+1. **Code Quality**
+   - Black formatting.
+   - Ruff linting for common issues, including:
+     - `typing.Any` restrictions.
+     - Implicit `Optional`.
+     - Explicit f-string type conversions.
+     - Missing return type annotations.
+   - isort imports.
+   - mypy strict mode.
 
-3. Examples
-   - Basic usage
-   - Common patterns
-   - Error handling
+2. **Runtime Checks**
+   - Type validation.
+   - Config validation.
+   - Resource cleanup.
 
-## Quality Checks
-
-1. Code Quality
-   - Black formatting
-   - Ruff linting
-   - isort imports
-   - mypy strict mode
-
-2. Runtime Checks
-   - Type validation
-   - Config validation
-   - Resource cleanup
-
-3. Documentation
-   - Google style docstrings
-   - Up-to-date examples
-   - Changelog maintained
+3. **Documentation**
+   - Google-style docstrings.
+   - Up-to-date examples.
+   - Changelog maintained.

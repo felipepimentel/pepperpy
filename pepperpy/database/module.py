@@ -43,7 +43,7 @@ class DatabaseModule(BaseModule, IQueryExecutor, ITransactionManager):
     __description__ = "Database management with multiple backend support"
     __dependencies__ = []
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         # Use DatabaseConfigProvider
         config_provider = DatabaseConfigProvider(config or {})
         super().__init__(config_provider)
@@ -119,7 +119,7 @@ class DatabaseModule(BaseModule, IQueryExecutor, ITransactionManager):
         except Exception as e:
             self._metrics.record_error(e)
             await self.emit(DatabaseEvents.ERROR, {"error": str(e)})
-            raise DatabaseError(f"Database initialization failed: {str(e)}") from e
+            raise DatabaseError(f"Database initialization failed: {e!s}") from e
 
     @measure_query()
     @retry_on_error()
@@ -131,7 +131,7 @@ class DatabaseModule(BaseModule, IQueryExecutor, ITransactionManager):
         query_profile = self._profiler.start_query(query, params)
 
         # Check cache first
-        cache_key = f"{query}:{str(params)}"
+        cache_key = f"{query}:{params!s}"
         if cached := self._cache.get(cache_key):
             self._profiler.record_cache_hit(query)
             return QueryResult(

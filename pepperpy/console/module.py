@@ -11,48 +11,78 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table
 from rich.theme import Theme
 
+from .exceptions import ConsoleDisplayError, ConsoleInputError
+from .types import ConsoleConfig, Style
+
+JSONValue = Union[
+    Dict[str, "JSONValue"], List["JSONValue"], str, int, float, bool, None
+]
+
 
 class Console:
     """
     Console simplificado para desenvolvimento rápido
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[ConsoleConfig] = None) -> None:
         self.theme = Theme(
             {
-                "info": "cyan",
-                "warning": "yellow",
-                "error": "red",
-                "success": "green",
-                "highlight": "magenta",
-                "muted": "dim white",
-                "code": "blue",
-                "data": "green",
-                "url": "underline cyan",
+                Style.INFO: "cyan",
+                Style.WARNING: "yellow",
+                Style.ERROR: "red",
+                Style.SUCCESS: "green",
+                Style.HIGHLIGHT: "magenta",
+                Style.MUTED: "dim white",
+                Style.CODE: "blue",
+                Style.DATA: "green",
+                Style.URL: "underline cyan",
             }
         )
 
         self.console = RichConsole(theme=self.theme)
 
-    # Métodos de logging melhorados e práticos
+    def clear(self) -> None:
+        """Clear the console screen"""
+        self.console.clear()
+
+    def print(self, message: str, style: Optional[Style] = None) -> None:
+        """Print message with optional style"""
+        try:
+            self.console.print(message, style=style)
+        except Exception as e:
+            raise ConsoleDisplayError(f"Error printing message: {e!s}") from e
+
+    def title(self, text: str) -> None:
+        """Display a title"""
+        self.console.print(f"\n[bold]{text}[/bold]\n")
+
+    def divider(self) -> None:
+        """Display a divider line"""
+        self.console.print("─" * 40)
+
+    # Logging methods
     def log(self, message: str, style: Optional[str] = None) -> None:
-        """Log com timestamp"""
+        """Log with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         self.console.print(f"[muted]{timestamp}[/muted] {message}", style=style)
 
     def info(self, message: str) -> None:
-        self.log(f"ℹ {message}", style="info")
+        """Log info message"""
+        self.log(f"[i] {message}", style=Style.INFO)
 
     def success(self, message: str) -> None:
-        self.log(f"✓ {message}", style="success")
+        """Log success message"""
+        self.log(f"✓ {message}", style=Style.SUCCESS)
 
     def warning(self, message: str) -> None:
-        self.log(f"⚠ {message}", style="warning")
+        """Log warning message"""
+        self.log(f"⚠ {message}", style=Style.WARNING)
 
     def error(self, message: str) -> None:
-        self.log(f"✗ {message}", style="error")
+        """Log error message"""
+        self.log(f"✗ {message}", style=Style.ERROR)
 
-    # Entrada de dados simplificada
+    # Input methods
     def ask(
         self,
         message: str,
@@ -60,76 +90,78 @@ class Console:
         default: Optional[str] = None,
         password: bool = False,
     ) -> str:
-        return Prompt.ask(
-            message,
-            choices=choices,
-            default=default,
-            password=password,
-            console=self.console,
-        )
+        """Get user input with optional choices"""
+        try:
+            return Prompt.ask(
+                message,
+                choices=choices,
+                default=default,
+                password=password,
+                console=self.console,
+            )
+        except KeyboardInterrupt as err:
+            raise ConsoleInputError("Input cancelled by user") from err
 
     def confirm(self, message: str, default: bool = True) -> bool:
-        return Confirm.ask(message, default=default, console=self.console)
+        """Get yes/no confirmation from user"""
+        try:
+            return Confirm.ask(message, default=default, console=self.console)
+        except KeyboardInterrupt as err:
+            raise ConsoleInputError("Input cancelled by user") from err
 
-    # Utilitários práticos
-    def clear(self) -> None:
-        """Limpa a tela"""
-        self.console.clear()
+    # Data display methods
+    def table(
+        self,
+        data: List[Dict[str, Any]],
+        columns: Optional[List[str]] = None,
+        title: Optional[str] = None,
+    ) -> None:
+        """Display data in table format"""
+        try:
+            table = Table(title=title)
 
-    def title(self, text: str) -> None:
-        """Exibe título destacado"""
-        self.console.print(f"\n[bold]{text}[/bold]\n")
+            # Auto-detect columns if not provided
+            if not columns and data:
+                columns = list(data[0].keys())
 
-    def divider(self) -> None:
-        """Exibe linha divisória"""
-        self.console.print("─" * 40)
+            for col in columns:
+                table.add_column(col)
 
-    # Exibição de dados
-    def show(self, data: Any, title: Optional[str] = None) -> None:
-        """Exibe dados de forma inteligente"""
+            for row in data:
+                table.add_row(*[str(row.get(col, "")) for col in columns])
+
+            self.console.print(table)
+        except Exception as e:
+            raise ConsoleDisplayError(f"Error creating table: {e!s}") from e
+
+    def show(
+        self,
+        data: Union[Dict[str, Any], List[Any], str, int, float, bool, None],
+        title: Optional[str] = None,
+    ) -> None:
+        """Display data in appropriate format"""
         if isinstance(data, (dict, list)):
-            self.show_table(data, title)
-        elif isinstance(data, str) and (data.startswith("{") or data.startswith("[")):
             self.show_json(data, title)
         else:
             self.console.print(str(data))
 
-    def show_table(self, data: Union[Dict, List], title: Optional[str] = None) -> None:
-        """Exibe dados em formato tabular"""
-        table = Table(title=title)
-
-        if isinstance(data, dict):
-            table.add_column("Key")
-            table.add_column("Value")
-            for k, v in data.items():
-                table.add_row(str(k), str(v))
-        elif isinstance(data, list) and data and isinstance(data[0], dict):
-            # Lista de dicionários
-            headers = list(data[0].keys())
-            for h in headers:
-                table.add_column(h)
-            for item in data:
-                table.add_row(*[str(item.get(h, "")) for h in headers])
-        else:
-            # Lista simples
-            table.add_column("Value")
-            for item in data:
-                table.add_row(str(item))
-
-        self.console.print(table)
-
     def show_json(self, data: Union[str, Dict], title: Optional[str] = None) -> None:
-        """Exibe JSON formatado"""
-        if isinstance(data, str):
-            data = json.loads(data)
-        self.console.print(json.dumps(data, indent=2))
+        """Display formatted JSON"""
+        try:
+            if isinstance(data, str):
+                data = json.loads(data)
+            if title:
+                self.title(title)
+            self.console.print_json(data=data)
+        except Exception as e:
+            raise ConsoleDisplayError(f"Error displaying JSON: {e!s}") from e
 
-    # Progress tracking simplificado
+    # Progress tracking
     @contextmanager
     def progress(
         self, message: str = "Processing..."
     ) -> Generator[Progress, None, None]:
-        """Barra de progresso simples"""
+        """Show progress indicator"""
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -141,24 +173,40 @@ class Console:
             progress.update(task, completed=True)
 
     # File operations
-    def save_json(self, data: Any, path: Union[str, Path]) -> None:
-        """Salva dados em arquivo JSON"""
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2)
-        self.success(f"Saved to {path}")
+    def save_json(self, data: JSONValue, path: Union[str, Path]) -> None:
+        """Save data to JSON file"""
+        try:
+            path = Path(path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w") as f:
+                json.dump(data, f, indent=2)
+            self.success(f"Saved to {path}")
+        except Exception as e:
+            raise ConsoleDisplayError(f"Error saving JSON: {e!s}") from e
 
-    def load_json(self, path: Union[str, Path]) -> Any:
-        """Carrega dados de arquivo JSON"""
-        with open(path) as f:
-            return json.load(f)
+    def load_json(self, path: Union[str, Path]) -> JSONValue:
+        """Load data from JSON file"""
+        try:
+            with open(path) as f:
+                return json.load(f)
+        except Exception as e:
+            raise ConsoleDisplayError(f"Error loading JSON: {e!s}") from e
 
-    def save_yaml(self, data: Any, path: Union[str, Path]) -> None:
-        """Salva dados em arquivo YAML"""
-        with open(path, "w") as f:
-            yaml.dump(data, f)
-        self.success(f"Saved to {path}")
+    def save_yaml(self, data: JSONValue, path: Union[str, Path]) -> None:
+        """Save data to YAML file"""
+        try:
+            path = Path(path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w") as f:
+                yaml.dump(data, f)
+            self.success(f"Saved to {path}")
+        except Exception as e:
+            raise ConsoleDisplayError(f"Error saving YAML: {e!s}") from e
 
-    def load_yaml(self, path: Union[str, Path]) -> Any:
-        """Carrega dados de arquivo YAML"""
-        with open(path) as f:
-            return yaml.safe_load(f)
+    def load_yaml(self, path: Union[str, Path]) -> JSONValue:
+        """Load data from YAML file"""
+        try:
+            with open(path) as f:
+                return yaml.safe_load(f)
+        except Exception as e:
+            raise ConsoleDisplayError(f"Error loading YAML: {e!s}") from e

@@ -100,29 +100,51 @@ class SystemEvents:
     WARNING = "system.warning"
 
 
-@dataclass
-class StateChangeEvent(Event):
+class StateChangeEvent:
     """Evento de mudança de estado"""
 
-    key: str
-    old_value: Any
-    new_value: Any
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.data.update(
-            {"key": self.key, "old_value": self.old_value, "new_value": self.new_value}
+    def __init__(self, key: str, old_value: Any, new_value: Any, source: str):
+        self.event = Event(
+            name=SystemEvents.STATE_CHANGED,
+            source=source,
+            data={
+                "key": key,
+                "old_value": old_value,
+                "new_value": new_value
+            }
         )
 
+    @property
+    def key(self) -> str:
+        return self.event.data["key"]
 
-@dataclass
-class ErrorEvent(Event):
+    @property
+    def old_value(self) -> Any:
+        return self.event.data["old_value"]
+
+    @property
+    def new_value(self) -> Any:
+        return self.event.data["new_value"]
+
+
+class ErrorEvent:
     """Evento de erro"""
 
-    error: Exception
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.data.update(
-            {"error_type": type(self.error).__name__, "error_message": str(self.error)}
+    def __init__(self, error: Exception, source: str):
+        self.event = Event(
+            name=SystemEvents.ERROR,
+            source=source,
+            data={
+                "error_type": type(error).__name__,
+                "error_message": str(error)
+            }
         )
+        self.error = error
+
+    @property
+    def error_type(self) -> str:
+        return self.event.data["error_type"]
+
+    @property
+    def error_message(self) -> str:
+        return self.event.data["error_message"]

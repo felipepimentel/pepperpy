@@ -1,19 +1,23 @@
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, cast
 
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from typer.core import Context, TyperArgument, TyperOption
+
+T = TypeVar("T")
+CallbackType = Callable[..., Any]
 
 
 @dataclass
 class CommandConfig:
-    """Configuration for CLI command"""
+    """Configuration for CLI command."""
 
     name: str
     help: str
-    callback: Callable
+    callback: CallbackType
     options: List[Dict[str, Any]] = field(default_factory=list)
     arguments: List[Dict[str, Any]] = field(default_factory=list)
     aliases: List[str] = field(default_factory=list)
@@ -21,27 +25,28 @@ class CommandConfig:
 
 
 class CommandBuilder:
-    """Builder for CLI commands"""
+    """Builder for CLI commands."""
 
-    def __init__(self, name: str, help: str = "", hidden: bool = False):
+    def __init__(self, name: str, help_text: str = "", hidden: bool = False) -> None:
         self.config = CommandConfig(
-            name=name, help=help, callback=lambda: None, hidden=hidden
+            name=name, help=help_text, callback=lambda: None, hidden=hidden
         )
 
     def option(
         self,
         name: str,
-        type: Type = str,
-        help: str = "",
-        default: Any = None,
+        type_: Type[T] = str,
+        help_text: str = "",
+        default: Optional[T] = None,
         required: bool = False,
     ) -> "CommandBuilder":
-        """Add command option"""
+        """Add command option."""
+        type_ = cast(Type[T], type_)
         self.config.options.append(
             {
                 "name": name,
-                "type": type,
-                "help": help,
+                "type": type_,
+                "help": help_text,
                 "default": default,
                 "required": required,
             }
@@ -49,65 +54,74 @@ class CommandBuilder:
         return self
 
     def argument(
-        self, name: str, type: Type = str, help: str = "", required: bool = True
+        self,
+        name: str,
+        type_: Type[T] = str,
+        help_text: str = "",
+        required: bool = True,
     ) -> "CommandBuilder":
-        """Add command argument"""
+        """Add command argument."""
         self.config.arguments.append(
-            {"name": name, "type": type, "help": help, "required": required}
+            {"name": name, "type": type_, "help": help_text, "required": required}
         )
         return self
 
     def alias(self, *names: str) -> "CommandBuilder":
-        """Add command aliases"""
+        """Add command aliases."""
         self.config.aliases.extend(names)
         return self
 
-    def callback(self, func: Callable) -> Callable:
-        """Set command callback"""
+    def callback(self, func: CallbackType) -> CallbackType:
+        """Set command callback."""
         self.config.callback = func
         return func
 
 
 class CLIBuilder:
-    """Builder for CLI applications"""
+    """Builder for CLI applications."""
 
-    def __init__(self, name: str, help: str = "", version: str = "0.1.0"):
-        self.app = typer.Typer(name=name, help=help, rich_markup_mode="rich")
+    def __init__(self, name: str, help_text: str = "", version: str = "0.1.0") -> None:
+        self.app = typer.Typer(name=name, help=help_text, rich_markup_mode="rich")
         self.version = version
         self.console = Console()
         self._commands: Dict[str, CommandConfig] = {}
 
-        # Add version command
         @self.app.callback()
         def version_callback(
-            version: bool = typer.Option(
+            version_flag: bool = typer.Option(
                 False, "--version", "-v", help="Show version and exit"
             ),
-        ):
-            if version:
+        ) -> None:
+            if version_flag:
                 self.console.print(f"{name} version: {self.version}")
                 raise typer.Exit()
 
-    def command(
-        self, name: Optional[str] = None, help: str = "", hidden: bool = False
-    ) -> Union[CommandBuilder, Callable]:
-        """Create new command"""
+        self._version_callback = version_callback
 
-        def decorator(func: Callable) -> Callable:
-            cmd_name = name or func.__name__
-            builder = CommandBuilder(cmd_name, help, hidden)
+    def command(
+        self,
+        name: Optional[str | CallbackType] = None,
+        help_text: str = "",
+        hidden: bool = False,
+    ) -> Union[CommandBuilder, Callable[[CallbackType], CallbackType]]:
+        """Create new command."""
+
+        def decorator(func: CallbackType) -> CallbackType:
+            cmd_name = name if isinstance(name, str) else func.__name__
+            builder = CommandBuilder(cmd_name, help_text, hidden)
 
             @wraps(func)
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
+            def wrapper(
+                ctx: typer.Context, **kwargs: Dict[str, str | int | float | bool]
+            ) -> Union[str, int, float, bool, None]:
+                return func(ctx, **kwargs)
 
             builder.callback(wrapper)
             self._commands[cmd_name] = builder.config
 
-            # Create command
             cmd = typer.Command(
                 name=cmd_name,
-                help=help,
+                help=help_text,
                 callback=self._wrap_callback(wrapper),
                 hidden=hidden,
             )
@@ -124,7 +138,11 @@ class CLIBuilder:
     def _wrap_callback(self, func: Callable) -> Callable:
         """Wrap command callback with progress and error handling"""
 
-        async def wrapper(*args, **kwargs):
+        async def wrapper(
+            ctx: Context,
+            *args: Union[TyperArgument, TyperOption],
+            **kwargs: Union[str, int, float, bool],
+        ) -> Union[str, int, float, bool, None]:
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
@@ -136,7 +154,7 @@ class CLIBuilder:
                     progress.update(task, completed=True)
                     return result
                 except Exception as err:
-                    self.console.print(f"[red]Error:[/red] {str(err)}")
+                    self.console.print(f"[red]Error:[/red] {err!s}")
                     raise typer.Exit(1) from err
 
         return wrapper

@@ -14,7 +14,7 @@ from .types import ConsoleConfig, ConsoleData, Style
 class Console:
     """Console simplificado para desenvolvimento rápido"""
 
-    def __init__(self, config: Optional[ConsoleConfig] = None):
+    def __init__(self, config: Optional[ConsoleConfig] = None) -> None:
         self.config = config or ConsoleConfig(
             theme={
                 Style.INFO: "cyan",
@@ -40,28 +40,28 @@ class Console:
         try:
             self.console.print(message, style=style or self.config["default_style"])
         except Exception as e:
-            raise ConsoleDisplayError(f"Error printing message: {str(e)}") from e
+            raise ConsoleDisplayError(f"Error printing message: {e!s}") from e
 
-    def log(self, message: str, level: str = "info", **kwargs: Any) -> None:
+    def log(self, message: str, level: str = "info", **kwargs: str) -> None:
         """Log usando templates"""
         try:
             if kwargs:
                 message = ConsoleTemplates.get(message, **kwargs)
             getattr(self.logger, level)(message)
         except Exception as e:
-            raise ConsoleDisplayError(f"Error logging message: {str(e)}") from e
+            raise ConsoleDisplayError(f"Error logging message: {e!s}") from e
 
     # Métodos de conveniência melhorados
-    def info(self, message: str, **kwargs: Any) -> None:
+    def info(self, message: str, **kwargs: Dict[str, str]) -> None:
         self.log(message, "info", **kwargs)
 
-    def success(self, message: str, **kwargs: Any) -> None:
+    def success(self, message: str, **kwargs: str) -> None:
         self.log(message, "info", **kwargs)
 
-    def warning(self, message: str, **kwargs: Any) -> None:
+    def warning(self, message: str, **kwargs: str) -> None:
         self.log(message, "warning", **kwargs)
 
-    def error(self, message: str, **kwargs: Any) -> None:
+    def error(self, message: str, **kwargs: str) -> None:
         self.log(message, "error", **kwargs)
 
     # Input com validação melhorada
@@ -115,7 +115,7 @@ class Console:
 
             self.console.print(table)
         except Exception as e:
-            raise ConsoleDisplayError(f"Error creating table: {str(e)}") from e
+            raise ConsoleDisplayError(f"Error creating table: {e!s}") from e
 
     def prompt_dict(self, schema: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
         """Prompt para criar dicionário baseado em schema"""

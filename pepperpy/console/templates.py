@@ -1,11 +1,11 @@
 from string import Template
-from typing import Any, Dict
+from typing import ClassVar, Dict
 
 
 class ConsoleTemplates:
     """Templates para mensagens comuns"""
 
-    _templates: Dict[str, str] = {
+    _templates: ClassVar[Dict[str, str]] = {
         "welcome": "Welcome to $app_name v$version",
         "goodbye": "Thanks for using $app_name",
         "loading": "Loading $resource...",
@@ -20,7 +20,7 @@ class ConsoleTemplates:
     }
 
     @classmethod
-    def get(cls, key: str, **kwargs: Any) -> str:
+    def get(cls, key: str, **kwargs: str) -> str:
         """Get formatted template"""
         template = cls._templates.get(key)
         if not template:

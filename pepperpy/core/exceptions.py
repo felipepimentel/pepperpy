@@ -64,3 +64,27 @@ class OperationError(PepperError):
     """Erro em operações"""
 
     pass
+
+
+class ContextError(PepperError):
+    """Erro relacionado ao contexto da aplicação"""
+
+    pass
+
+
+class ServiceNotFoundError(ContextError):
+    """Erro quando um serviço não é encontrado no contexto"""
+
+    pass
+
+
+class ApplicationStartupError(PepperError):
+    """Erro durante inicialização da aplicação"""
+
+    pass
+
+
+class ConsoleError(PepperError):
+    """Erro base para operações de console"""
+
+    pass

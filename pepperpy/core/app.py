@@ -1,7 +1,8 @@
 import asyncio
 import signal
+import types
 from contextlib import asynccontextmanager
-from typing import Dict, List, Optional, Type, TypeVar
+from typing import AsyncIterator, Dict, List, Optional, Type, TypeVar
 
 from .config import Config, ConfigProvider
 from .context import Context
@@ -26,7 +27,7 @@ class Application:
         name: str,
         config_provider: Optional[ConfigProvider] = None,
         debug: bool = False,
-    ):
+    ) -> None:
         self.name = name
         self.debug = debug
         self.logger = get_logger("app")
@@ -41,6 +42,7 @@ class Application:
         # State
         self._initialized = False
         self._shutting_down = False
+        self._shutdown_task: Optional[asyncio.Task] = None
 
         # Setup signal handlers
         self._setup_signal_handlers()
@@ -50,12 +52,14 @@ class Application:
         for sig in (signal.SIGTERM, signal.SIGINT):
             signal.signal(sig, self._handle_shutdown_signal)
 
-    def _handle_shutdown_signal(self, signum, frame) -> None:
+    def _handle_shutdown_signal(
+        self, signum: int, frame: Optional[types.FrameType]
+    ) -> None:
         """Handler para sinais de shutdown"""
         if not self._shutting_down:
             self.logger.info("Shutdown signal received")
             self._shutting_down = True
-            asyncio.create_task(self._shutdown())
+            self._shutdown_task = asyncio.create_task(self._shutdown())
 
     def register_module(self, module: Module) -> "Application":
         """Registra um módulo"""
@@ -80,7 +84,7 @@ class Application:
 
         return self
 
-    def get_module(self, name: str, expected_type: Type[T] = None) -> T:
+    def get_module(self, name: str, expected_type: Optional[Type[T]] = None) -> T:
         """Obtém um módulo"""
         module = self._modules.get(name)
         if not module:
@@ -114,7 +118,7 @@ class Application:
             await self._event_bus.publish(Event(SystemEvents.STARTUP, "app"))
 
         except Exception as e:
-            self.logger.error(f"Startup error: {str(e)}")
+            self.logger.error(f"Startup error: {e!s}")
             await self._shutdown()
             raise ApplicationStartupError(str(e)) from e
 
@@ -139,7 +143,7 @@ class Application:
             self.logger.info("Application stopped")
 
         except Exception as e:
-            self.logger.error(f"Shutdown error: {str(e)}")
+            self.logger.error(f"Shutdown error: {e!s}")
             raise
 
     def _validate_dependencies(self) -> None:
@@ -171,7 +175,7 @@ class Application:
         return order
 
     @asynccontextmanager
-    async def run(self):
+    async def run(self) -> AsyncIterator["Application"]:
         """Contexto de execução da aplicação"""
         await self._start()
         try:

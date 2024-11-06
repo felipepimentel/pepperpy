@@ -19,7 +19,7 @@ class ChartTheme:
 class ConsoleCharts:
     """Advanced console charting capabilities"""
 
-    def __init__(self, console: Console, theme: Optional[ChartTheme] = None):
+    def __init__(self, console: Console, theme: Optional[ChartTheme] = None) -> None:
         self.console = console
         self.theme = theme or ChartTheme()
 

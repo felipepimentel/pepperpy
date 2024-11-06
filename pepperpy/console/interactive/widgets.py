@@ -9,7 +9,7 @@ from rich.console import Console
 class InteractiveWidgets:
     """Advanced interactive console widgets"""
 
-    def __init__(self, console: Console):
+    def __init__(self, console: Console) -> None:
         self.console = console
 
     async def search_select(
