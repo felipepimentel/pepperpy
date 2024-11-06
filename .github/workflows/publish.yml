@@ -61,7 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry run semantic-release publish -v
+          poetry run semantic-release publish
 
       - name: Check if Version Incremented
         if: steps.versioning.outcome == 'success' && steps.versioning.outputs.new_release == 'true'
