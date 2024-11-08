@@ -1,15 +1,8 @@
-"""Database module for PepperPy"""
+"""PepperPy Database Module"""
 
-from .exceptions import DatabaseError
-from .models import BaseModel
-from .module import DatabaseModule
-from .types import ConnectionConfig, DatabaseConfig, PoolConfig
+from .module import Base, DatabaseModule
 
-__all__ = [
-    "DatabaseModule",
-    "BaseModel",
-    "DatabaseConfig",
-    "ConnectionConfig",
-    "PoolConfig",
-    "DatabaseError",
-]
+# Provide default instance for simple usage
+database = DatabaseModule()
+
+__all__ = ["DatabaseModule", "database", "Base"]

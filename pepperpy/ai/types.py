@@ -19,3 +19,10 @@ class ProcessingTask:
     priority: Priority
     metadata: Dict[str, Any]
     created_at: float
+
+
+class AIProvider(Enum):
+    """Supported AI providers"""
+
+    OPENROUTER = "openrouter"
+    STACKSPOT = "stackspot"

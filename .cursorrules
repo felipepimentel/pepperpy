@@ -9,7 +9,6 @@
 ### Project Structure (Python 3.12+)
 ```plaintext
 📦pepperpy
- ┣ 📂src/
  ┃ ┗ 📂pepperpy/
  ┃   ┣ 📂core/                # Framework core
  ┃   ┃ ┣ 📜__init__.py

@@ -1,79 +1,53 @@
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum, auto
+"""Core type definitions and custom types"""
+
+import json
+from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
+from typing import Any, Dict, Protocol, TypeVar, Union
 
 # Type aliases
-JsonDict = Dict[str, Any]
 PathLike = Union[str, Path]
+JsonDict = Dict[str, Any]
+Timestamp = Union[datetime, date, str, float]
 
-# Generic type for modules
+# Generic types
 T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
-class Status(Enum):
-    """Module status states"""
+class Serializable(Protocol):
+    """Protocol for serializable objects"""
 
-    INACTIVE = auto()
-    ACTIVE = auto()
-    ERROR = auto()
-    STARTING = auto()
-    STOPPING = auto()
-
-
-@dataclass
-class ModuleConfig:
-    """Configuração base para módulos"""
-
-    name: str
-    enabled: bool = True
-    debug: bool = False
-    settings: JsonDict = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
+    def to_dict(self) -> JsonDict: ...
 
     @classmethod
-    def create(cls) -> "ModuleConfig":
-        """Factory method para criar configuração"""
-        return cls(name="")
+    def from_dict(cls, data: JsonDict) -> "Serializable": ...
 
 
-@dataclass
-class Metadata:
-    """Metadados para módulos e componentes"""
+class JsonEncoder(json.JSONEncoder):
+    """Enhanced JSON encoder with support for additional types"""
 
-    name: str
-    version: str
-    description: Optional[str] = None
-    author: Optional[str] = None
-    tags: List[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    def default(self, obj: Any) -> Any:
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        if isinstance(obj, Path):
+            return str(obj)
+        if isinstance(obj, Serializable):
+            return obj.to_dict()
+        return super().default(obj)
 
 
-@dataclass
-class Result(Generic[T]):
-    """Resultado padronizado para operações"""
+# Common type validators
+def is_path_like(value: Any) -> bool:
+    """Check if value is path-like"""
+    return isinstance(value, (str, Path))
 
-    success: bool
-    data: Optional[T] = None
-    error_message: Optional[str] = None
-    metadata: JsonDict = field(default_factory=dict)
 
-    @classmethod
-    def ok(
-        cls,
-        data: T,
-        **metadata: Union[str, int, float, bool, None, Dict[str, Any], List[Any]],
-    ) -> "Result[T]":
-        """Cria resultado de sucesso"""
-        return cls(success=True, data=data, metadata=metadata)
-
-    @classmethod
-    def fail(
-        cls,
-        message: str,
-        **metadata: Union[str, int, float, bool, None, Dict[str, Any], List[Any]],
-    ) -> "Result[T]":
-        """Cria resultado de erro"""
-        return cls(success=False, error_message=message, metadata=metadata)
+def is_json_serializable(value: Any) -> bool:
+    """Check if value is JSON serializable"""
+    try:
+        json.dumps(value, cls=JsonEncoder)
+        return True
+    except (TypeError, ValueError):
+        return False

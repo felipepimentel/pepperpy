@@ -1,105 +1,168 @@
-"""Core exceptions for PepperPy."""
+"""Enhanced exception system with detailed error information"""
 
-from datetime import UTC, datetime
+import traceback
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 
-class PepperError(Exception):
-    """Base exception with improved error context"""
+@dataclass
+class ErrorContext:
+    """Detailed error context information"""
+
+    timestamp: datetime = datetime.now()
+    module: Optional[str] = None
+    operation: Optional[str] = None
+    details: Dict[str, Any] = None
+    traceback: Optional[str] = None
+
+
+class PepperPyError(Exception):
+    """Base exception for all PepperPy errors"""
 
     def __init__(
         self,
         message: str,
-        code: Optional[str] = None,
+        *args,
+        module: Optional[str] = None,
+        operation: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
-    ) -> None:
-        self.message = message
-        self.code = code or self.__class__.__name__
-        self.details = details or {}
-        self.cause = cause
-        self.timestamp = datetime.now(UTC)
-
-        super().__init__(f"{self.code}: {message}")
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert error to dictionary format"""
-        return {
-            "code": self.code,
-            "message": self.message,
-            "details": self.details,
-            "timestamp": self.timestamp.isoformat(),
-            "cause": str(self.cause) if self.cause else None,
-        }
-
-
-class ConfigError(PepperError):
-    """Erro de configuração"""
-
-    pass
-
-
-class ValidationError(PepperError):
-    """Erro de validação"""
-
-    def __init__(self, message: str, field: Optional[str] = None) -> None:
-        super().__init__(
-            message,
-            code="VALIDATION_ERROR",
-            details={"field": field} if field else None,
+    ):
+        super().__init__(message, *args)
+        self.context = ErrorContext(
+            module=module,
+            operation=operation,
+            details=details or {},
+            traceback=traceback.format_exc() if cause else None,
         )
+        self.__cause__ = cause
 
 
-class ModuleError(PepperError):
-    """Erro relacionado a módulos"""
-
-    def __init__(self, message: str, module_name: str) -> None:
-        super().__init__(message, code="MODULE_ERROR", details={"module": module_name})
-
-
-class DependencyError(ModuleError):
-    """Erro de dependência entre módulos"""
+class ModuleError(PepperPyError):
+    """Base exception for module-related errors"""
 
     pass
 
 
-class StateError(PepperError):
-    """Erro de estado da aplicação"""
+class ConfigurationError(PepperPyError):
+    """Error in module or application configuration"""
 
     pass
 
 
-class ResourceError(PepperError):
-    """Erro relacionado a recursos"""
+class DependencyError(PepperPyError):
+    """Error in module dependencies"""
 
     pass
 
 
-class OperationError(PepperError):
-    """Erro em operações"""
+class InitializationError(PepperPyError):
+    """Error during module or application initialization"""
 
     pass
 
 
-class ContextError(PepperError):
-    """Erro relacionado ao contexto da aplicação"""
+class ValidationError(PepperPyError):
+    """Error in data validation"""
 
     pass
 
 
-class ServiceNotFoundError(ContextError):
-    """Erro quando um serviço não é encontrado no contexto"""
+class DatabaseError(PepperPyError):
+    """Database-related errors"""
 
     pass
 
 
-class ApplicationStartupError(PepperError):
-    """Erro durante inicialização da aplicação"""
+class CacheError(PepperPyError):
+    """Cache-related errors"""
 
     pass
 
 
-class ConsoleError(PepperError):
-    """Erro base para operações de console"""
+class WebError(PepperPyError):
+    """Web-related errors"""
 
     pass
+
+
+class MediaError(PepperPyError):
+    """Media processing errors"""
+
+    pass
+
+
+class SecurityError(PepperPyError):
+    """Security-related errors"""
+
+    pass
+
+
+class ResourceError(PepperPyError):
+    """Resource handling errors"""
+
+    pass
+
+
+class NetworkError(PepperPyError):
+    """Network-related errors"""
+
+    pass
+
+
+class SerializationError(PepperPyError):
+    """Data serialization errors"""
+
+    pass
+
+
+class AuthenticationError(SecurityError):
+    """Authentication failures"""
+
+    pass
+
+
+class AuthorizationError(SecurityError):
+    """Authorization failures"""
+
+    pass
+
+
+class RateLimitError(SecurityError):
+    """Rate limit exceeded"""
+
+    pass
+
+
+class TimeoutError(NetworkError):
+    """Operation timeout"""
+
+    pass
+
+
+class ConnectionError(NetworkError):
+    """Connection failures"""
+
+    pass
+
+
+def wrap_exception(
+    error: Exception,
+    module: Optional[str] = None,
+    operation: Optional[str] = None,
+    details: Optional[Dict[str, Any]] = None,
+) -> PepperPyError:
+    """Convert external exception to PepperPyError with context"""
+    message = str(error)
+
+    if isinstance(error, PepperPyError):
+        if module:
+            error.context.module = module
+        if operation:
+            error.context.operation = operation
+        if details:
+            error.context.details.update(details)
+        return error
+
+    return PepperPyError(message, module=module, operation=operation, details=details, cause=error)

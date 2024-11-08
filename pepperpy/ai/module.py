@@ -1,29 +1,19 @@
 import asyncio
 import time
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from enum import Enum
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 
-from pepperpy.core import BaseModule
-from pepperpy.core.exceptions import ModuleError
+from pepperpy.core import BaseModule, ModuleConfig
+from pepperpy.core.exceptions import AIError
 
-from .cache.memory import MemoryCache
-from .embeddings.base import EmbeddingProvider, LocalEmbedding
-from .metrics import AIMetric, MetricsCollector
-from .processing import BatchProcessor
+from .metrics import AIMetric
+from .optimization.quantization import ModelOptimizer
+from .optimization.scheduler import DynamicBatchScheduler, SchedulerConfig
+from .providers.base import BaseProvider
 from .streaming import StreamingProvider, StreamingToken
-from .templates import TemplateManager
-from .text.chunking import ChunkingStrategy, SentenceChunker
-
-
-class AIProvider(Enum):
-    """Supported AI providers"""
-
-    OPENROUTER = "openrouter"
-    STACKSPOT = "stackspot"
+from .types import AIProvider, ModelConfig, PromptConfig
 
 
 @dataclass
@@ -34,12 +24,6 @@ class AIResponse:
     model: str
     usage: Dict[str, int]
     metadata: Dict[str, Any]
-
-
-class AIError(ModuleError):
-    """Base exception for AI module errors"""
-
-    pass
 
 
 class ProviderNotFoundError(AIError):
@@ -54,116 +38,121 @@ class ModelNotFoundError(AIError):
     pass
 
 
-class BaseProvider(ABC):
-    """Base class for AI providers"""
+class AIModuleConfig(ModuleConfig):
+    """AI module configuration"""
 
-    @abstractmethod
-    async def generate(self, prompt: str, model: Optional[str] = None, **kwargs) -> AIResponse:
-        """Generate AI response"""
-        pass
-
-    @abstractmethod
-    async def list_models(self) -> List[str]:
-        """List available models"""
-        pass
+    default_provider: Optional[str] = None
+    providers: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    batch_size: int = 32
+    max_concurrent: int = 3
+    cache_enabled: bool = True
+    cache_ttl: int = 3600
+    metrics_enabled: bool = True
+    scheduler_config: Optional[SchedulerConfig] = None
 
 
 class AIModule(BaseModule):
-    """Enhanced AI module with advanced capabilities"""
+    """Enhanced AI module with provider management"""
 
     __module_name__ = "ai"
-    __version__ = "0.1.0"
-    __description__ = "Multi-provider LLM integration module"
+    __version__ = "0.2.0"
+    __dependencies__ = ["cache", "metrics"]
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        super().__init__(config)
+    def __init__(self, config: Optional[AIModuleConfig] = None) -> None:
+        super().__init__(config or AIModuleConfig())
         self._providers: Dict[str, BaseProvider] = {}
-        self._default_provider: Optional[str] = None
-        self._chunker: ChunkingStrategy = SentenceChunker()
-        self._embedding_provider: Optional[EmbeddingProvider] = None
-        self._cache = MemoryCache()
-        self._batch_processor = BatchProcessor(
-            max_concurrent=config.get("max_concurrent", 3),
-            max_batch_size=config.get("batch_size", 20),
-        )
-        self._template_manager = TemplateManager()
-        self._metrics = MetricsCollector()
-
-        # Load templates if configured
-        if "templates_file" in self.config.settings:
-            self._template_manager.load_from_file(self.config.settings["templates_file"])
+        self._scheduler = DynamicBatchScheduler(config.scheduler_config or SchedulerConfig())
+        self._optimizer = ModelOptimizer()
+        self._lock = asyncio.Lock()
 
     async def initialize(self) -> None:
-        """Initialize AI providers and components"""
+        """Initialize AI providers"""
         await super().initialize()
 
-        # Initialize embedding provider if configured
-        if "embeddings" in self.config.settings:
-            embedding_config = self.config.settings["embeddings"]
-            if embedding_config.get("local", True):
-                self._embedding_provider = LocalEmbedding(
-                    model_name=embedding_config.get("model", "all-MiniLM-L6-v2")
-                )
+        try:
+            # Initialize configured providers
+            for provider_name, provider_config in self.config.providers.items():
+                provider_class = self._get_provider_class(provider_name)
+                provider = provider_class(provider_config)
+                self._providers[provider_name] = provider
+                await provider.initialize()
 
-        # Initialize configured providers
-        if "openrouter" in self.config.settings:
-            from .providers.openrouter import OpenRouterProvider
+            # Set default provider
+            if not self.config.default_provider and self._providers:
+                self.config.default_provider = next(iter(self._providers))
 
-            self._providers[AIProvider.OPENROUTER.value] = OpenRouterProvider(
-                self.config.settings["openrouter"]
-            )
+        except Exception as e:
+            raise AIError(f"Failed to initialize AI module: {e}") from e
 
-        if "stackspot" in self.config.settings:
-            from .providers.stackspot import StackSpotProvider
-
-            self._providers[AIProvider.STACKSPOT.value] = StackSpotProvider(
-                self.config.settings["stackspot"]
-            )
-
-        # Set default provider
-        self._default_provider = self.config.settings.get("default_provider")
-        if not self._default_provider and self._providers:
-            self._default_provider = next(iter(self._providers))
-
-    async def shutdown(self) -> None:
+    async def cleanup(self) -> None:
         """Cleanup AI providers"""
-        self._providers.clear()
-        await super().shutdown()
+        try:
+            for provider in self._providers.values():
+                await provider.cleanup()
+            self._scheduler.stop()
+            await super().cleanup()
+
+        except Exception as e:
+            raise AIError(f"Failed to cleanup AI module: {e}") from e
 
     async def generate(
         self,
         prompt: str,
         provider: Optional[str] = None,
-        model: Optional[str] = None,
-        **kwargs,
-    ) -> AIResponse:
-        """Generate AI response using specified or default provider"""
-        provider_name = provider or self._default_provider
+        model_config: Optional[ModelConfig] = None,
+        prompt_config: Optional[PromptConfig] = None,
+        priority: int = 1,
+    ) -> str:
+        """Generate text with specified provider"""
+        provider_name = provider or self.config.default_provider
         if not provider_name:
-            raise ProviderNotFoundError("No AI provider configured")
+            raise AIError("No AI provider specified or configured")
 
         provider_instance = self._providers.get(provider_name)
         if not provider_instance:
-            raise ProviderNotFoundError(f"Provider not found: {provider_name}")
+            raise AIError(f"Provider not found: {provider_name}")
 
         try:
-            return await provider_instance.generate(prompt, model, **kwargs)
+            # Add request to scheduler
+            request = {
+                "prompt": prompt,
+                "model_config": model_config,
+                "prompt_config": prompt_config,
+            }
+            await self._scheduler.add_request(priority, request)
+
+            # Get batch of requests
+            batch, _ = await self._scheduler.get_batch()
+
+            # Process batch
+            start_time = asyncio.get_event_loop().time()
+            results = await provider_instance.generate_batch(batch)
+            latency = asyncio.get_event_loop().time() - start_time
+
+            # Update scheduler stats
+            self._scheduler.update_stats(len(batch), latency)
+
+            # Return result for this request
+            return results[batch.index(request)]
+
         except Exception as e:
-            self.logger.error(f"Generation failed: {str(e)}")
-            raise AIError(f"Failed to generate response: {str(e)}") from e
+            raise AIError(f"Generation failed: {e}") from e
 
-    async def list_models(self, provider: Optional[str] = None) -> Dict[str, List[str]]:
-        """List available models for specified or all providers"""
-        if provider:
-            provider_instance = self._providers.get(provider)
-            if not provider_instance:
-                raise ProviderNotFoundError(f"Provider not found: {provider}")
-            return {provider: await provider_instance.list_models()}
+    def _get_provider_class(self, provider_name: str) -> Type[BaseProvider]:
+        """Get provider class by name"""
+        try:
+            if provider_name == AIProvider.OPENROUTER.value:
+                from .providers.openrouter import OpenRouterProvider
 
-        models = {}
-        for name, provider_instance in self._providers.items():
-            models[name] = await provider_instance.list_models()
-        return models
+                return OpenRouterProvider
+            elif provider_name == AIProvider.STACKSPOT.value:
+                from .providers.stackspot import StackSpotProvider
+
+                return StackSpotProvider
+            else:
+                raise AIError(f"Unknown provider: {provider_name}")
+        except ImportError as e:
+            raise AIError(f"Failed to import provider {provider_name}: {e}") from e
 
     async def generate_with_context(
         self, prompt: str, context: str, max_chunk_size: int = 1000, **kwargs

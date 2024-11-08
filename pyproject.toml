@@ -10,64 +10,62 @@ repository = "https://github.com/felipepimentel/pepperpy"
 python = "^3.12"
 pydantic = "^2.9.2"
 pyyaml = "^6.0"
-SQLAlchemy = {extras = ["asyncio"], version = "^2.0.36"}
-greenlet = { version = "^3.1.1", optional = true }
-asyncpg = { version = "^0.30.0", optional = true }
-psycopg = { version = "^3.2.3", optional = true }
-alembic = { version = "^1.14.0", optional = true }
-pymysql = { version = "^1.1.0", optional = true }
-aiomysql = { version = "^0.2.0", optional = true }
-aiosqlite = { version = "0.20.0", optional = true }
-duckdb = { version = "1.1.3", optional = true }
-redis = { version = "^5.0.1", optional = true }
-msgpack = { version = "^1.0.7", optional = true }
-prometheus-client = { version = "0.21.0", optional = true }
-opentelemetry-api = { version = "^1.28.0", optional = true }
-opentelemetry-sdk = { version = "^1.28.0", optional = true }
-opentelemetry-instrumentation-sqlalchemy = { version = "^0.49b0", optional = true }
-numpy = { version = "^2.1.3", optional = true }
-tokenizers = { version = "^0.20.1", optional = true }
-torch = { version = "^2.0.0", optional = true }
-sentence-transformers = { version = "3.2.1", optional = true }
-scikit-learn = { version = "^1.3.0", optional = true }
-wandb = { version = "0.18.5", optional = true }
-faiss-cpu = { version = "^1.7.4", optional = true }
-qdrant-client = { version = "^1.1.0", optional = true }
-plotext = { version = "^5.2.8", optional = true }
-typer = { version = "^0.12.5", optional = true }
-rich = { version = "^13.9.3", optional = true }
-textual = { version = "^0.85.2", optional = true }
-questionary = { version = "^2.0.0", optional = true }
-sqlalchemy-stubs = { version = "^0.4", optional = true }
-types-redis = { version = "^4.6.0.20240311", optional = true }
-bitsandbytes = { version = "0.44.1", optional = true }
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.3"
-pytest-asyncio = "^0.24.0"
-pytest-cov = "^6.0.0"
-black = "^24.10.0"
-ruff = "^0.7.2"
-mypy = "^1.13.0"
-python-semantic-release = "^9.12.1"
-pre-commit = "^4.0.1"
+# Format handling
+pypdf = { version = "5.1.0", optional = true }
+ebooklib = { version = "^0.18", optional = true }
+beautifulsoup4 = { version = "^4.12.3", optional = true }
+lxml = { version = "^5.1.0", optional = true }
+python-magic = { version = "^0.4.27", optional = true }
+
+# Audio processing
+soundfile = { version = "^0.12.1", optional = true }
+audioread = { version = "^3.0.1", optional = true }
+mutagen = { version = "^1.47.0", optional = true }
+aiofiles = "^24.1.0"
+numpy = "^2.1.3"
+torch = "^2.5.1"
+rich = "^13.9.4"
+sqlalchemy = "^2.0.36"
+bcrypt = "^4.2.0"
+jwt = "^1.3.1"
+alembic = "^1.14.0"
+cryptography = "^43.0.3"
+pillow = "^11.0.0"
+av = "^13.1.0"
+fitz = "^0.0.1.dev2"
 
 [tool.poetry.extras]
-postgresql = ["SQLAlchemy", "greenlet", "asyncpg", "psycopg", "alembic", "sqlalchemy-stubs"]
-sqlite = ["SQLAlchemy", "greenlet", "aiosqlite", "alembic", "sqlalchemy-stubs"]
-duckdb = ["duckdb"]
-redis_cache = ["redis", "msgpack", "types-redis"]
-monitoring = ["prometheus-client", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation-sqlalchemy"]
-ai = ["numpy", "tokenizers", "torch", "sentence-transformers", "scikit-learn", "wandb", "faiss-cpu", "qdrant-client", "bitsandbytes"]
-ui = ["plotext", "typer", "rich", "textual", "questionary"]
+formats = [
+    "pypdf",
+    "ebooklib",
+    "beautifulsoup4",
+    "lxml",
+    "python-magic"
+]
+
+audio = [
+    "soundfile",
+    "audioread",
+    "mutagen"
+]
 
 all = [
-    "SQLAlchemy", "greenlet", "asyncpg", "psycopg", "alembic", "sqlalchemy-stubs", "aiosqlite", "duckdb",
-    "redis", "msgpack", "types-redis", "prometheus-client", "opentelemetry-api", "opentelemetry-sdk",
-    "opentelemetry-instrumentation-sqlalchemy", "numpy", "tokenizers", "torch", "sentence-transformers",
-    "scikit-learn", "wandb", "faiss-cpu", "qdrant-client", "plotext", "typer", "rich", "textual",
-    "questionary", "bitsandbytes"
+    "pypdf",
+    "ebooklib",
+    "beautifulsoup4",
+    "lxml",
+    "python-magic",
+    "soundfile",
+    "audioread",
+    "mutagen"
 ]
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.0.1"
+black = "^24.10.0"
+ruff = "^0.7.2"
+isort = "^5.10.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -77,23 +75,9 @@ build-backend = "poetry.core.masonry.api"
 line-length = 100
 
 [tool.ruff.lint]
-select = [
-    "E", "F", "B", "I", "N",
-    "ANN",
-]
+select = ["E", "F", "B", "I", "N", "ANN"]
 ignore = [
-    "E501",
-    "N812",
-    "B006",
-    "ANN101",
-    "ANN102",
-    "ANN401",
-    "ANN204",
-    "ANN003",
-    "ANN001",
-    "ANN202",
-    "ANN205",
-    "ANN002"
+    "E501", "N812", "B006", "ANN101", "ANN102", "ANN401", "ANN204", "ANN003", "ANN001", "ANN202", "ANN205", "ANN002"
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -118,6 +102,9 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_default_fixture_loop_scope = "function"
 addopts = "--cov=pepperpy --cov-report=term-missing"
+
+[tool.poetry.scripts]
+lint = "tools.scripts:lint"
 
 [tool.semantic_release]
 version_variable = [

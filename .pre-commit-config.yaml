@@ -8,9 +8,9 @@ repos:
         types: [python]
         args: ["--check"]
 
-      - id: ruff
-        name: Ruff
-        entry: poetry run ruff
-        language: system
-        types: [python]
-        args: ["--fix", "--exit-zero"]
+      # - id: ruff
+      #   name: Ruff
+      #   entry: poetry run ruff
+      #   language: system
+      #   types: [python]
+      #   args: ["--fix"]

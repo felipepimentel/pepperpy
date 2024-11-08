@@ -1,85 +1,91 @@
-import re
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
+"""Core validation system with common validators and rules"""
 
-T = TypeVar("T")
-T_co = TypeVar("T_co", covariant=True)
+import re
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional, Type
+
+from .exceptions import ValidationError
 
 
 @dataclass
-class ValidationRule(Generic[T]):
-    """Regra de validação"""
+class ValidationRule:
+    """Validation rule definition"""
 
-    validator: Callable[[T], bool]
+    validator: Callable[[Any], bool]
     message: str
-    code: Optional[str] = None
-
-    def validate(self, value: T) -> Optional[str]:
-        """Executa validação"""
-        return None if self.validator(value) else self.message
+    params: Dict[str, Any] = None
 
 
-class Validator(ABC, Generic[T_co]):
-    """Interface base para validadores"""
+class Validator:
+    """Base validator class"""
 
-    @abstractmethod
-    def validate(self, value: T_co) -> List[str]:
-        """Valida um valor"""
-        pass
+    def __init__(self):
+        self._rules: Dict[str, List[ValidationRule]] = {}
 
+    def add_rule(self, field: str, rule: ValidationRule) -> None:
+        """Add validation rule for field"""
+        if field not in self._rules:
+            self._rules[field] = []
+        self._rules[field].append(rule)
 
-class SchemaValidator(Validator):
-    """Validador baseado em schema"""
-
-    def __init__(self, schema: Dict[str, List[ValidationRule[T_co]]]) -> None:
-        self.schema = schema
-
-    def validate(self, data: Dict[str, Any]) -> List[str]:
+    def validate(self, data: Dict[str, Any]) -> None:
+        """Validate data against rules"""
         errors = []
-        for field, rules in self.schema.items():
+
+        for field, rules in self._rules.items():
             value = data.get(field)
             for rule in rules:
-                if error := rule.validate(value):
-                    errors.append(f"{field}: {error}")
-        return errors
+                if not rule.validator(value):
+                    errors.append(f"{field}: {rule.message}")
+
+        if errors:
+            raise ValidationError("\n".join(errors))
 
 
-class ValidationBuilder:
-    """Builder para criar regras de validação"""
+# Common validators
+def required(value: Any) -> bool:
+    """Check if value is not None"""
+    return value is not None
 
-    @staticmethod
-    def required(message: str = "Field is required") -> ValidationRule:
-        return ValidationRule(lambda x: x is not None and str(x).strip() != "", message, "REQUIRED")
 
-    @staticmethod
-    def min_length(min_len: int, message: Optional[str] = None) -> ValidationRule:
-        return ValidationRule(
-            lambda x: len(str(x)) >= min_len,
-            message or f"Minimum length is {min_len}",
-            "MIN_LENGTH",
-        )
+def min_length(min_len: int) -> Callable[[Any], bool]:
+    """Check minimum length"""
+    return lambda value: len(value) >= min_len if value is not None else True
 
-    @staticmethod
-    def max_length(max_len: int, message: Optional[str] = None) -> ValidationRule:
-        return ValidationRule(
-            lambda x: len(str(x)) <= max_len,
-            message or f"Maximum length is {max_len}",
-            "MAX_LENGTH",
-        )
 
-    @staticmethod
-    def pattern(regex: str, message: str) -> ValidationRule:
-        return ValidationRule(lambda x: bool(re.match(regex, str(x))), message, "PATTERN")
+def max_length(max_len: int) -> Callable[[Any], bool]:
+    """Check maximum length"""
+    return lambda value: len(value) <= max_len if value is not None else True
 
-    @staticmethod
-    def email(message: str = "Invalid email format") -> ValidationRule:
-        return ValidationBuilder.pattern(
-            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", message
-        )
 
-    @staticmethod
-    def custom(
-        validator: Callable[[Any], bool], message: str, code: Optional[str] = None
-    ) -> ValidationRule:
-        return ValidationRule(validator, message, code)
+def pattern(regex: str) -> Callable[[str], bool]:
+    """Check if value matches regex pattern"""
+    compiled = re.compile(regex)
+    return lambda value: bool(compiled.match(value)) if value is not None else True
+
+
+def range_check(
+    min_val: Optional[float] = None, max_val: Optional[float] = None
+) -> Callable[[float], bool]:
+    """Check if value is within range"""
+
+    def validator(value: float) -> bool:
+        if value is None:
+            return True
+        if min_val is not None and value < min_val:
+            return False
+        if max_val is not None and value > max_val:
+            return False
+        return True
+
+    return validator
+
+
+def type_check(expected_type: Type) -> Callable[[Any], bool]:
+    """Check value type"""
+    return lambda value: isinstance(value, expected_type) if value is not None else True
+
+
+def enum_check(valid_values: List[Any]) -> Callable[[Any], bool]:
+    """Check if value is in enumeration"""
+    return lambda value: value in valid_values if value is not None else True
