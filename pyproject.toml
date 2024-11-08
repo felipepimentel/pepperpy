@@ -67,8 +67,12 @@ all = [
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"
 black = "^24.10.0"
-ruff = "^0.7.2"
+ruff = "^0.7.3"
 isort = "^5.10.2"
+pytest = "^8.3.3"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

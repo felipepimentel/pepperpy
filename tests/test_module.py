@@ -1,56 +1,57 @@
-from typing import AsyncGenerator
+"""Tests for base module functionality"""
 
 import pytest
 
-from pepperpy.core.module import Module
-from pepperpy.core.types import Status
+from pepperpy.core.base import BaseModule, ModuleConfig, ModuleStatus
 
 
-class DummyModule(Module):
-    """Simple test module implementation"""
+class TestModule(BaseModule):
+    """Test implementation of BaseModule"""
 
-    __module_name__ = "dummy"
-    __version__ = "0.1.0"
-    __description__ = "Test module"
-    __dependencies__ = []
+    __module_name__ = "test_module"
 
     async def setup(self) -> None:
-        """Initialize module"""
-        self._status = Status.ACTIVE
+        """Setup test module"""
+        self._status = ModuleStatus.ACTIVE
 
     async def cleanup(self) -> None:
-        """Cleanup module"""
-        self._status = Status.INACTIVE
+        """Cleanup test module"""
+        self._status = ModuleStatus.INACTIVE
 
 
 @pytest.fixture
-async def dummy_module() -> AsyncGenerator[DummyModule, None]:
-    """Fixture providing a basic module for testing"""
-    module = DummyModule()
-    await module.setup()
-    try:
-        yield module
-    finally:
-        await module.cleanup()
+def base_config() -> ModuleConfig:
+    """Provide base module configuration"""
+    return ModuleConfig(
+        debug=True,
+        name="test_module",
+        version="1.0.0",
+        timeout=30.0,
+    )
 
 
 @pytest.mark.asyncio
-async def test_module_lifecycle(dummy_module: DummyModule) -> None:
-    """Test basic module lifecycle"""
-    # Test module metadata
-    assert dummy_module.__module_name__ == "dummy"
-    assert dummy_module.__version__ == "0.1.0"
+async def test_base_module_initialization(base_config):
+    """Test base module initialization"""
+    module = TestModule(base_config)
+    assert module.get_status() == ModuleStatus.INACTIVE
+    await module.setup()
+    assert module.get_status() == ModuleStatus.ACTIVE
 
-    # Test health check
-    health = await dummy_module.health_check()
-    assert health.module == "dummy"
-    assert health.state == Status.ACTIVE
 
-    # Test health details
-    assert health.details["version"] == "0.1.0"
-    assert health.details["status"] == Status.ACTIVE
+@pytest.mark.asyncio
+async def test_base_module_cleanup(base_config):
+    """Test base module cleanup"""
+    module = TestModule(base_config)
+    await module.setup()
+    assert module.get_status() == ModuleStatus.ACTIVE
+    await module.cleanup()
+    assert module.get_status() == ModuleStatus.INACTIVE
 
-    # Test cleanup
-    await dummy_module.cleanup()
-    health = await dummy_module.health_check()
-    assert health.state == Status.INACTIVE
+
+@pytest.mark.asyncio
+async def test_base_module_config(base_config):
+    """Test base module configuration"""
+    module = TestModule(base_config)
+    assert module.config == base_config
+    assert module.config.debug is True
