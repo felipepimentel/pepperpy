@@ -1,266 +1,74 @@
-**pepperpy** is a Python development accelerator that provides a feature-based, vertical architecture library. Each module is self-contained with all necessary components, making it simple to use while maintaining extensibility and customization options.
+**PepperPy** is a Python development accelerator that emphasizes a feature-based, vertical architecture. Each module must be self-contained, responsible for a distinct feature or domain. Core functionalities are centralized in the `core` module, allowing other modules to remain focused on their unique responsibilities while avoiding code duplication.
 
 ### Core Architecture Principles
-- **Vertical (Feature-Based) Architecture**: Each module is a complete, self-contained feature.
-- **Single Responsibility**: Each module handles one specific domain completely.
-- **Minimal Configuration**: Ready to use with smart defaults.
-- **Extensible Design**: Easy to extend and customize when needed.
+
+- **Vertical (Feature-Based) Architecture**: Each module is a complete, isolated feature.
+- **Single Responsibility**: Each module addresses one specific domain or feature independently.
+- **Minimal Configuration**: Modules are configured with smart defaults, requiring minimal setup.
+- **Extensible Design**: Modules can be extended or customized as needed, without duplicating functionality already present in the `core` module.
+
+### Code Duplication and Modularization
+
+- **Avoid Redundant Code**: Common or reusable logic must not be duplicated across modules. Such logic should reside in the `core` module or a designated shared module.
+- **No Overlapping Functionality**: Each module should implement only the functionality specific to its feature or domain. If functionality overlaps with another module's responsibility, create a new module or leverage the `core` module to encapsulate shared logic.
 
 ### Project Structure (Python 3.12+)
+
 ```plaintext
-📦pepperpy
- ┃ ┗ 📂pepperpy/
- ┃   ┣ 📂core/                # Framework core
- ┃   ┃ ┣ 📜__init__.py
- ┃   ┃ ┣ 📜app.py            # Main application
- ┃   ┃ ┣ 📜module.py         # Base module system
- ┃   ┃ ┗ 📜exceptions.py     # Core exceptions
- ┃   ┃
- ┃   ┣ 📂database/           # Database Module (Complete Feature)
- ┃   ┃ ┣ 📜__init__.py
- ┃   ┃ ┣ 📜module.py         # Module implementation
- ┃   ┃ ┣ 📜models.py         # Data models
- ┃   ┃ ┣ 📜query.py          # Query system
- ┃   ┃ ┣ 📜exceptions.py     # Module exceptions
- ┃   ┃ ┗ 📂events/           # Module events
- ┃   ┃   ┣ 📜__init__.py
- ┃   ┃   ┗ 📜handlers.py
- ┃   ┃
- ┃   ┣ 📂cache/              # Cache Module (Complete Feature)
- ┃   ┃ ┣ 📜__init__.py
- ┃   ┃ ┣ 📜module.py
- ┃   ┃ ┣ 📜decorators.py
- ┃   ┃ ┗ 📂backend/
- ┃   ┃   ┣ 📜__init__.py
- ┃   ┃   ┗ 📜memory.py
- ┃   ┃
- ┃   ┗ 📂<feature_name>/     # New features follow same pattern
- ┃     ┣ 📜__init__.py
- ┃     ┣ 📜module.py
- ┃     ┣ 📜models.py
- ┃     ┗ 📜exceptions.py
- ┃
- ┣ 📂tests/                  # Tests follow feature structure
- ┃ ┣ 📂database/
- ┃ ┃ ┣ 📜test_models.py
- ┃ ┃ ┗ 📜test_queries.py
- ┃ ┣ 📂cache/
- ┃ ┃ ┗ 📜test_backend.py
- ┃ ┗ 📂<feature_name>/
- ┃   ┗ 📜test_feature.py
- ┃
- ┣ 📂examples/              # Examples by feature
- ┃ ┣ 📂database_examples/
- ┃ ┗ 📂cache_examples/
- ┃
- ┣ 📜pyproject.toml
- ┣ 📜README.md
- ┗ 📜LICENSE
-```
-
-### Module Structure Guidelines
-Each feature module MUST follow this structure:
-```python
-# module.py - Main module implementation
-class FeatureModule(BaseModule):
-    __module_name__ = 'feature_name'
-    
-    async def setup(self) -> None:
-        """Module initialization."""
-        pass
-        
-    async def cleanup(self) -> None:
-        """Resource cleanup."""
-        pass
-
-# models.py - Domain models
-class FeatureModel:
-    """Feature-specific models."""
-    pass
-
-# exceptions.py - Feature exceptions
-class FeatureError(Exception):
-    """Feature-specific exceptions."""
-    pass
+pepperpy/
+├── pepperpy/
+│   ├── core/                # Shared framework core
+│   ├── <feature_name>/      # Feature modules follow this pattern
+│   ├── database/            # Database module as a full-feature example
+│   └── cache/               # Cache module as a full-feature example
+├── tests/                   # Test structure mirrors feature structure
+├── examples/                # Example usage by feature
+├── pyproject.toml
+├── README.md
+└── LICENSE
 ```
 
 ### Development Standards
-- **Language**: English for all code, comments, and documentation.
-- **Python Version**: 3.12+
-- **Type Hints**: Mandatory for all public interfaces; no use of `typing.Any` where prohibited by Ruff.
-- **Documentation**: Clear docstrings for all public components, following Google style.
-- **Testing**: Feature-based test organization.
 
-### Code Style and Quality
-- **Formatting**: `black` for consistent formatting.
-- **Linting**: `ruff` for code quality, addressing warnings such as:
-  - Missing return type annotations (`ANN204`).
-  - Missing type annotations for function arguments (`ANN001`).
-  - Implicit `Optional` prohibited (`RUF013`).
-  - Unused imports (`F401`).
-  - Explicit f-string conversions (`RUF010`).
-  - Dangling tasks in asyncio (`RUF006`).
-- **Type Checking**: `mypy` in strict mode.
-- **Import Order**: `isort` for consistent imports.
+- **Single Responsibility**: Each module must strictly adhere to its domain or feature scope.
+- **Modularization**: Move any shared logic to the `core` module or create a new module for reusable components.
+- **Avoid Code Duplication**: Any code with shared potential must be consolidated to prevent redundancy.
 
-### Feature Module Template
-New features should follow this template:
+### Code Quality and Style
+
+- **Linting with Ruff**: Follow `ruff` for consistent code quality, addressing issues like:
+  - Missing annotations, `f-string` formatting, bare `except`, and `isinstance` over type comparisons.
+- **Type Checking with mypy**: Ensure strict type checking across all modules.
+- **Testing**: Tests should match the feature structure, ensuring each module's unique functionality is covered.
+
+### Module Template
+
+For creating new modules, reference the following template:
 
 ```python
-from pepperpy.core import BaseModule
-from typing import Optional
+from pepperpy.core.base import BaseModule
 
 class NewFeatureModule(BaseModule):
     """
-    Feature description
-    
-    Attributes:
-        name (str): Module name
-        config (dict): Module configuration
-    
+    New feature description.
+
     Examples:
         >>> module = NewFeatureModule()
         >>> await module.setup()
     """
     __module_name__ = 'new_feature'
-    
+
     async def setup(self) -> None:
-        """Initialize the module."""
+        """Initialize module."""
         pass
-    
+
     async def cleanup(self) -> None:
         """Cleanup resources."""
         pass
-    
-    def feature_method(self) -> Optional[str]:
-        """Feature-specific functionality."""
-        pass
 ```
 
-### Documentation Requirements
-Each feature module must include:
-- **README.md**: Usage examples.
-- **API documentation**: Type hints, parameters, and return types.
-- **Configuration options**.
-- **Example implementations**.
+### Quality Assurance
 
-### Quality Checks
-- **All tests passing**: Minimum of 90% coverage.
-- **Type check**: No errors in `mypy` strict mode.
-- **Code formatting**: Verified with `black`.
-- **Documentation**: Updated and in Google docstring style.
-- **Examples**: Verified to be working.
-
-### PepperPy Development Guidelines
-
-#### Core Principles
-
-1. **Module Independence**
-   - Self-contained functionality.
-   - Explicit dependencies.
-   - Clear boundaries.
-
-2. **Composition First**
-   - Builder pattern for configuration.
-   - Event-based communication.
-   - Lifecycle hooks.
-
-3. **Developer Experience**
-   - Type safety.
-   - Clear error messages.
-   - Consistent patterns.
-
-#### Module Structure
-
-```plaintext
-📂module_name/
- ┣ 📜__init__.py        # Public API
- ┣ 📜module.py          # Module implementation
- ┣ 📜exceptions.py      # Module exceptions
- ┣ 📜events.py          # Module events
- ┗ 📂components/        # Internal components
-   ┣ 📜__init__.py
-   ┗ 📜{component}.py
-```
-
-#### Implementation Guidelines
-
-1. **Module Definition**
-   ```python
-   from typing import Optional
-
-   class MyModule(BaseModule):
-       """
-       Clear module description.
-       
-       Attributes:
-           config (ModuleConfig): Module configuration.
-       
-       Examples:
-           >>> module = MyModule.create()\\
-           ...     .configure(setting="value")\\
-           ...     .build()
-       """
-       __module_name__ = "my_module"
-       __dependencies__ = ["other_module"]
-       
-       async def initialize(self) -> None:
-           await super().initialize()
-           # Setup resources
-           
-       async def shutdown(self) -> None:
-           await super().shutdown()
-           # Cleanup resources
-   ```
-
-2. **Event Handling**
-   ```python
-   async def post_initialize(self) -> None:
-       """Subscribe to events after initialization."""
-       self._event_bus.subscribe("other.event", self._handle_event)
-       
-   def _handle_event(self, event: Event) -> None:
-       """Handle specific event."""
-       pass
-   ```
-
-#### Documentation Standards
-
-1. **Module Documentation**
-   - Purpose and features.
-   - Configuration options.
-   - Event descriptions.
-   - Error scenarios.
-
-2. **API Documentation**
-   - Type hints.
-   - Parameters.
-   - Return values.
-   - Exceptions.
-
-3. **Examples**
-   - Basic usage.
-   - Common patterns.
-   - Error handling.
-
-#### Quality Checks
-
-1. **Code Quality**
-   - Black formatting.
-   - Ruff linting for common issues, including:
-     - `typing.Any` restrictions.
-     - Implicit `Optional`.
-     - Explicit f-string type conversions.
-     - Missing return type annotations.
-   - isort imports.
-   - mypy strict mode.
-
-2. **Runtime Checks**
-   - Type validation.
-   - Config validation.
-   - Resource cleanup.
-
-3. **Documentation**
-   - Google-style docstrings.
-   - Up-to-date examples.
-   - Changelog maintained.
+- **Ensure Code Independence**: Validate that each module has a single responsibility and avoids cross-functional overlap.
+- **Shared Logic Validation**: Actively review for potential code reuse opportunities and centralize them in `core` when beneficial.
+- **Documentation**: Each module must have clear documentation detailing its purpose, setup, and examples of usage.

@@ -153,6 +153,24 @@ class ApplicationError(Exception):
     pass
 
 
+class PepperError(Exception):
+    """Base exception for all Pepper errors."""
+
+    pass
+
+
+class AIError(PepperError):
+    """Base exception for AI-related errors."""
+
+    pass
+
+
+class ModelNotFoundError(AIError):
+    """Raised when an AI model is not found."""
+
+    pass
+
+
 def wrap_exception(
     error: Exception,
     module: Optional[str] = None,

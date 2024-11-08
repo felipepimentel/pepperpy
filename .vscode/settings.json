@@ -3,6 +3,7 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true,
         "**/*.pyc": true,
+        "**/.ruff_cache": false,
         "**/.DS_Store": true,
         ".coverage": true,
         "coverage.xml": true,

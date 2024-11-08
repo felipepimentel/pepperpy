@@ -1,28 +1,27 @@
-from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict
-
-
-class Priority(Enum):
-    """Task priority levels"""
-
-    LOW = 0
-    NORMAL = 1
-    HIGH = 2
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, Literal, Optional
 
 
 @dataclass
-class ProcessingTask:
-    """Task with priority and metadata"""
+class Message:
+    """Chat message"""
 
-    item: Any
-    priority: Priority
-    metadata: Dict[str, Any]
-    created_at: float
+    role: Literal["system", "user", "assistant"]
+    content: str
+    name: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, str]:
+        """Convert message to dictionary"""
+        # Remove None values and convert to dict
+        return {k: v for k, v in asdict(self).items() if v is not None}
 
 
-class AIProvider(Enum):
-    """Supported AI providers"""
+@dataclass
+class AIResponse:
+    """Response from AI provider"""
 
-    OPENROUTER = "openrouter"
-    STACKSPOT = "stackspot"
+    content: str
+    model: str
+    provider: str
+    raw_response: Optional[Dict[str, Any]] = None
+    usage: Optional[Dict[str, int]] = None

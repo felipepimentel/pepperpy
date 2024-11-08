@@ -1,209 +1,133 @@
-"""Enhanced logging system with structured output and multiple handlers"""
-
-import json
 import logging
-import logging.handlers
-import sys
-import threading
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum, auto
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional, Union
 
-from .base import BaseModule, ModuleConfig
-from .exceptions import LoggingError
-from .types import JsonDict
+from rich.console import Console as RichConsole
+from rich.logging import RichHandler
 
 
-class LogLevel(Enum):
-    """Standard log levels with clear naming"""
+class LogLevel(str, Enum):
+    """Log levels with string values for easy configuration"""
 
-    DEBUG = auto()
-    INFO = auto()
-    WARNING = auto()
-    ERROR = auto()
-    CRITICAL = auto()
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+@dataclass
+class LogConfig:
+    """Logging configuration"""
+
+    level: Union[LogLevel, str] = LogLevel.INFO
+    file: Optional[Union[str, Path]] = None
+    format: str = "%(message)s"
+    date_format: str = "[%X]"
+    rich_console: bool = True
+    show_path: bool = False
+    show_time: bool = True
+    show_level: bool = True
+
+    def __post_init__(self):
+        """Convert level to string if it's an enum"""
+        if isinstance(self.level, LogLevel):
+            self.level = str(self.level)
+
+
+class PepperLogger:
+    """Simplified logging interface for PepperPy"""
+
+    # Configuração padrão para toda a lib
+    DEFAULT_CONFIG = LogConfig(
+        level=LogLevel.INFO,
+        rich_console=True,
+        show_time=True,
+        show_level=True,
+    )
+
+    _instances = {}
+
+    def __init__(self, name: str, config: Optional[LogConfig] = None):
+        self.name = name
+        self.config = config or self.DEFAULT_CONFIG
+        self._console = RichConsole()
+        self._logger = self._setup_logger()
 
     @classmethod
-    def to_logging_level(cls, level: "LogLevel") -> int:
-        """Convert to standard logging level"""
-        return {
-            cls.DEBUG: logging.DEBUG,
-            cls.INFO: logging.INFO,
-            cls.WARNING: logging.WARNING,
-            cls.ERROR: logging.ERROR,
-            cls.CRITICAL: logging.CRITICAL,
-        }[level]
+    def get(cls, name: str) -> "PepperLogger":
+        """Get or create a logger instance using default configuration"""
+        if name not in cls._instances:
+            cls._instances[name] = cls(name)
+        return cls._instances[name]
 
+    @classmethod
+    def configure(cls, name: str, config: LogConfig) -> "PepperLogger":
+        """Create or reconfigure a logger instance with custom configuration"""
+        cls._instances[name] = cls(name, config)
+        return cls._instances[name]
 
-@dataclass
-class LogContext:
-    """Context information for log entries"""
+    def _setup_logger(self) -> logging.Logger:
+        """Setup logger with configuration"""
+        logger = logging.getLogger(self.name)
+        logger.setLevel(self.config.level)
+        logger.handlers = []  # Clear existing handlers
 
-    module: str
-    function: Optional[str] = None
-    line_number: Optional[int] = None
-    thread_id: Optional[int] = field(default_factory=lambda: threading.get_ident())
-    timestamp: datetime = field(default_factory=datetime.now)
-    extra: Dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> JsonDict:
-        """Convert context to dictionary"""
-        return {
-            "module": self.module,
-            "function": self.function,
-            "line_number": self.line_number,
-            "thread_id": self.thread_id,
-            "timestamp": self.timestamp.isoformat(),
-            **self.extra,
-        }
-
-
-@dataclass
-class LoggingConfig(ModuleConfig):
-    """Enhanced logging configuration"""
-
-    level: LogLevel = LogLevel.INFO
-    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    file_path: Optional[Path] = None
-    max_bytes: int = 10 * 1024 * 1024  # 10MB
-    backup_count: int = 5
-    json_output: bool = False
-    include_context: bool = True
-    console_enabled: bool = True
-    file_enabled: bool = True
-    syslog_enabled: bool = False
-    syslog_address: Optional[str] = None
-    buffer_capacity: int = 1000
-    async_logging: bool = True
-
-
-class StructuredFormatter(logging.Formatter):
-    """Advanced JSON-style structured log formatter"""
-
-    def format(self, record: logging.LogRecord) -> str:
-        """Format log record as structured data"""
-        data = {
-            "timestamp": self.formatTime(record),
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno,
-            "thread_id": record.thread,
-            "process_id": record.process,
-        }
-
-        if hasattr(record, "context"):
-            data["context"] = record.context
-
-        if record.exc_info:
-            data["exception"] = self.formatException(record.exc_info)
-
-        if record.stack_info:
-            data["stack_trace"] = self.formatStack(record.stack_info)
-
-        return json.dumps(data, default=str)
-
-
-class LoggingModule(BaseModule):
-    """Advanced logging system with multiple handlers and async support"""
-
-    __module_name__ = "logging"
-    __dependencies__ = ["metrics"]
-
-    def __init__(self, config: Optional[LoggingConfig] = None) -> None:
-        super().__init__(config or LoggingConfig())
-        self._handlers: Dict[str, logging.Handler] = {}
-        self._buffer: List[logging.LogRecord] = []
-        self._metrics = None
-        self._lock = threading.Lock()
-
-    async def initialize(self) -> None:
-        """Initialize logging system"""
-        await super().initialize()
-        self._metrics = self.get_module("metrics")
-        self._configure_root_logger()
-        self._setup_handlers()
-
-    async def cleanup(self) -> None:
-        """Cleanup logging system"""
-        self._flush_buffer()
-        for handler in self._handlers.values():
-            try:
-                handler.close()
-            except Exception as e:
-                self._logger.error(f"Error closing handler: {e}")
-        self._handlers.clear()
-        await super().cleanup()
-
-    def _configure_root_logger(self) -> None:
-        """Configure root logger settings"""
-        root_logger = logging.getLogger()
-        root_logger.setLevel(LogLevel.to_logging_level(self.config.level))
-        root_logger.handlers.clear()
-
-    def _setup_handlers(self) -> None:
-        """Setup configured log handlers"""
-        formatter = (
-            StructuredFormatter()
-            if self.config.json_output
-            else logging.Formatter(self.config.format)
-        )
-
-        if self.config.console_enabled:
-            self._add_console_handler(formatter)
-
-        if self.config.file_enabled and self.config.file_path:
-            self._add_file_handler(formatter)
-
-        if self.config.syslog_enabled and self.config.syslog_address:
-            self._add_syslog_handler(formatter)
-
-    def _add_console_handler(self, formatter: logging.Formatter) -> None:
-        """Add console handler"""
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-        self._add_handler("console", handler)
-
-    def _add_file_handler(self, formatter: logging.Formatter) -> None:
-        """Add rotating file handler"""
-        try:
-            handler = logging.handlers.RotatingFileHandler(
-                self.config.file_path,
-                maxBytes=self.config.max_bytes,
-                backupCount=self.config.backup_count,
+        # Rich console handler
+        if self.config.rich_console:
+            rich_handler = RichHandler(
+                rich_tracebacks=True,
+                show_path=self.config.show_path,
+                show_time=self.config.show_time,
+                show_level=self.config.show_level,
+                console=self._console,
             )
-            handler.setFormatter(formatter)
-            self._add_handler("file", handler)
-        except Exception as e:
-            raise LoggingError(f"Failed to setup file handler: {e}") from e
+            rich_handler.setFormatter(
+                logging.Formatter(self.config.format, datefmt=self.config.date_format)
+            )
+            logger.addHandler(rich_handler)
 
-    def _add_syslog_handler(self, formatter: logging.Formatter) -> None:
-        """Add syslog handler"""
-        try:
-            handler = logging.handlers.SysLogHandler(address=self.config.syslog_address)
-            handler.setFormatter(formatter)
-            self._add_handler("syslog", handler)
-        except Exception as e:
-            raise LoggingError(f"Failed to setup syslog handler: {e}") from e
+        # File handler if specified
+        if self.config.file:
+            file_handler = logging.FileHandler(self.config.file)
+            file_handler.setFormatter(
+                logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            )
+            logger.addHandler(file_handler)
 
-    def _add_handler(self, name: str, handler: logging.Handler) -> None:
-        """Add handler to root logger"""
-        with self._lock:
-            self._handlers[name] = handler
-            logging.getLogger().addHandler(handler)
+        return logger
 
-    def _flush_buffer(self) -> None:
-        """Flush buffered log records"""
-        with self._lock:
-            for record in self._buffer:
-                self._log_record(record)
-            self._buffer.clear()
+    def debug(self, message: str, *args, **kwargs) -> None:
+        """Log debug message"""
+        self._logger.debug(message, *args, **kwargs)
 
-    async def _record_metrics(self, level: str) -> None:
-        """Record logging metrics"""
-        if self._metrics:
-            await self._metrics.record_metric(name="log_entries", value=1, labels={"level": level})
+    def info(self, message: str, *args, **kwargs) -> None:
+        """Log info message"""
+        self._logger.info(message, *args, **kwargs)
+
+    def warning(self, message: str, *args, **kwargs) -> None:
+        """Log warning message"""
+        self._logger.warning(message, *args, **kwargs)
+
+    def error(self, message: str, *args, **kwargs) -> None:
+        """Log error message"""
+        self._logger.error(message, *args, **kwargs)
+
+    def critical(self, message: str, *args, **kwargs) -> None:
+        """Log critical message"""
+        self._logger.critical(message, *args, **kwargs)
+
+    def exception(self, message: str, *args, exc_info: bool = True, **kwargs) -> None:
+        """Log exception with traceback"""
+        self._logger.exception(message, *args, exc_info=exc_info, **kwargs)
+
+
+# Função simplificada para obter logger
+def get_logger(name: str) -> PepperLogger:
+    """Get a logger instance with default configuration"""
+    return PepperLogger.get(f"pepperpy.{name}")
