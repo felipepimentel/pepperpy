@@ -1,8 +1,8 @@
 """PepperPy Console Module"""
 
+from .console import Console
 from .module import ConsoleModule
+from .styles import Style
+from .templates import ConsoleTemplates
 
-# Provide default instance for simple usage
-console = ConsoleModule()
-
-__all__ = ["ConsoleModule", "console"]
+__all__ = ["ConsoleModule", "Console", "Style", "ConsoleTemplates"]

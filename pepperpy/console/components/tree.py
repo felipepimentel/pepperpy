@@ -1,39 +1,55 @@
-from typing import Any, Optional
+from typing import Any, Dict, Optional, Union
 
+from rich.console import Console
+from rich.style import Style as RichStyle
 from rich.tree import Tree as RichTree
 
 
 class Tree:
     """Enhanced tree component for hierarchical data"""
 
-    def __init__(self, console):
+    def __init__(self, console: Console):
+        """Initialize tree component.
+
+        Args:
+            console: Console instance
+        """
         self._console = console
-        self._tree = None
 
-    def new(self, label: str, **kwargs) -> RichTree:
-        """Create new tree with root label"""
-        self._tree = RichTree(label, **kwargs)
-        return self._tree
+    def render(
+        self,
+        data: Dict[str, Any],
+        title: Optional[str] = None,
+        style: Optional[Union[str, RichStyle]] = None,
+    ) -> None:
+        """Render tree visualization.
 
-    def add(self, parent: RichTree, label: str, **kwargs) -> RichTree:
-        """Add node to tree"""
-        return parent.add(label, **kwargs)
+        Args:
+            data: Hierarchical data to display
+            title: Optional tree title
+            style: Optional tree style
+        """
+        tree = RichTree(title or "Root", style=style)
+        self._add_items(tree, data)
+        self._console.print(tree)
 
-    def from_dict(self, data: dict, root_label: Optional[str] = None) -> RichTree:
-        """Create tree from dictionary"""
-        tree = self.new(root_label or "Root")
-        self._add_dict_to_tree(tree, data)
-        return tree
+    def _add_items(self, tree: RichTree, data: Any) -> None:
+        """Recursively add items to tree.
 
-    def _add_dict_to_tree(self, node: RichTree, data: Any) -> None:
-        """Recursively add dictionary data to tree"""
+        Args:
+            tree: Current tree node
+            data: Data to add
+        """
         if isinstance(data, dict):
             for key, value in data.items():
-                child = self.add(node, str(key))
-                self._add_dict_to_tree(child, value)
+                node = tree.add(str(key))
+                self._add_items(node, value)
         elif isinstance(data, (list, tuple)):
             for item in data:
-                child = self.add(node, str(item))
-                self._add_dict_to_tree(child, item)
-        else:
-            self.add(node, str(data))
+                if isinstance(item, (dict, list, tuple)):
+                    node = tree.add("Item")
+                    self._add_items(node, item)
+                else:
+                    tree.add(str(item))
+        elif data is not None:
+            tree.add(str(data))

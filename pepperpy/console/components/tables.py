@@ -1,13 +1,12 @@
 """Enhanced table components"""
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Text
 
 from rich.box import SQUARE, Box
 from rich.console import Console
 from rich.style import Style as RichStyle
 from rich.table import Table as RichTable
-from rich.text import Text
 
 
 @dataclass
@@ -35,7 +34,7 @@ class TableConfig:
     padding: tuple[int, int] = (0, 1)
 
 
-class Table:
+class EnhancedTable:
     """Enhanced table component"""
 
     def __init__(self, console: Console):
@@ -145,24 +144,3 @@ class Table:
             table.add_row(*current_row)
 
         self._console.print(table)
-
-    def from_records(
-        self,
-        data: List[Dict[str, Any]],
-        title: Optional[str] = None,
-        config: Optional[TableConfig] = None,
-    ) -> None:
-        """Create table from list of dictionaries.
-
-        Args:
-            data: List of dictionaries containing data
-            title: Optional table title
-            config: Optional table configuration
-        """
-        if not data:
-            return
-
-        # Create columns from first record
-        columns = [Column(name=key, header=key.title().replace("_", " ")) for key in data[0].keys()]
-
-        self.create_table(data, columns, title, config)

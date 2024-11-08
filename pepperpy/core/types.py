@@ -1,53 +1,35 @@
-"""Core type definitions and custom types"""
+"""Core type definitions"""
 
-import json
-from datetime import date, datetime
-from pathlib import Path
-from typing import Any, Dict, Protocol, TypeVar, Union
+from enum import Enum, auto
+from typing import Any, Dict, Protocol, TypeVar
 
-# Type aliases
-PathLike = Union[str, Path]
 JsonDict = Dict[str, Any]
-Timestamp = Union[datetime, date, str, float]
-
-# Generic types
 T = TypeVar("T")
-K = TypeVar("K")
-V = TypeVar("V")
 
 
-class Serializable(Protocol):
-    """Protocol for serializable objects"""
+class MetricType(Enum):
+    """Types of metrics that can be collected"""
 
-    def to_dict(self) -> JsonDict: ...
-
-    @classmethod
-    def from_dict(cls, data: JsonDict) -> "Serializable": ...
-
-
-class JsonEncoder(json.JSONEncoder):
-    """Enhanced JSON encoder with support for additional types"""
-
-    def default(self, obj: Any) -> Any:
-        if isinstance(obj, (datetime, date)):
-            return obj.isoformat()
-        if isinstance(obj, Path):
-            return str(obj)
-        if isinstance(obj, Serializable):
-            return obj.to_dict()
-        return super().default(obj)
+    COUNTER = auto()
+    GAUGE = auto()
+    HISTOGRAM = auto()
+    SUMMARY = auto()
 
 
-# Common type validators
-def is_path_like(value: Any) -> bool:
-    """Check if value is path-like"""
-    return isinstance(value, (str, Path))
+class ModuleStatus(Enum):
+    """Module lifecycle status"""
+
+    INACTIVE = auto()
+    INITIALIZING = auto()
+    ACTIVE = auto()
+    ERROR = auto()
+    SHUTTING_DOWN = auto()
 
 
-def is_json_serializable(value: Any) -> bool:
-    """Check if value is JSON serializable"""
-    try:
-        json.dumps(value, cls=JsonEncoder)
-        return True
-    except (TypeError, ValueError):
-        return False
+class ModuleProtocol(Protocol):
+    """Protocol defining module interface"""
+
+    async def initialize(self) -> None: ...
+    async def cleanup(self) -> None: ...
+    def get_status(self) -> ModuleStatus: ...
+    def get_metadata(self) -> JsonDict: ...

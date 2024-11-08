@@ -147,6 +147,12 @@ class ConnectionError(NetworkError):
     pass
 
 
+class ApplicationError(Exception):
+    """Base exception for PepperPy application errors."""
+
+    pass
+
+
 def wrap_exception(
     error: Exception,
     module: Optional[str] = None,

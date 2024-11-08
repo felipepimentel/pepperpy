@@ -1,20 +1,19 @@
-"""Rich chat interface component"""
+"""Chat interface component"""
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.style import Style
-from rich.text import Text
 
 
 @dataclass
 class Message:
-    """Chat message container"""
+    """Chat message"""
 
-    text: str
+    content: str
     sender: str
     timestamp: datetime = datetime.now()
     style: Optional[str] = None
@@ -23,32 +22,51 @@ class Message:
 class Chat:
     """Interactive chat interface"""
 
-    def __init__(self, console: Console):
-        self._console = console
-        self._messages: List[Message] = []
-        self._styles = {
-            "user": Style(color="blue"),
-            "bot": Style(color="green"),
-            "system": Style(color="yellow"),
-        }
+    def __init__(self, console: Console, title: str = "Chat", theme: str = "dark"):
+        """Initialize chat interface.
 
-    def add_message(self, text: str, sender: str, style: Optional[str] = None) -> None:
-        """Add message to chat"""
-        msg = Message(text, sender, style=style or sender)
-        self._messages.append(msg)
-        self._render_message(msg)
+        Args:
+            console: Console instance
+            title: Chat title
+            theme: Chat theme
+        """
+        self._console = console
+        self._title = title
+        self._theme = theme
+        self._messages = []
+
+    async def add_message(self, content: str, sender: str, style: Optional[Style] = None) -> None:
+        """Add message to chat.
+
+        Args:
+            content: Message content
+            sender: Message sender
+            style: Optional message style
+        """
+        message = Message(content=content, sender=sender, style=style.value if style else None)
+        self._messages.append(message)
+        self._render_message(message)
+
+    def _render_message(self, message: Message) -> None:
+        """Render single message.
+
+        Args:
+            message: Message to render
+        """
+        # Criar cabeçalho com timestamp
+        header = f"[{message.sender}] {message.timestamp:%H:%M:%S}"
+
+        # Criar painel com a mensagem
+        panel = Panel(
+            message.content,
+            title=header,
+            style=message.style,
+            border_style="dim" if self._theme == "dark" else None,
+        )
+
+        self._console.print(panel)
 
     def clear(self) -> None:
-        """Clear chat history"""
+        """Clear chat history."""
         self._messages.clear()
         self._console.clear()
-
-    def _render_message(self, msg: Message) -> None:
-        """Render single message"""
-        style = self._styles.get(msg.style, Style())
-
-        header = Text(f"{msg.sender} - {msg.timestamp:%H:%M:%S}", style=style)
-        content = Text(msg.text)
-
-        panel = Panel.fit(content, title=header, border_style=style)
-        self._console.print(panel)
