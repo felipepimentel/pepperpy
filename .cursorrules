@@ -1,13 +1,6 @@
 # PepperPy Development Rules
 
-## Architecture
-- Vertical (feature-based) architecture
-- Each module is self-contained and independent
-- Core module contains shared functionality
-- No cross-module dependencies
-- Modules are small and focused; large modules or additional features are split into separate modules
-
-## Core Principles
+## Architecture Principles
 - Modular, self-contained architecture
 - Each module is autonomous and responsible for its own structure
 - Core module holds only essential framework and shared utilities
@@ -15,7 +8,7 @@
 - Async-first development
 - Type-safe implementation
 
-## Project Structure
+## Module Structure
 
 The project structure is minimalist but categorized, organizing modules within directories representing functional categories. This approach keeps related modules grouped logically without rigid naming requirements, allowing for expansion while maintaining clarity.
 
@@ -59,3 +52,4 @@ pepperpy/
 4. **Async Development**: Use async/await for all asynchronous functions.
 5. **Error Handling**: Define module-specific exceptions, preferably within the module, and handle errors in a clear, predictable manner.
 6. **Type Safety**: All modules should use full and consistent type annotations, with `mypy` and `ruff` to ensure code consistency.
+7. **Comment Guidelines**: Avoid generating comments that describe the implementation, such as `# Implementation of RichApp`, or any other unnecessary comments. Always provide complete and functional code without generic comments.

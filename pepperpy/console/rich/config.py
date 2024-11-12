@@ -46,3 +46,10 @@ class RichConfig:
     force_terminal: bool = False
     force_interactive: bool = False
     use_alternate_screen: bool = False
+
+
+class ConsoleConfig:
+    pass
+
+
+__all__ = ["RichConfig", "ConsoleConfig"]
