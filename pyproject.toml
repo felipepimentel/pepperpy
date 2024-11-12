@@ -8,75 +8,149 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-pydantic = {version = "^2.9.2", optional = true}
-pyyaml = {version = "^6.0", optional = true}
+pydantic = "^2.6.1"
+pyyaml = "^6.0.1"
 rich = {version = "^13.0.0", optional = true}
 python-dotenv = {version = "^1.0.0", optional = true}
-markdown = {version = "^3.4.0", optional = true}
-pypdf = {version = "^3.0.0", optional = true}
+markdown-it-py = "^3.0.0"
+pypdf = "^4.0.1"
 python-magic = {version = "^0.4.27", optional = true}
-fitz = {version = "^0.0.1", optional = true}
 ebooklib = {version = "^0.18", optional = true}
-beautifulsoup4 = {version = "^4.11.1", optional = true}
-lxml = {version = "^4.9.1", optional = true}
-audioread = {version = "^2.1.9", optional = true}
-mutagen = {version = "^1.45.1", optional = true}
-soundfile = {version = "^0.10.3", optional = true}
-pillow = {version = "^9.2.0", optional = true}
-av = {version = "^10.0.0", optional = true}
+beautifulsoup4 = "^4.12.3"
+lxml = "^5.1.0"
+soundfile = "^0.12.1"
+pillow = "^10.2.0"
+opencv-python = "^4.9.0.80"
 cryptography = {version = "^39.0.0", optional = true}
 bcrypt = {version = "^4.0.1", optional = true}
-jwt = {version = "^1.7.1", optional = true}
-sqlalchemy = {version = "^1.4.39", optional = true}
+pyjwt = "^2.8.0"
+sqlalchemy = "^2.0.27"
 alembic = {version = "^1.8.1", optional = true}
-asyncpg = {version = "0.30.0", optional = true}
-httpx = {version = "^0.23.0", optional = true}
-aiohttp = {version = "^3.8.3", optional = true}
-aiofiles = {version = "^0.11.0", optional = true}
-torch = {version = "^1.12.1", optional = true}
-numpy = {version = "^1.23.3", optional = true}
+asyncpg = "^0.29.0"
+httpx = "^0.27.0"
+aiohttp = "^3.9.3"
+aiofiles = {version = "^24.1.0", optional = true}
+numpy = "^1.23.3"
+scikit-learn = "^1.4.0"
+torch = {version = "^2.5.1", optional = true}
+redis = {version = "^5.0.1", extras = ["hiredis"]}
+orjson = "^3.9.10"
+websockets = "^12.0"
+langdetect = "^1.0.9"
+typer = {extras = ["all"], version = "^0.13.0"}
+msgpack = "^1.0.7"
+aiosqlite = "^0.19.0"
+python-docx = "^1.1.0"
+PyMuPDF = "^1.23.8"
+pandas = "^2.2.0"
+openpyxl = "^3.1.2"
+duckdb = "^0.10.0"
+moviepy = "^1.0.3"
+pydub = "^0.25.1"
+pymediainfo = "^6.1.0"
 
 [tool.poetry.extras]
-console = ["rich", "python-dotenv"]
-yaml_support = ["pyyaml"]
-markdown = ["markdown"]
-pdf = ["pypdf", "python-magic", "fitz"]
-epub = ["ebooklib", "beautifulsoup4", "lxml"]
-html = ["beautifulsoup4", "lxml"]
-audio_basic = ["audioread"]
-audio_metadata = ["mutagen"]
-audio_io = ["soundfile"]
-image_processing = ["pillow"]
-video_processing = ["av"]
-security_cryptography = ["cryptography"]
-security_auth = ["bcrypt", "jwt"]
-database_core = ["sqlalchemy", "alembic"]
-database_postgres = ["asyncpg"]
-http_client_sync = ["httpx"]
-http_client_async = ["aiohttp"]
-file_io_async = ["aiofiles"]
-machine_learning = ["torch"]
-numerical_computing = ["numpy"]
+# Core Utilities
+core = ["pydantic"]
+yaml = ["pyyaml"]
+logging = ["rich"]
+config = ["python-dotenv"]
+
+# Console Features
+console_basic = ["rich"]
+console_full = ["rich", "python-dotenv", "markdown-it-py"]
+console_interactive = ["rich", "prompt-toolkit"]
+
+# Document Processing
+docs_markdown = ["markdown-it-py"]
+docs_pdf = ["pypdf", "python-magic"]
+docs_pdf_advanced = ["pypdf", "python-magic"]
+docs_epub = ["ebooklib", "beautifulsoup4", "lxml"]
+docs_html = ["beautifulsoup4", "lxml"]
+
+# Media Processing
+media_audio_basic = ["soundfile", "pydub"]
+media_audio_full = ["soundfile", "pydub", "moviepy"]
+media_image = ["pillow"]
+media_video = ["opencv-python", "moviepy", "python-mediainfo"]
+media_full = [
+    "soundfile",
+    "pydub",
+    "moviepy",
+    "opencv-python",
+    "python-mediainfo"
+]
+
+# Security
+security_basic = ["cryptography"]
+security_auth = ["bcrypt", "pyjwt"]
+security_full = ["cryptography", "bcrypt", "pyjwt"]
+
+# Database
+db_core = ["sqlalchemy"]
+db_migrations = ["sqlalchemy", "alembic"]
+db_postgres = ["asyncpg"]
+db_duckdb = ["duckdb"]
+db_full = ["sqlalchemy", "alembic", "asyncpg", "duckdb"]
+
+# HTTP Clients
+http_sync = ["httpx"]
+http_async = ["aiohttp"]
+http_full = ["httpx", "aiohttp"]
+
+# File Operations
+files_async = ["aiofiles"]
+files_full = ["aiofiles", "python-magic"]
+
+# AI/ML Features
+ai_core = ["numpy", "pydantic", "scikit-learn"]
+ai_llm = ["numpy", "pydantic", "httpx"]
+ai_rag = ["numpy", "pydantic", "httpx", "pypdf", "beautifulsoup4"]
+ai_optimization = ["numpy", "torch"]
+ai_full = [
+    "numpy",
+    "torch",
+    "pydantic",
+    "httpx",
+    "pypdf",
+    "beautifulsoup4",
+    "lxml"
+]
+
+# Text Processing
+text_processing = [
+    "langdetect",
+    "markdown-it-py",
+    "pypdf"
+]
+
+# Complete Bundles
+minimal = ["pydantic", "rich", "python-dotenv"]
+standard = [
+    "pydantic",
+    "rich",
+    "python-dotenv",
+    "httpx",
+    "sqlalchemy",
+    "aiofiles"
+]
 all = [
     "pydantic",
     "pyyaml",
     "rich",
     "python-dotenv",
-    "markdown",
+    "markdown-it-py",
     "pypdf",
     "python-magic",
-    "fitz",
     "ebooklib",
     "beautifulsoup4",
     "lxml",
-    "audioread",
-    "mutagen",
     "soundfile",
+    "opencv-python",
     "pillow",
-    "av",
     "cryptography",
     "bcrypt",
-    "jwt",
+    "pyjwt",
     "sqlalchemy",
     "alembic",
     "asyncpg",
@@ -84,7 +158,17 @@ all = [
     "aiohttp",
     "aiofiles",
     "torch",
-    "numpy"
+    "numpy",
+    "redis",
+    "orjson",
+    "websockets"
+]
+
+# Cache & Storage
+cache = [
+    "redis",
+    "msgpack",
+    "hiredis"
 ]
 
 [tool.poetry.group.dev.dependencies]
@@ -107,7 +191,7 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "B", "I", "N", "ANN"]
 ignore = [
-    "E501", "N812", "B006", "ANN101", "ANN102", "ANN401", "ANN204", "ANN003", "ANN001", "ANN202", "ANN205", "ANN002"
+    "E501", "N812", "B006", "ANN101", "ANN102", "ANN401", "ANN204", "ANN003", "ANN001", "ANN202", "ANN205", "ANN002", "B904"
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -1,86 +1,46 @@
-"""Context management and dependency injection"""
+"""Global context management"""
 
-import logging
-from contextlib import contextmanager
-from dataclasses import dataclass
-from typing import Any, Dict, Generator, Optional, Type, TypeVar
-
-T = TypeVar("T")
+from contextlib import asynccontextmanager
+from typing import Any, AsyncIterator, Dict
 
 
-@dataclass
-class ContextVar:
-    """Context variable definition"""
+class GlobalContext:
+    """Global context manager"""
 
-    name: str
-    value: Any
-    scope: str = "request"  # request, session, or application
+    def __init__(self) -> None:
+        self._context: Dict[str, Any] = {}
+        self._defaults: Dict[str, Any] = {}
 
+    def set(self, key: str, value: Any) -> None:
+        """Set context value"""
+        self._context[key] = value
 
-class Context:
-    """Request context management"""
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get context value"""
+        return self._context.get(key, self._defaults.get(key, default))
 
-    _current: Dict[str, Any] = {}
-
-    @classmethod
-    def get_current(cls) -> Optional["Context"]:
-        """Get current context"""
-        return getattr(cls._current, "current", None)
-
-    @classmethod
-    @contextmanager
-    def enter_scope(cls, **kwargs) -> Generator[None, None, None]:
-        """Enter new context scope
+    @asynccontextmanager
+    async def scope(self, **kwargs: Any) -> AsyncIterator["GlobalContext"]:
+        """Create temporary context scope
 
         Args:
-            **kwargs: Context variables to set
+            **kwargs: Context values to set for this scope
 
-        Yields:
-            None: Context scope
+        Returns:
+            AsyncIterator[GlobalContext]: Context manager instance
         """
-        previous = cls.get_current()
+        old_values = {}
+        for key, value in kwargs.items():
+            old_values[key] = self._context.get(key)
+            self._context[key] = value
         try:
-            cls._current.update(kwargs)
-            yield
+            yield self
         finally:
-            cls._current = previous
-
-    def __init__(self):
-        self._values: Dict[str, ContextVar] = {}
-        self._logger = logging.getLogger("pepperpy.context")
-
-    def get(self, name: str, default: Optional[T] = None) -> Optional[T]:
-        """Get context variable"""
-        var = self._values.get(name)
-        return var.value if var else default
-
-    def set(self, name: str, value: Any, scope: str = "request") -> None:
-        """Set context variable"""
-        self._values[name] = ContextVar(name, value, scope)
-
-    def remove(self, name: str) -> None:
-        """Remove context variable"""
-        self._values.pop(name, None)
-
-    def clear(self, scope: Optional[str] = None) -> None:
-        """Clear context variables"""
-        if scope:
-            self._values = {k: v for k, v in self._values.items() if v.scope != scope}
-        else:
-            self._values.clear()
+            for key, value in old_values.items():
+                if value is None:
+                    del self._context[key]
+                else:
+                    self._context[key] = value
 
 
-class Inject:
-    """Dependency injection decorator"""
-
-    def __init__(self, **dependencies: Type):
-        self.dependencies = dependencies
-
-    def __call__(self, func):
-        """Decorator to inject context variables"""
-
-        def wrapper(*args, **kwargs):
-            context = self.get_current()
-            return func(*args, **kwargs, **context)
-
-        return wrapper
+context = GlobalContext()

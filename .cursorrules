@@ -1,74 +1,61 @@
-**PepperPy** is a Python development accelerator that emphasizes a feature-based, vertical architecture. Each module must be self-contained, responsible for a distinct feature or domain. Core functionalities are centralized in the `core` module, allowing other modules to remain focused on their unique responsibilities while avoiding code duplication.
+# PepperPy Development Rules
 
-### Core Architecture Principles
+## Architecture
+- Vertical (feature-based) architecture
+- Each module is self-contained and independent
+- Core module contains shared functionality
+- No cross-module dependencies
+- Modules are small and focused; large modules or additional features are split into separate modules
 
-- **Vertical (Feature-Based) Architecture**: Each module is a complete, isolated feature.
-- **Single Responsibility**: Each module addresses one specific domain or feature independently.
-- **Minimal Configuration**: Modules are configured with smart defaults, requiring minimal setup.
-- **Extensible Design**: Modules can be extended or customized as needed, without duplicating functionality already present in the `core` module.
+## Core Principles
+- Modular, self-contained architecture
+- Each module is autonomous and responsible for its own structure
+- Core module holds only essential framework and shared utilities
+- Configuration managed through metadata
+- Async-first development
+- Type-safe implementation
 
-### Code Duplication and Modularization
+## Project Structure
 
-- **Avoid Redundant Code**: Common or reusable logic must not be duplicated across modules. Such logic should reside in the `core` module or a designated shared module.
-- **No Overlapping Functionality**: Each module should implement only the functionality specific to its feature or domain. If functionality overlaps with another module's responsibility, create a new module or leverage the `core` module to encapsulate shared logic.
-
-### Project Structure (Python 3.12+)
+The project structure is minimalist but categorized, organizing modules within directories representing functional categories. This approach keeps related modules grouped logically without rigid naming requirements, allowing for expansion while maintaining clarity.
 
 ```plaintext
 pepperpy/
-├── pepperpy/
-│   ├── core/                # Shared framework core
-│   ├── <feature_name>/      # Feature modules follow this pattern
-│   ├── database/            # Database module as a full-feature example
-│   └── cache/               # Cache module as a full-feature example
-├── tests/                   # Test structure mirrors feature structure
-├── examples/                # Example usage by feature
-├── pyproject.toml
-├── README.md
-└── LICENSE
+├── <category>/
+│   ├── <module_name>/
+│   │   ├── __init__.py       # Public interface and entry point
+│   │   └── ...               # Additional files as needed, per module’s design
+├── core/
+│   ├── __init__.py           # Core utilities and shared functions
+│   ├── config.py             # Global configuration and metadata
+│   ├── registry.py           # Dependency and module registration management
+│   └── utils.py              # Common utilities
+├── pyproject.toml            # Project configuration
+└── README.md                 # Project overview
 ```
+## Dependency Management
+- Only use actively maintained libraries with recent updates (last 6 months)
+- Avoid deprecated or unmaintained libraries
+- Always use the latest stable versions of dependencies
+- Regularly update dependencies to their newest versions
+- Prefer modern, feature-rich libraries with good community support
 
-### Development Standards
+## Module Structure and Guidelines
 
-- **Single Responsibility**: Each module must strictly adhere to its domain or feature scope.
-- **Modularization**: Move any shared logic to the `core` module or create a new module for reusable components.
-- **Avoid Code Duplication**: Any code with shared potential must be consolidated to prevent redundancy.
+### Modular Layout and Granularity
+- **Public Interface**: Each module should have an `__init__.py` file that exposes its public interface and connects core functionality, ensuring a consistent entry point.
+- **Granular Design**: Each module should be as small and focused as possible, ideally containing a single, well-defined functionality. For large feature sets or additional responsibilities, split functionality across multiple, smaller modules within the appropriate category.
+- **Flexible File and Folder Structure**: File naming and internal structure are determined by each module’s needs, without mandatory files like `config.py` or `exceptions.py`.
+  
+### Core
+- **Core Module**: The `core/` directory contains global configurations, dependency registration, and shared utilities, which other modules can reuse.
+- **Registry**: `core/registry.py` manages dependencies and module registration, enabling centralized initialization.
 
-### Code Quality and Style
+## Development and Code Standards
 
-- **Linting with Ruff**: Follow `ruff` for consistent code quality, addressing issues like:
-  - Missing annotations, `f-string` formatting, bare `except`, and `isinstance` over type comparisons.
-- **Type Checking with mypy**: Ensure strict type checking across all modules.
-- **Testing**: Tests should match the feature structure, ensuring each module's unique functionality is covered.
-
-### Module Template
-
-For creating new modules, reference the following template:
-
-```python
-from pepperpy.core.base import BaseModule
-
-class NewFeatureModule(BaseModule):
-    """
-    New feature description.
-
-    Examples:
-        >>> module = NewFeatureModule()
-        >>> await module.setup()
-    """
-    __module_name__ = 'new_feature'
-
-    async def setup(self) -> None:
-        """Initialize module."""
-        pass
-
-    async def cleanup(self) -> None:
-        """Cleanup resources."""
-        pass
-```
-
-### Quality Assurance
-
-- **Ensure Code Independence**: Validate that each module has a single responsibility and avoids cross-functional overlap.
-- **Shared Logic Validation**: Actively review for potential code reuse opportunities and centralize them in `core` when beneficial.
-- **Documentation**: Each module must have clear documentation detailing its purpose, setup, and examples of usage.
+1. **Configuration**: Configure each module through metadata, either in `__init__.py` or other internal files as needed.
+2. **Public Interface**: Expose each module’s public interface in `__init__.py`.
+3. **Modular Independence**: Each module must be fully independent, allowing for internal evolution without impacting other modules.
+4. **Async Development**: Use async/await for all asynchronous functions.
+5. **Error Handling**: Define module-specific exceptions, preferably within the module, and handle errors in a clear, predictable manner.
+6. **Type Safety**: All modules should use full and consistent type annotations, with `mypy` and `ruff` to ensure code consistency.

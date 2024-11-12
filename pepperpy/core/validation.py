@@ -1,91 +1,49 @@
-"""Core validation system with common validators and rules"""
+"""Configuration validation utilities"""
 
-import re
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Type
 
-from .exceptions import ValidationError
+from pydantic import BaseModel, ValidationError
 
 
 @dataclass
 class ValidationRule:
-    """Validation rule definition"""
+    """Custom validation rule"""
 
+    field: str
     validator: Callable[[Any], bool]
     message: str
-    params: Dict[str, Any] = None
 
 
-class Validator:
-    """Base validator class"""
+class ConfigValidator:
+    """Configuration validator"""
 
     def __init__(self):
-        self._rules: Dict[str, List[ValidationRule]] = {}
+        self._rules: List[ValidationRule] = []
 
-    def add_rule(self, field: str, rule: ValidationRule) -> None:
-        """Add validation rule for field"""
-        if field not in self._rules:
-            self._rules[field] = []
-        self._rules[field].append(rule)
+    def add_rule(self, field: str, validator: Callable[[Any], bool], message: str) -> None:
+        """Add custom validation rule"""
+        self._rules.append(ValidationRule(field, validator, message))
 
-    def validate(self, data: Dict[str, Any]) -> None:
-        """Validate data against rules"""
-        errors = []
+    def validate(self, config: Dict[str, Any], schema: Type[BaseModel]) -> BaseModel:
+        """Validate configuration against schema and rules"""
+        try:
+            # First validate against Pydantic model
+            validated = schema(**config)
 
-        for field, rules in self._rules.items():
-            value = data.get(field)
-            for rule in rules:
-                if not rule.validator(value):
-                    errors.append(f"{field}: {rule.message}")
+            # Then check custom rules
+            errors = []
+            for rule in self._rules:
+                value = config.get(rule.field)
+                if value is not None and not rule.validator(value):
+                    errors.append(f"{rule.field}: {rule.message}")
 
-        if errors:
-            raise ValidationError("\n".join(errors))
+            if errors:
+                raise ValueError("\n".join(errors))
 
+            return validated
 
-# Common validators
-def required(value: Any) -> bool:
-    """Check if value is not None"""
-    return value is not None
-
-
-def min_length(min_len: int) -> Callable[[Any], bool]:
-    """Check minimum length"""
-    return lambda value: len(value) >= min_len if value is not None else True
-
-
-def max_length(max_len: int) -> Callable[[Any], bool]:
-    """Check maximum length"""
-    return lambda value: len(value) <= max_len if value is not None else True
-
-
-def pattern(regex: str) -> Callable[[str], bool]:
-    """Check if value matches regex pattern"""
-    compiled = re.compile(regex)
-    return lambda value: bool(compiled.match(value)) if value is not None else True
-
-
-def range_check(
-    min_val: Optional[float] = None, max_val: Optional[float] = None
-) -> Callable[[float], bool]:
-    """Check if value is within range"""
-
-    def validator(value: float) -> bool:
-        if value is None:
-            return True
-        if min_val is not None and value < min_val:
-            return False
-        if max_val is not None and value > max_val:
-            return False
-        return True
-
-    return validator
-
-
-def type_check(expected_type: Type) -> Callable[[Any], bool]:
-    """Check value type"""
-    return lambda value: isinstance(value, expected_type) if value is not None else True
-
-
-def enum_check(valid_values: List[Any]) -> Callable[[Any], bool]:
-    """Check if value is in enumeration"""
-    return lambda value: value in valid_values if value is not None else True
+        except ValidationError as e:
+            raise ValueError(f"Invalid configuration: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Validation failed: {str(e)}")

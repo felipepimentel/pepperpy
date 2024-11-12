@@ -1,8 +1,11 @@
-"""Tests for base module functionality"""
+"""Test base module functionality"""
+
+from dataclasses import asdict
 
 import pytest
 
-from pepperpy.core.base import BaseModule, ModuleConfig, ModuleStatus
+from pepperpy.core.config import ModuleConfig
+from pepperpy.core.module import BaseModule, ModuleStatus
 
 
 class TestModule(BaseModule):
@@ -10,11 +13,11 @@ class TestModule(BaseModule):
 
     __module_name__ = "test_module"
 
-    async def setup(self) -> None:
+    async def _setup(self) -> None:
         """Setup test module"""
         self._status = ModuleStatus.ACTIVE
 
-    async def cleanup(self) -> None:
+    async def _cleanup(self) -> None:
         """Cleanup test module"""
         self._status = ModuleStatus.INACTIVE
 
@@ -23,35 +26,38 @@ class TestModule(BaseModule):
 def base_config() -> ModuleConfig:
     """Provide base module configuration"""
     return ModuleConfig(
-        debug=True,
         name="test_module",
         version="1.0.0",
-        timeout=30.0,
+        debug=True,
     )
 
 
 @pytest.mark.asyncio
-async def test_base_module_initialization(base_config):
+async def test_base_module_initialization(base_config: ModuleConfig):
     """Test base module initialization"""
-    module = TestModule(base_config)
-    assert module.get_status() == ModuleStatus.INACTIVE
-    await module.setup()
-    assert module.get_status() == ModuleStatus.ACTIVE
+    module = TestModule()
+    module.config = asdict(base_config)
+    assert module.status == ModuleStatus.INACTIVE
+    await module.initialize()
+    assert module.status == ModuleStatus.ACTIVE
 
 
 @pytest.mark.asyncio
-async def test_base_module_cleanup(base_config):
+async def test_base_module_cleanup(base_config: ModuleConfig):
     """Test base module cleanup"""
-    module = TestModule(base_config)
-    await module.setup()
-    assert module.get_status() == ModuleStatus.ACTIVE
+    module = TestModule()
+    module.config = asdict(base_config)
+    await module.initialize()
+    assert module.status == ModuleStatus.ACTIVE
     await module.cleanup()
-    assert module.get_status() == ModuleStatus.INACTIVE
+    assert module.status == ModuleStatus.INACTIVE
 
 
 @pytest.mark.asyncio
-async def test_base_module_config(base_config):
+async def test_base_module_config(base_config: ModuleConfig):
     """Test base module configuration"""
-    module = TestModule(base_config)
-    assert module.config == base_config
-    assert module.config.debug is True
+    module = TestModule()
+    config_dict = asdict(base_config)
+    module.config = config_dict
+    assert module.config == config_dict
+    assert module.config["debug"] is True

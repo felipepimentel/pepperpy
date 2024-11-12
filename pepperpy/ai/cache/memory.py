@@ -1,43 +1,64 @@
+"""Memory cache implementation"""
+
+import asyncio
 import time
-from dataclasses import dataclass
+from collections import OrderedDict
 from typing import Any, Dict, Optional
 
-
-@dataclass
-class CacheEntry:
-    """Cache entry with TTL"""
-
-    value: Any
-    expires_at: Optional[float]
+from .exceptions import CacheError
 
 
 class MemoryCache:
-    """In-memory cache for AI responses and embeddings"""
+    """Thread-safe memory cache with TTL"""
 
-    def __init__(self, default_ttl: Optional[int] = 3600):
-        self._cache: Dict[str, CacheEntry] = {}
+    def __init__(self, default_ttl: int = 3600):
+        self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
         self._default_ttl = default_ttl
+        self._lock = asyncio.Lock()
 
-    def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Optional[Any]:
         """Get value from cache"""
-        entry = self._cache.get(key)
-        if not entry:
-            return None
+        try:
+            async with self._lock:
+                if key not in self._cache:
+                    return None
 
-        if entry.expires_at and time.time() > entry.expires_at:
-            del self._cache[key]
-            return None
+                entry = self._cache[key]
+                if entry.get("expires_at") and time.time() > entry["expires_at"]:
+                    del self._cache[key]
+                    return None
 
-        return entry.value
+                # Move to end (most recently used)
+                self._cache.move_to_end(key)
+                return entry["value"]
+        except Exception as e:
+            raise CacheError(f"Failed to get from cache: {str(e)}", cause=e)
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
         """Set value in cache"""
-        expires_at = None
-        if ttl or self._default_ttl:
-            expires_at = time.time() + (ttl or self._default_ttl)
+        try:
+            async with self._lock:
+                expires_at = time.time() + (ttl or self._default_ttl)
+                self._cache[key] = {
+                    "value": value,
+                    "expires_at": expires_at,
+                    "created_at": time.time(),
+                }
+                self._cache.move_to_end(key)
+        except Exception as e:
+            raise CacheError(f"Failed to set in cache: {str(e)}", cause=e)
 
-        self._cache[key] = CacheEntry(value, expires_at)
-
-    def clear(self) -> None:
-        """Clear cache"""
-        self._cache.clear()
+    async def cleanup(self) -> None:
+        """Remove expired entries"""
+        try:
+            async with self._lock:
+                now = time.time()
+                expired = [
+                    key
+                    for key, entry in self._cache.items()
+                    if entry.get("expires_at") and entry["expires_at"] <= now
+                ]
+                for key in expired:
+                    del self._cache[key]
+        except Exception as e:
+            raise CacheError(f"Cache cleanup failed: {str(e)}", cause=e)

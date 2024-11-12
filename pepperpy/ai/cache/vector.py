@@ -1,77 +1,70 @@
-from dataclasses import dataclass
+"""Vector cache implementation"""
+
 from typing import Any, Dict, List, Optional
 
-import faiss
 import numpy as np
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams
+from sklearn.neighbors import NearestNeighbors
 
-
-@dataclass
-class VectorCacheConfig:
-    """Configuration for vector cache"""
-
-    engine: str = "faiss"  # or "qdrant"
-    dimension: int = 768
-    distance: str = "cosine"
-    collection: str = "cache"
-    url: Optional[str] = None
+from .config import CacheConfig
+from .exceptions import CacheError
+from .types import VectorEntry
 
 
 class VectorCache:
-    """Vector-based caching using FAISS or Qdrant"""
+    """Cache for vector embeddings"""
 
-    def __init__(self, config: VectorCacheConfig):
+    def __init__(self, config: CacheConfig):
         self.config = config
+        self._vectors = []
+        self._metadata = []
+        self._index = None
 
-        if config.engine == "faiss":
-            self._init_faiss()
-        else:
-            self._init_qdrant()
+    async def initialize(self) -> None:
+        """Initialize vector cache"""
+        try:
+            self._index = NearestNeighbors(
+                n_neighbors=min(10, self.config.max_size), metric="cosine"
+            )
+        except Exception as e:
+            raise CacheError(f"Failed to initialize vector cache: {str(e)}", cause=e)
 
-    def _init_faiss(self):
-        """Initialize FAISS index"""
-        self.index = faiss.IndexFlatIP(self.config.dimension)
-        self.vectors = []
-        self.metadata = []
+    async def cleanup(self) -> None:
+        """Cleanup vector cache"""
+        self._vectors = []
+        self._metadata = []
+        self._index = None
 
-    def _init_qdrant(self):
-        """Initialize Qdrant client"""
-        self.client = QdrantClient(url=self.config.url)
-
-        # Create collection if needed
-        self.client.recreate_collection(
-            collection_name=self.config.collection,
-            vectors_config=VectorParams(size=self.config.dimension, distance=Distance.COSINE),
-        )
-
-    async def add(self, vector: np.ndarray, metadata: Dict[str, Any]) -> None:
+    async def add(self, key: str, vector: Any, metadata: Optional[Dict] = None) -> None:
         """Add vector to cache"""
-        if self.config.engine == "faiss":
-            self.index.add(vector.reshape(1, -1))
-            self.vectors.append(vector)
-            self.metadata.append(metadata)
-        else:
-            self.client.upsert(
-                collection_name=self.config.collection,
-                points=[
-                    {
-                        "id": len(self.metadata),
-                        "vector": vector.tolist(),
-                        "payload": metadata,
-                    }
-                ],
+        try:
+            vector = np.array(vector).reshape(1, -1)
+            self._vectors.append(vector)
+            self._metadata.append(VectorEntry(key=key, vector=vector, metadata=metadata or {}))
+
+            if len(self._vectors) > 1:
+                self._index.fit(np.vstack(self._vectors))
+        except Exception as e:
+            raise CacheError(f"Failed to add vector: {str(e)}", cause=e)
+
+    async def search(
+        self, vector: Any, limit: int = 1, threshold: float = 0.8
+    ) -> List[VectorEntry]:
+        """Search for similar vectors"""
+        try:
+            if not self._vectors:
+                return []
+
+            vector = np.array(vector).reshape(1, -1)
+            distances, indices = self._index.kneighbors(
+                vector, n_neighbors=min(limit, len(self._vectors))
             )
 
-    async def search(self, query: np.ndarray, k: int = 1) -> List[Dict[str, Any]]:
-        """Search for similar vectors"""
-        if self.config.engine == "faiss":
-            _, indices = self.index.search(query.reshape(1, -1), k)
-            return [self.metadata[i] for i in indices[0]]
-        else:
-            results = self.client.search(
-                collection_name=self.config.collection,
-                query_vector=query.tolist(),
-                limit=k,
-            )
-            return [hit.payload for hit in results]
+            results = []
+            for dist, idx in zip(distances[0], indices[0]):
+                similarity = 1 - dist
+                if similarity >= threshold:
+                    results.append(self._metadata[idx])
+
+            return results
+        except Exception as e:
+            raise CacheError(f"Vector search failed: {str(e)}", cause=e)

@@ -3,7 +3,8 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true,
         "**/*.pyc": true,
-        "**/.ruff_cache": false,
+        "**/.ruff_cache": true,
+        "**/demo_output": true,
         "**/.DS_Store": true,
         ".coverage": true,
         "coverage.xml": true,
@@ -13,7 +14,7 @@
         "dist": true,
         "venv": true,
         ".venv": true,
-        "**/.git": false
+        "**/.git": false,
     },
     "[python]": {
         "editor.formatOnSave": true,
@@ -25,13 +26,31 @@
     },
     "ruff.lint.args": [],
     "ruff.format.args": [],
+    /*"python.defaultInterpreterPath": "${env:PYTHONPATH}",*/
+    "python.defaultInterpreterPath": "/home/pimentel/.cache/pypoetry/virtualenvs/pepperpy-gKIqzKmw-py3.12/bin/python",
     "python.analysis.exclude": [
-         "/usr/lib/python3.10/**"
+        "**/.pyenv",
+        "**/site-packages",
+        "**/dist",
+        "**/build",
+        "**/__pycache__",
+        "venv",
+        "env",
+        ".venv",
+        ".env"
     ],
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none",
+        "reportMissingModuleSource": "none"
+    },
+    "python.analysis.include": ["pepperpy"],
     "ruff.enable": true,
     "python.testing.pytestArgs": [
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
 }

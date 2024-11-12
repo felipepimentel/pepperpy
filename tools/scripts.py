@@ -3,12 +3,7 @@ import sys
 
 
 def lint() -> None:
-    """Run all linters: Ruff, Black, and isort."""
-    commands = [
-        ["ruff", "check", ".", "--fix"],
-        ["black", "."],
-        ["isort", "."],
-    ]
+    commands = [["ruff", "check", ".", "--fix"], ["black", "."], ["isort", "."]]
 
     for command in commands:
         try:

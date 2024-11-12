@@ -1,27 +1,44 @@
-from dataclasses import asdict, dataclass
-from typing import Any, Dict, Literal, Optional
+"""AI type definitions"""
+
+from dataclasses import dataclass, field
+from typing import Any, Dict, Literal, Optional, TypedDict
+
+
+class UsageInfo(TypedDict):
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
 
 
 @dataclass
 class Message:
-    """Chat message"""
-
-    role: Literal["system", "user", "assistant"]
+    role: Literal["user", "assistant", "system"]
     content: str
-    name: Optional[str] = None
+    usage: UsageInfo
 
-    def to_dict(self) -> Dict[str, str]:
-        """Convert message to dictionary"""
-        # Remove None values and convert to dict
-        return {k: v for k, v in asdict(self).items() if v is not None}
+
+@dataclass
+class LLMResponse:
+    content: str
+    model: str
+    usage: UsageInfo
+
+
+@dataclass
+class AIConfig:
+    """Configuration for AI modules"""
+
+    model: str
+    api_key: str
+    organization: Optional[str] = None
+    extra_params: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class AIResponse:
-    """Response from AI provider"""
+    """Response from AI modules"""
 
     content: str
+    raw_response: Dict[str, Any]
     model: str
-    provider: str
-    raw_response: Optional[Dict[str, Any]] = None
-    usage: Optional[Dict[str, int]] = None
+    usage: Dict[str, int]

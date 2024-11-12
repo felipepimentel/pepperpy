@@ -1,104 +1,177 @@
-"""State management system with persistence support"""
+"""State management implementation"""
 
 import asyncio
-import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional, TypeVar
+from enum import Enum
+from typing import Any, Callable, Dict, Generic, List, Optional, Set, TypeVar
 
-import aiofiles
-
-from .events import Event, EventBus
-from .exceptions import StateError
-from .types import Serializable
+from .exceptions import CoreError
+from .module import BaseModule, ModuleMetadata
 
 T = TypeVar("T")
 
 
+class StateError(CoreError):
+    """State management error"""
+
+    pass
+
+
+class StateEvent(Enum):
+    """State change events"""
+
+    UPDATED = "updated"
+    RESET = "reset"
+    CLEARED = "cleared"
+
+
 @dataclass
-class StateChange(Event):
-    """State change event"""
+class StateChange(Generic[T]):
+    """State change information"""
 
     key: str
-    old_value: Any
-    new_value: Any
-    timestamp: datetime = datetime.now()
+    old_value: Optional[T]
+    new_value: Optional[T]
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
 
-class StateManager:
-    """Central state management system"""
+class StateStore(BaseModule):
+    """Global state management"""
 
-    def __init__(self, event_bus: Optional[EventBus] = None):
+    def __init__(self):
+        super().__init__()
+        self.metadata = ModuleMetadata(
+            name="state",
+            version="1.0.0",
+            description="Global state management",
+            dependencies=[],
+            config={},
+        )
         self._state: Dict[str, Any] = {}
-        self._persistent: Dict[str, bool] = {}
-        self._event_bus = event_bus
+        self._listeners: Dict[str, Set[Callable]] = {}
+        self._history: List[StateChange] = []
+        self._max_history = 1000
         self._lock = asyncio.Lock()
 
-    async def set(self, key: str, value: Any, persistent: bool = False) -> None:
+    async def _setup(self) -> None:
+        """Initialize state store"""
+        pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup state store"""
+        self._state.clear()
+        self._listeners.clear()
+        self._history.clear()
+
+    async def get(self, key: str, default: Any = None) -> Any:
+        """Get state value"""
+        async with self._lock:
+            return self._state.get(key, default)
+
+    async def set(self, key: str, value: Any) -> None:
         """Set state value"""
         async with self._lock:
             old_value = self._state.get(key)
             self._state[key] = value
-            self._persistent[key] = persistent
 
-            if self._event_bus:
-                await self._event_bus.publish(
-                    StateChange(
-                        name="state_changed",
-                        data={"key": key, "persistent": persistent},
-                        key=key,
-                        old_value=old_value,
-                        new_value=value,
-                    )
-                )
+            # Record change
+            change = StateChange(key, old_value, value)
+            self._record_change(change)
 
-    async def get(self, key: str, default: Any = None) -> Any:
-        """Get state value"""
-        return self._state.get(key, default)
+            # Notify listeners
+            await self._notify_listeners(key, StateEvent.UPDATED, change)
+
+    async def update(self, updates: Dict[str, Any]) -> None:
+        """Batch update state"""
+        async with self._lock:
+            changes = []
+            for key, value in updates.items():
+                old_value = self._state.get(key)
+                self._state[key] = value
+                changes.append(StateChange(key, old_value, value))
+
+            # Record changes
+            for change in changes:
+                self._record_change(change)
+
+            # Notify listeners
+            for change in changes:
+                await self._notify_listeners(change.key, StateEvent.UPDATED, change)
 
     async def delete(self, key: str) -> None:
         """Delete state value"""
         async with self._lock:
             if key in self._state:
-                old_value = self._state[key]
-                del self._state[key]
-                del self._persistent[key]
+                old_value = self._state.pop(key)
+                change = StateChange(key, old_value, None)
+                self._record_change(change)
+                await self._notify_listeners(key, StateEvent.CLEARED, change)
 
-                if self._event_bus:
-                    await self._event_bus.publish(
-                        StateChange(
-                            name="state_deleted",
-                            data={"key": key},
-                            key=key,
-                            old_value=old_value,
-                            new_value=None,
-                        )
-                    )
+    async def clear(self) -> None:
+        """Clear all state"""
+        async with self._lock:
+            self._state.clear()
+            self._history.clear()
+            for key in list(self._listeners.keys()):
+                await self._notify_listeners(key, StateEvent.CLEARED, None)
 
-    async def save(self, path: Path) -> None:
-        """Save state to file"""
-        try:
-            persistent_state = {k: v for k, v in self._state.items() if k in self._persistent_keys}
-            async with aiofiles.open(path, "w") as f:
-                json.dump(persistent_state, f, default=self._serialize)
-        except Exception as e:
-            raise StateError(f"Failed to save state: {e}") from e
+    async def reset(self, initial_state: Dict[str, Any]) -> None:
+        """Reset state to initial values"""
+        async with self._lock:
+            old_state = self._state.copy()
+            self._state = initial_state.copy()
 
-    async def load(self, path: Path) -> None:
-        """Load state from file"""
-        try:
-            async with aiofiles.open(path) as f:
-                data = json.loads(await f.read())
-                for key, value in data.items():
-                    await self.set(key, value, persistent=True)
-        except Exception as e:
-            raise StateError(f"Failed to load state: {e}") from e
+            # Record changes
+            for key in set(old_state) | set(initial_state):
+                change = StateChange(key, old_state.get(key), initial_state.get(key))
+                self._record_change(change)
 
-    def _serialize(self, obj: Any) -> Any:
-        """Serialize object for storage"""
-        if isinstance(obj, Serializable):
-            return obj.to_dict()
-        if isinstance(obj, (datetime, Path)):
-            return str(obj)
-        raise TypeError(f"Type {type(obj)} not serializable")
+            # Notify listeners
+            for key in self._listeners:
+                await self._notify_listeners(key, StateEvent.RESET, None)
+
+    def subscribe(self, key: str, listener: Callable) -> None:
+        """Subscribe to state changes"""
+        if key not in self._listeners:
+            self._listeners[key] = set()
+        self._listeners[key].add(listener)
+
+    def unsubscribe(self, key: str, listener: Callable) -> None:
+        """Unsubscribe from state changes"""
+        if key in self._listeners:
+            self._listeners[key].discard(listener)
+            if not self._listeners[key]:
+                del self._listeners[key]
+
+    def get_history(
+        self, key: Optional[str] = None, limit: Optional[int] = None
+    ) -> List[StateChange]:
+        """Get state change history"""
+        history = self._history
+        if key:
+            history = [change for change in history if change.key == key]
+        if limit:
+            history = history[-limit:]
+        return history
+
+    def _record_change(self, change: StateChange) -> None:
+        """Record state change"""
+        self._history.append(change)
+        if len(self._history) > self._max_history:
+            self._history.pop(0)
+
+    async def _notify_listeners(
+        self, key: str, event: StateEvent, change: Optional[StateChange]
+    ) -> None:
+        """Notify state change listeners"""
+        if key in self._listeners:
+            for listener in self._listeners[key]:
+                try:
+                    await listener(event, change)
+                except Exception as e:
+                    print(f"Error in state listener: {str(e)}")
+
+
+# Global state store instance
+state = StateStore()
