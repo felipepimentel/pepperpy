@@ -49,9 +49,12 @@ class LLMClient(BaseModule):
             # Usar o provider type do config para criar o provider
             provider_type = self._config.provider
             self._provider = ProviderFactory.get_provider(provider_type, self._config)
-            await self._provider.initialize()
+            try:
+                await self._provider.initialize()
+            except Exception as e:
+                raise LLMError(f"Provider initialization failed: {str(e)}", cause=e)
         except Exception as e:
-            raise LLMError("Failed to initialize LLM provider", cause=e)
+            raise LLMError(f"Failed to initialize LLM provider: {str(e)}", cause=e)
 
     async def _cleanup(self) -> None:
         """Cleanup LLM resources"""
@@ -89,9 +92,11 @@ class LLMClient(BaseModule):
         if not self._provider:
             raise LLMError("LLM provider not initialized")
 
-        stream = await self._provider.stream(messages)
-        async for response in stream:
-            yield response
+        try:
+            async for response in self._provider.stream(messages):
+                yield response
+        except Exception as e:
+            raise LLMError(f"Failed to stream responses: {str(e)}", cause=e)
 
 
 # Global client instance

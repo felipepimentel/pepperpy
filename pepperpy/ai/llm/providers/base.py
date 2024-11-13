@@ -12,19 +12,19 @@ T = TypeVar("T", bound=BaseConfig)
 class BaseLLMProvider(Generic[T], ABC):
     """Base class for LLM providers"""
 
-    def __init__(self) -> None:
-        """Initialize provider base"""
-        self._config: Optional[T] = None
+    def __init__(self, config: Optional[T] = None) -> None:
+        """Initialize provider with configuration"""
+        self._config: Optional[T] = config
 
     @property
     def config(self) -> T:
         """Get provider configuration"""
         if not self._config:
-            raise ValueError("Provider not configured")
+            raise ValueError("Provider configuration is required")
         return self._config
 
     @config.setter
-    def config(self, value: T) -> None:
+    def config(self, value: Optional[T]) -> None:
         """Set provider configuration"""
         self._config = value
 
@@ -44,6 +44,6 @@ class BaseLLMProvider(Generic[T], ABC):
         pass
 
     @abstractmethod
-    async def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
+    def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
         """Stream responses from messages"""
-        pass
+        raise NotImplementedError("Stream method must be implemented by provider")

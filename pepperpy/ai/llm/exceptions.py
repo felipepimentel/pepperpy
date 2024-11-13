@@ -1,14 +1,18 @@
 """LLM exceptions"""
 
-from pepperpy.core.exceptions import PepperPyError
 
-
-class LLMError(PepperPyError):
+class LLMError(Exception):
     """Base exception for LLM errors"""
+
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
+        super().__init__(message)
+        self.cause = cause
 
 
 class ProviderError(LLMError):
-    """Error during provider operations"""
+    """Exception raised by LLM providers"""
+
+    pass
 
 
 class ConfigurationError(LLMError):

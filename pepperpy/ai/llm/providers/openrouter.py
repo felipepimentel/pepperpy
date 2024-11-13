@@ -1,58 +1,54 @@
 """OpenRouter LLM provider"""
 
 import json
-from typing import AsyncIterator, List, Optional
+from typing import AsyncIterator, List, Optional, cast
 
 import httpx
 
+from pepperpy.ai.llm.config import OpenRouterConfig
 from pepperpy.ai.llm.exceptions import ProviderError
-from pepperpy.ai.llm.types import LLMConfig, LLMResponse, Message
+from pepperpy.ai.llm.types import LLMResponse, Message
 
 from .base import BaseLLMProvider
 
 
-class OpenRouterConfig(LLMConfig):
-    """OpenRouter provider configuration"""
-
-    def __init__(
-        self,
-        api_key: str,
-        model: str = "anthropic/claude-3-sonnet",
-        base_url: str = "https://openrouter.ai/api/v1",
-        site_url: Optional[str] = None,
-        site_name: Optional[str] = None,
-    ) -> None:
-        if not api_key:
-            raise ValueError("OpenRouter API key is required")
-
-        super().__init__(provider="openrouter", api_key=api_key, model=model)
-        self.base_url = base_url
-        self.site_url = site_url
-        self.site_name = site_name
-
-
-class OpenRouterProvider(BaseLLMProvider):
+class OpenRouterProvider(BaseLLMProvider[OpenRouterConfig]):
     """OpenRouter LLM provider implementation"""
 
     def __init__(self, config: Optional[OpenRouterConfig] = None) -> None:
-        if not config:
-            raise ValueError("OpenRouter configuration is required")
-
-        self.config = config
+        """Initialize provider with configuration"""
+        super().__init__(config)
         self._client: Optional[httpx.AsyncClient] = None
 
     async def initialize(self) -> None:
         """Initialize provider"""
-        self._client = httpx.AsyncClient(
-            base_url=self.config.base_url,
-            headers={
-                "Authorization": f"Bearer {self.config.api_key}",
-                "HTTP-Referer": self.config.site_url
-                or "https://github.com/felipepimentel/pepperpy",
-                "X-Title": self.config.site_name or "PepperPy",
-            },
-            timeout=30.0,
-        )
+        try:
+            config = cast(OpenRouterConfig, self.config)
+            self._client = httpx.AsyncClient(
+                base_url=config.base_url,
+                headers={
+                    "Authorization": f"Bearer {config.api_key}",
+                    "HTTP-Referer": config.site_url or "https://github.com/felipepimentel/pepperpy",
+                    "X-Title": config.site_name or "PepperPy",
+                    "Content-Type": "application/json",
+                },
+                timeout=30.0,
+            )
+
+            # Validate connection and available models
+            response = await self._client.get("/models")
+            response.raise_for_status()
+
+        except httpx.HTTPStatusError as e:
+            await self.cleanup()
+            if e.response.status_code == 401:
+                raise ProviderError("Invalid API key or authentication failed", cause=e)
+            if e.response.status_code == 404:
+                raise ProviderError("Model not found or unavailable", cause=e)
+            raise ProviderError(f"Failed to initialize OpenRouter provider: {str(e)}", cause=e)
+        except Exception as e:
+            await self.cleanup()
+            raise ProviderError(f"Unexpected error during initialization: {str(e)}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup provider resources"""
@@ -86,14 +82,18 @@ class OpenRouterProvider(BaseLLMProvider):
                 content=data["choices"][0]["message"]["content"],
                 model=data["model"],
                 usage=data.get("usage", {}),
-                metadata=data,
+                metadata={
+                    "finish_reason": data["choices"][0].get("finish_reason"),
+                    "model": data.get("model"),
+                    "route": data.get("route"),
+                },
             )
         except httpx.HTTPError as e:
             raise ProviderError(f"HTTP error: {str(e)}", cause=e)
         except Exception as e:
             raise ProviderError(f"Failed to complete chat: {str(e)}", cause=e)
 
-    async def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
+    def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
         """Stream chat completion"""
         if not self._client:
             raise ProviderError("Provider not initialized")
@@ -101,17 +101,21 @@ class OpenRouterProvider(BaseLLMProvider):
         if not messages:
             raise ValueError("At least one message is required")
 
-        try:
-            async with self._client.stream(
-                "POST",
-                "/chat/completions",
-                json={
-                    "model": self.config.model,
-                    "messages": messages,
-                    "stream": True,
-                },
-            ) as response:
+        client = self._client
+
+        async def stream_generator() -> AsyncIterator[LLMResponse]:
+            try:
+                response = await client.post(
+                    "/chat/completions",
+                    json={
+                        "model": self.config.model,
+                        "messages": messages,
+                        "stream": True,
+                    },
+                    headers={"Accept": "text/event-stream"},
+                )
                 response.raise_for_status()
+
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
                         try:
@@ -125,7 +129,9 @@ class OpenRouterProvider(BaseLLMProvider):
                                 )
                         except json.JSONDecodeError as e:
                             raise ProviderError(f"Invalid JSON response: {str(e)}", cause=e)
-        except httpx.HTTPError as e:
-            raise ProviderError(f"HTTP error: {str(e)}", cause=e)
-        except Exception as e:
-            raise ProviderError(f"Failed to stream chat: {str(e)}", cause=e)
+            except httpx.HTTPError as e:
+                raise ProviderError(f"HTTP error: {str(e)}", cause=e)
+            except Exception as e:
+                raise ProviderError(f"Failed to stream chat: {str(e)}", cause=e)
+
+        return stream_generator()

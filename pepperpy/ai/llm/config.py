@@ -74,8 +74,15 @@ class OpenRouterConfig(BaseConfig):
         site_url: Optional[str] = None,
         site_name: Optional[str] = None,
     ) -> None:
+        if not api_key:
+            raise ValueError("OpenRouter API key is required")
+        if not api_key.startswith("sk-"):
+            raise ValueError("Invalid OpenRouter API key format. Key should start with 'sk-'")
+        if len(api_key) < 20:
+            raise ValueError("OpenRouter API key seems too short")
+
         super().__init__(provider="openrouter", api_key=api_key, model=model)
-        self.base_url = base_url
+        self.base_url = base_url.rstrip("/")
         self.site_url = site_url
         self.site_name = site_name
 
@@ -101,6 +108,9 @@ class StackSpotConfig(BaseConfig):
         base_url: str = "https://genai-code-buddy-api.stackspot.com/v1",
         auth_url: str = "https://idm.stackspot.com",
     ) -> None:
+        if not all([account_slug, client_id, client_key, qc_slug]):
+            raise ValueError("All StackSpot credentials are required")
+
         super().__init__(provider="stackspot", api_key=client_key, model=model)
         self.account_slug = account_slug
         self.client_id = client_id

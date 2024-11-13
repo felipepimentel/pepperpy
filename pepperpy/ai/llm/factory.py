@@ -25,18 +25,7 @@ class ProviderFactory:
     def get_provider(
         cls, provider_type: ProviderType, config: Optional[ProviderConfig] = None
     ) -> BaseLLMProvider[Any]:
-        """Get LLM provider instance
-
-        Args:
-            provider_type: Type of provider to create
-            config: Provider configuration
-
-        Returns:
-            BaseLLMProvider: Provider instance
-
-        Raises:
-            ConfigurationError: If provider type is unknown or configuration is invalid
-        """
+        """Get LLM provider instance"""
         if provider_type not in cls._providers:
             raise ConfigurationError(f"Unknown provider type: {provider_type}")
 
@@ -51,8 +40,7 @@ class ProviderFactory:
                 f"Expected {config_class.__name__}, got {type(config).__name__}"
             )
 
-        provider = cast(BaseLLMProvider[Any], provider_class())
-        provider.config = config
+        provider = cast(BaseLLMProvider[Any], provider_class(config=config))
         return provider
 
 
