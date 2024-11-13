@@ -1,24 +1,37 @@
-"""LLM type definitions"""
+"""LLM types and configurations"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, TypedDict
 
 
-@dataclass
-class Message:
-    """Chat message representation"""
+class Message(TypedDict):
+    """Chat message"""
 
-    role: str
+    role: Literal["system", "user", "assistant"]
     content: str
-    name: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class LLMResponse:
-    """Response from LLM"""
+    """LLM response"""
 
     content: str
     model: str
-    usage: Dict[str, int]
+    usage: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class LLMConfig:
+    """Base LLM configuration"""
+
+    provider: Literal["openrouter", "stackspot", "openai"]
+    api_key: str
+    model: str
+
+    def __post_init__(self) -> None:
+        """Validate configuration"""
+        if not self.api_key:
+            raise ValueError("API key is required")
+        if not self.provider:
+            raise ValueError("Provider is required")

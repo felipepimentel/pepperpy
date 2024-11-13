@@ -1,38 +1,103 @@
 """Core logging module"""
 
 import logging
-from typing import Optional
+import sys
+from typing import Any, Optional, Protocol
 
 from .config import LogConfig, LogLevel
 from .logger import Logger
 
 
-class LoggerAdapter(Logger):
+class SyncLogger(Protocol):
+    """Protocol for synchronous logging"""
+
+    def debug(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    def info(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    def warning(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    def error(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    def critical(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+
+
+class AsyncLogger(Protocol):
+    """Protocol for asynchronous logging"""
+
+    async def debug(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    async def info(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    async def warning(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    async def error(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+    async def critical(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
+
+
+class LoggerAdapter:
+    """Adapter for Python's standard logging with sync/async support"""
+
     def __init__(self, logger: logging.Logger):
         self._logger = logger
+        self._sync_logger = self._create_sync_logger()
+        self._async_logger = self._create_async_logger()
 
-    def debug(self, msg: str, *args, **kwargs) -> None:
-        self._logger.debug(msg, *args, **kwargs)
+    def _create_sync_logger(self) -> SyncLogger:
+        """Create synchronous logger interface"""
+        return self._logger
 
-    def info(self, msg: str, *args, **kwargs) -> None:
-        self._logger.info(msg, *args, **kwargs)
+    def _create_async_logger(self) -> AsyncLogger:
+        """Create asynchronous logger interface"""
+        return Logger(self._logger.name)
 
-    def warning(self, msg: str, *args, **kwargs) -> None:
-        self._logger.warning(msg, *args, **kwargs)
+    @property
+    def sync(self) -> SyncLogger:
+        """Get synchronous logger interface"""
+        return self._sync_logger
 
-    def error(self, msg: str, *args, **kwargs) -> None:
-        self._logger.error(msg, *args, **kwargs)
+    @property
+    def async_(self) -> AsyncLogger:
+        """Get asynchronous logger interface"""
+        return self._async_logger
 
-    def critical(self, msg: str, *args, **kwargs) -> None:
-        self._logger.critical(msg, *args, **kwargs)
+    # Implementação dos métodos de logging diretos
+    def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log debug message synchronously"""
+        self.sync.debug(msg, *args, **kwargs)
+
+    def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log info message synchronously"""
+        self.sync.info(msg, *args, **kwargs)
+
+    def warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log warning message synchronously"""
+        self.sync.warning(msg, *args, **kwargs)
+
+    def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log error message synchronously"""
+        self.sync.error(msg, *args, **kwargs)
+
+    def critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log critical message synchronously"""
+        self.sync.critical(msg, *args, **kwargs)
+
+    async def async_debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log debug message asynchronously"""
+        await self.async_.debug(msg, *args, **kwargs)
+
+    async def async_info(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log info message asynchronously"""
+        await self.async_.info(msg, *args, **kwargs)
+
+    async def async_warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log warning message asynchronously"""
+        await self.async_.warning(msg, *args, **kwargs)
+
+    async def async_error(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log error message asynchronously"""
+        await self.async_.error(msg, *args, **kwargs)
+
+    async def async_critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log critical message asynchronously"""
+        await self.async_.critical(msg, *args, **kwargs)
 
 
-def get_logger(name: str, config: Optional[LogConfig] = None) -> Logger:
+def get_logger(name: str, config: Optional[LogConfig] = None) -> LoggerAdapter:
     """Get configured logger instance"""
-    import sys
-
-    from rich.logging import RichHandler
-
     logger = logging.getLogger(name)
 
     if config is None:
@@ -41,6 +106,8 @@ def get_logger(name: str, config: Optional[LogConfig] = None) -> Logger:
     logger.setLevel(config.level.value)
 
     if config.console_enabled:
+        from rich.logging import RichHandler
+
         console_handler = RichHandler(
             rich_tracebacks=True,
             show_time=True,
@@ -60,7 +127,6 @@ def get_logger(name: str, config: Optional[LogConfig] = None) -> Logger:
         logger.addHandler(file_handler)
 
     if not logger.handlers:
-        # Fallback to basic stream handler if no handlers configured
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
         logger.addHandler(handler)

@@ -46,7 +46,7 @@ class AsyncProfiler:
             stats = cast(ExtendedStats, pstats.Stats(self._profiler))
             stats.sort_stats("cumulative")
             self._stats[self.name] = stats
-            await self._logger.debug(
+            await self._logger.async_.debug(
                 f"Profile stats for {self.name}",
                 total_calls=stats.total_calls,
                 total_time=stats.total_tt,

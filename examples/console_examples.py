@@ -10,14 +10,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from pepperpy.console import Console
-from pepperpy.console.ui import (
-    ChatView,
-    Dialog,
-    Form,
-    FormField,
-    ListView,
-    ProgressBar,
-)
+from pepperpy.console.ui import ChatView, Dialog, Form, FormField, ListView, ProgressBar
 from pepperpy.core.logging import get_logger
 
 logger = get_logger(__name__)

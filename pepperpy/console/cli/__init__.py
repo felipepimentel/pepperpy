@@ -1,12 +1,11 @@
 """Console CLI module"""
 
-from .app import CLIApp, app
+from .app import CLIApp
 from .exceptions import ArgumentError, CLIError, CommandError
 
 __all__ = [
     # App
     "CLIApp",
-    "app",
     # Exceptions
     "CLIError",
     "ArgumentError",

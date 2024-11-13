@@ -49,7 +49,7 @@ class Benchmark:
         finally:
             self._end_time = time.perf_counter()
             result.elapsed = self._end_time - self._start_time
-            await self._logger.debug(
+            await self._logger.async_.debug(
                 f"Benchmark {self.name} completed",
                 elapsed=result.elapsed,
                 iterations=result.iterations,

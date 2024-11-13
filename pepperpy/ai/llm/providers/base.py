@@ -1,18 +1,32 @@
 """Base LLM provider implementation"""
 
 from abc import ABC, abstractmethod
-from typing import AsyncIterator, List
+from typing import AsyncIterator, Generic, List, Optional, TypeVar
 
-from ..config import LLMConfig
+from ..config import BaseConfig
 from ..types import LLMResponse, Message
 
+T = TypeVar("T", bound=BaseConfig)
 
-class BaseLLMProvider(ABC):
+
+class BaseLLMProvider(Generic[T], ABC):
     """Base class for LLM providers"""
 
-    def __init__(self, config: LLMConfig):
-        self.config = config
-        self._client = None
+    def __init__(self) -> None:
+        """Initialize provider base"""
+        self._config: Optional[T] = None
+
+    @property
+    def config(self) -> T:
+        """Get provider configuration"""
+        if not self._config:
+            raise ValueError("Provider not configured")
+        return self._config
+
+    @config.setter
+    def config(self, value: T) -> None:
+        """Set provider configuration"""
+        self._config = value
 
     @abstractmethod
     async def initialize(self) -> None:
@@ -25,8 +39,8 @@ class BaseLLMProvider(ABC):
         pass
 
     @abstractmethod
-    async def generate(self, messages: List[Message]) -> LLMResponse:
-        """Generate response from messages"""
+    async def complete(self, messages: List[Message]) -> LLMResponse:
+        """Generate completion from messages"""
         pass
 
     @abstractmethod

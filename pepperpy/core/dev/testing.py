@@ -21,7 +21,7 @@ class TestHelper:
 
     async def setup(self) -> None:
         """Setup test environment"""
-        await self._logger.info(f"Setting up test: {self.name}")
+        await self._logger.async_.info(f"Setting up test: {self.name}")
 
     async def teardown(self) -> None:
         """Cleanup test environment"""
@@ -30,7 +30,7 @@ class TestHelper:
             try:
                 await cleanup()
             except Exception as e:
-                await self._logger.error(f"Cleanup error: {str(e)}")
+                await self._logger.async_.error(f"Cleanup error: {str(e)}")
 
         self._mocks.clear()
         self._cleanup_funcs.clear()

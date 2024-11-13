@@ -38,10 +38,10 @@ class Logger:
         """Add log handler"""
         self._handlers.append(handler)
 
-    async def log(self, level: str, message: str, **metadata: Any) -> None:
+    async def log(self, level: str, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log message with metadata"""
         try:
-            record = LogRecord(level=level, message=message, metadata=metadata)
+            record = LogRecord(level=level, message=msg, metadata=kwargs)
             record_dict = {
                 "level": record.level,
                 "message": record.message,
@@ -52,25 +52,25 @@ class Logger:
         except Exception as e:
             raise LoggingError(f"Failed to log message: {str(e)}", cause=e)
 
-    async def debug(self, message: str, **metadata: Any) -> None:
+    async def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log debug message"""
-        await self.log("DEBUG", message, **metadata)
+        await self.log("DEBUG", msg, *args, **kwargs)
 
-    async def info(self, message: str, **metadata: Any) -> None:
+    async def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log info message"""
-        await self.log("INFO", message, **metadata)
+        await self.log("INFO", msg, *args, **kwargs)
 
-    async def warning(self, message: str, **metadata: Any) -> None:
+    async def warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log warning message"""
-        await self.log("WARNING", message, **metadata)
+        await self.log("WARNING", msg, *args, **kwargs)
 
-    async def error(self, message: str, **metadata: Any) -> None:
+    async def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log error message"""
-        await self.log("ERROR", message, **metadata)
+        await self.log("ERROR", msg, *args, **kwargs)
 
-    async def critical(self, message: str, **metadata: Any) -> None:
+    async def critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log critical message"""
-        await self.log("CRITICAL", message, **metadata)
+        await self.log("CRITICAL", msg, *args, **kwargs)
 
 
 _loggers: Dict[str, Logger] = {}

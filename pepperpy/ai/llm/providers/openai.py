@@ -2,60 +2,93 @@
 
 from typing import AsyncIterator, List, Optional, cast
 
-from openai import AsyncOpenAI
+import openai
 from openai.types.chat import (
     ChatCompletion,
+    ChatCompletionAssistantMessageParam,
     ChatCompletionChunk,
-    ChatCompletionMessage,
     ChatCompletionMessageParam,
+    ChatCompletionSystemMessageParam,
+    ChatCompletionUserMessageParam,
 )
 
-from ..config import LLMConfig
-from ..exceptions import ProviderError
-from ..types import LLMResponse, Message
+from pepperpy.ai.llm.exceptions import ProviderError
+from pepperpy.ai.llm.types import LLMConfig, LLMResponse, Message
+
 from .base import BaseLLMProvider
 
 
+class OpenAIConfig(LLMConfig):
+    """OpenAI provider configuration"""
+
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gpt-3.5-turbo",
+        temperature: float = 0.7,
+        max_tokens: int = 1000,
+        top_p: float = 1.0,
+        frequency_penalty: float = 0.0,
+        presence_penalty: float = 0.0,
+        api_base: Optional[str] = None,
+    ) -> None:
+        if not api_key:
+            raise ValueError("OpenAI API key is required")
+
+        super().__init__(provider="openai", api_key=api_key, model=model)
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.top_p = top_p
+        self.frequency_penalty = frequency_penalty
+        self.presence_penalty = presence_penalty
+        self.api_base = api_base
+
+
 class OpenAIProvider(BaseLLMProvider):
-    """OpenAI LLM provider"""
+    """OpenAI LLM provider implementation"""
 
-    _client: Optional[AsyncOpenAI]
+    def __init__(self, config: Optional[OpenAIConfig] = None) -> None:
+        if not config:
+            raise ValueError("OpenAI configuration is required")
 
-    def __init__(self, config: LLMConfig):
-        super().__init__(config)
+        self.config = config
         self._client = None
-
-    def _convert_messages(self, messages: List[Message]) -> List[ChatCompletionMessageParam]:
-        """Convert internal messages to OpenAI format"""
-        return [
-            cast(
-                ChatCompletionMessageParam,
-                {
-                    "role": msg.role,
-                    "content": msg.content,
-                },
-            )
-            for msg in messages
-        ]
 
     async def initialize(self) -> None:
-        """Initialize OpenAI client"""
-        try:
-            self._client = AsyncOpenAI(
-                api_key=self.config.api_key,
-                base_url=self.config.api_base if self.config.api_base else None,
-            )
-        except Exception as e:
-            raise ProviderError("Failed to initialize OpenAI client", cause=e)
+        """Initialize provider"""
+        openai.api_key = self.config.api_key
+        if self.config.api_base:
+            openai.base_url = self.config.api_base
+        self._client = openai.AsyncClient()
 
     async def cleanup(self) -> None:
-        """Cleanup OpenAI resources"""
+        """Cleanup provider resources"""
         if self._client:
             await self._client.close()
-        self._client = None
+            self._client = None
 
-    async def generate(self, messages: List[Message]) -> LLMResponse:
-        """Generate response using OpenAI"""
+    def _convert_messages(self, messages: List[Message]) -> List[ChatCompletionMessageParam]:
+        """Convert messages to OpenAI format"""
+        converted: List[ChatCompletionMessageParam] = []
+
+        for msg in messages:
+            if msg["role"] == "system":
+                converted.append(
+                    ChatCompletionSystemMessageParam(role="system", content=msg["content"])
+                )
+            elif msg["role"] == "user":
+                converted.append(
+                    ChatCompletionUserMessageParam(role="user", content=msg["content"])
+                )
+            elif msg["role"] == "assistant":
+                converted.append(
+                    ChatCompletionAssistantMessageParam(role="assistant", content=msg["content"])
+                )
+
+        return converted
+
+    async def complete(self, messages: List[Message]) -> LLMResponse:
+        """Complete chat messages"""
         if not self._client:
             raise ProviderError("OpenAI client not initialized")
 
@@ -70,36 +103,32 @@ class OpenAIProvider(BaseLLMProvider):
                 presence_penalty=self.config.presence_penalty,
             )
 
-            message = cast(ChatCompletionMessage, response.choices[0].message)
-            usage_info = {
-                "prompt_tokens": 0,
-                "completion_tokens": 0,
-                "total_tokens": 0,
-            }
+            content = response.choices[0].message.content
+            if not content:
+                raise ProviderError("Empty response from OpenAI")
 
-            if response.usage:
-                usage_info.update(
+            return LLMResponse(
+                content=content,
+                model=response.model,
+                usage=(
                     {
                         "prompt_tokens": response.usage.prompt_tokens,
                         "completion_tokens": response.usage.completion_tokens,
                         "total_tokens": response.usage.total_tokens,
                     }
-                )
-
-            return LLMResponse(
-                content=message.content or "",
-                model=response.model,
-                usage=usage_info,
+                    if response.usage
+                    else {}
+                ),
                 metadata={
                     "finish_reason": response.choices[0].finish_reason,
                     "system_fingerprint": response.system_fingerprint,
                 },
             )
         except Exception as e:
-            raise ProviderError("Failed to generate response", cause=e)
+            raise ProviderError("Failed to complete chat", cause=e)
 
     async def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
-        """Stream responses using OpenAI"""
+        """Stream responses from OpenAI"""
         if not self._client:
             raise ProviderError("OpenAI client not initialized")
 
@@ -117,9 +146,10 @@ class OpenAIProvider(BaseLLMProvider):
 
             async for chunk in stream:
                 chunk = cast(ChatCompletionChunk, chunk)
-                if chunk.choices[0].delta.content:
+                content = chunk.choices[0].delta.content
+                if content:
                     yield LLMResponse(
-                        content=chunk.choices[0].delta.content,
+                        content=content,
                         model=chunk.model,
                         usage={},  # Usage não disponível em chunks
                         metadata={
