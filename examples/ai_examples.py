@@ -1,56 +1,32 @@
 """AI module examples demonstrating LLM integrations"""
 
 import asyncio
-from typing import Dict, Optional
 
-from pepperpy.ai import AIClient, AIConfig
+from pepperpy.ai import AIClient, ask
+from pepperpy.ai.chat import Conversation
 from pepperpy.console import Console
-from pepperpy.core.config import load_config
 
 console = Console()
 
 
-def get_ai_config() -> Optional[Dict[str, str]]:
-    """Get AI configuration from environment"""
-    config = load_config(
-        {
-            "OPENROUTER_API_KEY": {
-                "required": True,
-                "validator": lambda x: x.startswith("sk-"),
-                "error": "API key must start with 'sk-'",
-            },
-            "OPENROUTER_MODEL": {"default": "openai/gpt-4o-mini", "description": "AI model to use"},
-            "SITE_URL": {"default": "https://github.com/felipepimentel/pepperpy"},
-            "SITE_NAME": {"default": "PepperPy Demo"},
-        }
-    )
-
-    if not config.is_valid():
-        console.error("Configuration Error:", config.get_errors())
-        return None
-
-    return config.as_dict()
-
-
 async def simple_chat_example() -> None:
-    """Simple chat completion example using OpenRouter"""
-    config = get_ai_config()
-    if not config:
-        return
+    """Simple chat completion example using environment configuration"""
+    try:
+        # Método 1: Usando a função de conveniência ask()
+        response = await ask(
+            "What are the key features that make Python popular for AI development?",
+            system_prompt="You are a helpful AI assistant with expertise in Python programming.",
+        )
+        console.success(title="Quick Ask Response", content=response)
 
-    async with AIClient.from_config(AIConfig(**config)) as client:
-        try:
-            response = await client.complete(
-                [
-                    {
-                        "role": "system",
-                        "content": "You are a helpful AI assistant with expertise in Python programming.",
-                    },
-                    {
-                        "role": "user",
-                        "content": "What are the key features that make Python popular for AI development?",
-                    },
-                ]
+        # Método 2: Usando o cliente completo para mais controle
+        async with AIClient.create() as client:
+            # Criar uma conversa de forma fluente e legível
+            response = await (
+                Conversation()
+                .system("You are a helpful AI assistant with expertise in Python programming.")
+                .user("What are the key features that make Python popular for AI development?")
+                .complete(client)
             )
 
             console.success(
@@ -59,8 +35,24 @@ async def simple_chat_example() -> None:
                 content=response.content,
             )
 
-        except Exception as e:
-            console.error("Error occurred:", e)
+            # Exemplo de conversa mais complexa
+            response = await (
+                Conversation()
+                .system("You are a Python expert and mentor.")
+                .user("I want to learn Python for AI development.")
+                .assistant("That's a great choice! What's your current programming experience?")
+                .user("I have some experience with JavaScript.")
+                .complete(client)
+            )
+
+            console.success(
+                title="Extended Conversation",
+                subtitle=f"Model: {response.model} | Tokens: {response.usage.get('total_tokens', 0)}",
+                content=response.content,
+            )
+
+    except Exception as e:
+        console.error("Error occurred:", e)
 
 
 if __name__ == "__main__":

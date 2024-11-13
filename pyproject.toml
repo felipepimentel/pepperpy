@@ -9,43 +9,43 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 # Core dependencies
-pydantic = "^2.6.1"
-typing-extensions = "^4.0.0"
-python-dotenv = "^1.0.0"
+pydantic = "^2.6.3"
+typing-extensions = "^4.10.0"
+python-dotenv = "^1.0.1"
 
 # Optional dependencies
-rich = {version = "^13.0.0", optional = true}
+rich = {version = "^13.7.0", optional = true}
 markdown-it-py = {version = "^3.0.0", optional = true}
-pypdf = {version = "^4.0.1", optional = true}
+pypdf = {version = "^4.1.0", optional = true}
 python-magic = {version = "^0.4.27", optional = true}
-ebooklib = {version = "^0.18", optional = true}
+ebooklib = {version = "^0.18.0", optional = true}
 beautifulsoup4 = {version = "^4.12.3", optional = true}
 lxml = {version = "^5.1.0", optional = true}
 soundfile = {version = "^0.12.1", optional = true}
 pillow = {version = "^10.2.0", optional = true}
 opencv-python = {version = "^4.9.0.80", optional = true}
-cryptography = {version = "^39.0.0", optional = true}
-bcrypt = {version = "^4.0.1", optional = true}
+cryptography = {version = "^42.0.5", optional = true}
+bcrypt = {version = "^4.1.2", optional = true}
 pyjwt = {version = "^2.8.0", optional = true}
-sqlalchemy = {version = "^2.0.27", optional = true}
-alembic = {version = "^1.8.1", optional = true}
+sqlalchemy = {version = "^2.0.28", optional = true}
+alembic = {version = "^1.13.1", optional = true}
 asyncpg = {version = "^0.29.0", optional = true}
 httpx = {version = "^0.27.0", optional = true}
 aiohttp = {version = "^3.9.3", optional = true}
 aiofiles = {version = "^24.1.0", optional = true}
-numpy = {version = "^1.23.3", optional = true}
-scikit-learn = {version = "^1.4.0", optional = true}
-torch = {version = "^2.5.1", optional = true}
-redis = {version = "^5.0.1", extras = ["hiredis"], optional = true}
-orjson = {version = "^3.9.10", optional = true}
+numpy = {version = "^1.26.4", optional = true}
+scikit-learn = {version = "^1.4.1.post1", optional = true}
+torch = {version = "^2.2.1", optional = true}
+redis = {version = "^5.0.2", extras = ["hiredis"], optional = true}
+orjson = {version = "^3.9.15", optional = true}
 websockets = {version = "^12.0", optional = true}
 langdetect = {version = "^1.0.9", optional = true}
-typer = {extras = ["all"], version = "^0.13.0", optional = true}
+typer = {extras = ["all"], version = "^0.9.0", optional = true}
 msgpack = {version = "^1.0.7", optional = true}
 aiosqlite = {version = "^0.19.0", optional = true}
 python-docx = {version = "^1.1.0", optional = true}
-PyMuPDF = {version = "^1.23.8", optional = true}
-pandas = {version = "^2.2.0", optional = true}
+PyMuPDF = {version = "^1.23.26", optional = true}
+pandas = {version = "^2.2.1", optional = true}
 openpyxl = {version = "^3.1.2", optional = true}
 duckdb = {version = "^0.10.0", optional = true}
 moviepy = {version = "^1.0.3", optional = true}
@@ -53,12 +53,12 @@ pydub = {version = "^0.25.1", optional = true}
 pymediainfo = {version = "^6.1.0", optional = true}
 toml = {version = "^0.10.2", optional = true}
 jsonschema = {version = "^4.21.1", optional = true}
-tomli = {version = "^2.1.0", optional = true}
-tomli-w = {version = "^1.1.0", optional = true}
-psutil = {version = "^6.1.0", optional = true}
-transformers = {version = "^4.0.0", optional = true}
-openai = {version = "^1.0.0", optional = true}
-sentence-transformers = {version = "^2.0.0", optional = true}
+tomli = {version = "^2.0.1", optional = true}
+tomli-w = {version = "^1.0.0", optional = true}
+psutil = {version = "^5.9.8", optional = true}
+transformers = {version = "^4.38.2", optional = true}
+openai = {version = "^1.12.0", optional = true}
+sentence-transformers = {version = "^2.5.1", optional = true}
 pyyaml = {version = "^6.0.1", optional = true}
 
 [tool.poetry.extras]
@@ -200,11 +200,21 @@ standard = [
 ]
 all = [
     "pydantic",
-    "pyyaml",
-    "rich",
+    "typing-extensions",
     "python-dotenv",
+    "pyyaml",
+    "toml",
+    "tomli",
+    "tomli-w",
+    "orjson",
+    "msgpack",
+    "jsonschema",
+    "rich",
+    "typer",
     "markdown-it-py",
     "pypdf",
+    "PyMuPDF",
+    "python-docx",
     "python-magic",
     "ebooklib",
     "beautifulsoup4",
@@ -212,23 +222,33 @@ all = [
     "soundfile",
     "opencv-python",
     "pillow",
+    "moviepy",
+    "pydub",
+    "pymediainfo",
     "cryptography",
     "bcrypt",
     "pyjwt",
     "sqlalchemy",
     "alembic",
     "asyncpg",
+    "aiosqlite",
+    "duckdb",
     "httpx",
     "aiohttp",
-    "aiofiles",
-    "torch",
-    "numpy",
-    "redis",
-    "orjson",
     "websockets",
+    "aiofiles",
+    "numpy",
+    "pandas",
+    "openpyxl",
+    "torch",
+    "scikit-learn",
     "transformers",
     "sentence-transformers",
-    "openai"
+    "openai",
+    "redis",
+    "hiredis",
+    "psutil",
+    "langdetect"
 ]
 
 [tool.poetry.group.dev.dependencies]

@@ -19,7 +19,9 @@ class ImageHandler(BaseHandler):
         try:
             metadata = await self._get_metadata(path)
             with Image.open(path) as img:
-                # Extract image info
+                # Extract image info and convert complex keys to strings
+                img_info = {str(k): v for k, v in img.info.items()}
+
                 info = ImageInfo(
                     width=img.width,
                     height=img.height,
@@ -28,7 +30,7 @@ class ImageHandler(BaseHandler):
                     channels=len(img.getbands()),
                     bits=8,  # Default to 8 bits per channel
                     dpi=img.info.get("dpi"),
-                    metadata=dict(img.info),
+                    metadata=img_info,  # Now using the converted dictionary
                 )
 
                 enhanced_metadata = {
