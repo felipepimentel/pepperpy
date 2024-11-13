@@ -8,7 +8,7 @@ from pepperpy.core.config import ModuleConfig
 from pepperpy.core.module import BaseModule, ModuleStatus
 
 
-class TestModule(BaseModule):
+class DummyModule(BaseModule):
     """Test implementation of BaseModule"""
 
     __module_name__ = "test_module"
@@ -35,7 +35,7 @@ def base_config() -> ModuleConfig:
 @pytest.mark.asyncio
 async def test_base_module_initialization(base_config: ModuleConfig):
     """Test base module initialization"""
-    module = TestModule()
+    module = DummyModule()
     module.config = asdict(base_config)
     assert module.status == ModuleStatus.INACTIVE
     await module.initialize()
@@ -45,7 +45,7 @@ async def test_base_module_initialization(base_config: ModuleConfig):
 @pytest.mark.asyncio
 async def test_base_module_cleanup(base_config: ModuleConfig):
     """Test base module cleanup"""
-    module = TestModule()
+    module = DummyModule()
     module.config = asdict(base_config)
     await module.initialize()
     assert module.status == ModuleStatus.ACTIVE
@@ -56,7 +56,7 @@ async def test_base_module_cleanup(base_config: ModuleConfig):
 @pytest.mark.asyncio
 async def test_base_module_config(base_config: ModuleConfig):
     """Test base module configuration"""
-    module = TestModule()
+    module = DummyModule()
     config_dict = asdict(base_config)
     module.config = config_dict
     assert module.config == config_dict
