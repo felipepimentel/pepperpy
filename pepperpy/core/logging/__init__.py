@@ -101,7 +101,7 @@ def get_logger(name: str, config: Optional[LogConfig] = None) -> LoggerAdapter:
     logger = logging.getLogger(name)
 
     if config is None:
-        config = LogConfig(name=name, level=LogLevel.INFO)
+        config = LogConfig(name=name, version="0.1.0", level=LogLevel.INFO)
 
     logger.setLevel(config.level.value)
 

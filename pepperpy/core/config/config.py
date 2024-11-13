@@ -1,4 +1,4 @@
-"""Core configuration"""
+"""Configuration management"""
 
 import os
 from dataclasses import dataclass
@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 
 @dataclass
 class ConfigField:
+    """Configuration field definition"""
+
     required: bool = False
     default: Any = None
     validator: Optional[Callable[[str], bool]] = None
@@ -17,6 +19,8 @@ class ConfigField:
 
 
 class Config:
+    """Configuration manager"""
+
     def __init__(self, fields: Dict[str, Dict[str, Any]]):
         load_dotenv()
         self._fields = {k: ConfigField(**v) for k, v in fields.items()}

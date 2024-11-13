@@ -1,66 +1,45 @@
 """AI module examples demonstrating LLM integrations"""
 
 import asyncio
-import os
 from typing import Dict, Optional
 
-from dotenv import load_dotenv
-from rich.console import Console
-from rich.panel import Panel
+from pepperpy.ai import AIClient, AIConfig
+from pepperpy.console import Console
+from pepperpy.core.config import load_config
 
-from pepperpy.ai.llm import LLMClient, OpenRouterConfig
-from pepperpy.ai.llm.exceptions import LLMError
-from pepperpy.core.logging import get_logger
-
-# Carregar variáveis de ambiente
-load_dotenv()
-logger = get_logger(__name__)
 console = Console()
 
 
-def get_openrouter_config() -> Optional[Dict[str, str]]:
-    """Get OpenRouter configuration from environment variables"""
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        logger.sync.error("Missing OPENROUTER_API_KEY environment variable")
+def get_ai_config() -> Optional[Dict[str, str]]:
+    """Get AI configuration from environment"""
+    config = load_config(
+        {
+            "OPENROUTER_API_KEY": {
+                "required": True,
+                "validator": lambda x: x.startswith("sk-"),
+                "error": "API key must start with 'sk-'",
+            },
+            "OPENROUTER_MODEL": {"default": "openai/gpt-4o-mini", "description": "AI model to use"},
+            "SITE_URL": {"default": "https://github.com/felipepimentel/pepperpy"},
+            "SITE_NAME": {"default": "PepperPy Demo"},
+        }
+    )
+
+    if not config.is_valid():
+        console.error("Configuration Error:", config.get_errors())
         return None
 
-    if not api_key.startswith("sk-"):
-        logger.sync.error("Invalid OpenRouter API key format. Key should start with 'sk-'")
-        return None
-
-    # Configuração com valores padrão
-    config = {
-        "api_key": api_key,
-        "model": os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),  # Modelo mais acessível
-        "site_url": os.getenv("SITE_URL", "https://github.com/felipepimentel/pepperpy"),
-        "site_name": os.getenv("SITE_NAME", "PepperPy Demo"),
-    }
-
-    logger.sync.info(f"Using model: {config['model']}")
-    return config
+    return config.as_dict()
 
 
 async def simple_chat_example() -> None:
     """Simple chat completion example using OpenRouter"""
-    try:
-        # Obter configuração
-        config = get_openrouter_config()
-        if not config:
-            console.print("\n[red]Configuration Error:[/]")
-            console.print("Please check your .env file and ensure the following variables are set:")
-            console.print("- OPENROUTER_API_KEY (required, must start with 'sk-')")
-            console.print("- OPENROUTER_MODEL (optional, defaults to openai/gpt-4o-mini)")
-            console.print("- SITE_URL (optional)")
-            console.print("- SITE_NAME (optional)")
-            return
+    config = get_ai_config()
+    if not config:
+        return
 
-        # Criar e inicializar cliente
-        client = LLMClient(OpenRouterConfig(**config))
-        await client.initialize()
-
+    async with AIClient.from_config(AIConfig(**config)) as client:
         try:
-            # Enviar mensagem com contexto
             response = await client.complete(
                 [
                     {
@@ -74,33 +53,18 @@ async def simple_chat_example() -> None:
                 ]
             )
 
-            # Exibir resposta com metadados
-            console.print(
-                Panel(
-                    response.content,
-                    title=f"[bold]AI Response using {response.model}[/]",
-                    subtitle=f"Usage: {response.usage}",
-                    border_style="green",
-                )
+            console.success(
+                title=f"AI Response using {response.model}",
+                subtitle=f"Usage: {response.usage}",
+                content=response.content,
             )
 
-        finally:
-            await client.cleanup()
-
-    except LLMError as e:
-        console.print("\n[bold red]Error:[/]")
-        console.print(f"[red]{str(e)}[/]")
-        if e.cause:  # LLMError já tem o atributo cause definido
-            console.print(f"[red]Cause: {str(e.cause)}[/]")
-    except Exception as e:
-        console.print("\n[bold red]Error:[/]")
-        console.print(f"[red]{str(e)}[/]")
-        if e.__cause__:  # Usando __cause__ para exceções padrão
-            console.print(f"[red]Cause: {str(e.__cause__)}[/]")
+        except Exception as e:
+            console.error("Error occurred:", e)
 
 
 if __name__ == "__main__":
     try:
         asyncio.run(simple_chat_example())
     except KeyboardInterrupt:
-        console.print("\n[yellow]Example finished![/] 👋")
+        console.info("Example finished! 👋")
