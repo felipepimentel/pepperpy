@@ -8,141 +8,185 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+# Core dependencies
 pydantic = "^2.6.1"
-pyyaml = "^6.0.1"
+typing-extensions = "^4.0.0"
+python-dotenv = "^1.0.0"
+
+# Optional dependencies
 rich = {version = "^13.0.0", optional = true}
-python-dotenv = {version = "^1.0.0", optional = true}
-markdown-it-py = "^3.0.0"
-pypdf = "^4.0.1"
+markdown-it-py = {version = "^3.0.0", optional = true}
+pypdf = {version = "^4.0.1", optional = true}
 python-magic = {version = "^0.4.27", optional = true}
 ebooklib = {version = "^0.18", optional = true}
-beautifulsoup4 = "^4.12.3"
-lxml = "^5.1.0"
-soundfile = "^0.12.1"
-pillow = "^10.2.0"
-opencv-python = "^4.9.0.80"
+beautifulsoup4 = {version = "^4.12.3", optional = true}
+lxml = {version = "^5.1.0", optional = true}
+soundfile = {version = "^0.12.1", optional = true}
+pillow = {version = "^10.2.0", optional = true}
+opencv-python = {version = "^4.9.0.80", optional = true}
 cryptography = {version = "^39.0.0", optional = true}
 bcrypt = {version = "^4.0.1", optional = true}
-pyjwt = "^2.8.0"
-sqlalchemy = "^2.0.27"
+pyjwt = {version = "^2.8.0", optional = true}
+sqlalchemy = {version = "^2.0.27", optional = true}
 alembic = {version = "^1.8.1", optional = true}
-asyncpg = "^0.29.0"
-httpx = "^0.27.0"
-aiohttp = "^3.9.3"
+asyncpg = {version = "^0.29.0", optional = true}
+httpx = {version = "^0.27.0", optional = true}
+aiohttp = {version = "^3.9.3", optional = true}
 aiofiles = {version = "^24.1.0", optional = true}
-numpy = "^1.23.3"
-scikit-learn = "^1.4.0"
+numpy = {version = "^1.23.3", optional = true}
+scikit-learn = {version = "^1.4.0", optional = true}
 torch = {version = "^2.5.1", optional = true}
-redis = {version = "^5.0.1", extras = ["hiredis"]}
-orjson = "^3.9.10"
-websockets = "^12.0"
-langdetect = "^1.0.9"
-typer = {extras = ["all"], version = "^0.13.0"}
-msgpack = "^1.0.7"
-aiosqlite = "^0.19.0"
-python-docx = "^1.1.0"
-PyMuPDF = "^1.23.8"
-pandas = "^2.2.0"
-openpyxl = "^3.1.2"
-duckdb = "^0.10.0"
-moviepy = "^1.0.3"
-pydub = "^0.25.1"
-pymediainfo = "^6.1.0"
-toml = "^0.10.2"
-jsonschema = "^4.21.1"
-tomli = "^2.1.0"
-tomli-w = "^1.1.0"
-psutil = "^6.1.0"
+redis = {version = "^5.0.1", extras = ["hiredis"], optional = true}
+orjson = {version = "^3.9.10", optional = true}
+websockets = {version = "^12.0", optional = true}
+langdetect = {version = "^1.0.9", optional = true}
+typer = {extras = ["all"], version = "^0.13.0", optional = true}
+msgpack = {version = "^1.0.7", optional = true}
+aiosqlite = {version = "^0.19.0", optional = true}
+python-docx = {version = "^1.1.0", optional = true}
+PyMuPDF = {version = "^1.23.8", optional = true}
+pandas = {version = "^2.2.0", optional = true}
+openpyxl = {version = "^3.1.2", optional = true}
+duckdb = {version = "^0.10.0", optional = true}
+moviepy = {version = "^1.0.3", optional = true}
+pydub = {version = "^0.25.1", optional = true}
+pymediainfo = {version = "^6.1.0", optional = true}
+toml = {version = "^0.10.2", optional = true}
+jsonschema = {version = "^4.21.1", optional = true}
+tomli = {version = "^2.1.0", optional = true}
+tomli-w = {version = "^1.1.0", optional = true}
+psutil = {version = "^6.1.0", optional = true}
 transformers = {version = "^4.0.0", optional = true}
 openai = {version = "^1.0.0", optional = true}
 sentence-transformers = {version = "^2.0.0", optional = true}
+pyyaml = {version = "^6.0.1", optional = true}
 
 [tool.poetry.extras]
-# Core Utilities
+# Core Features
 core = ["pydantic"]
-yaml = ["pyyaml"]
+config = [
+    "toml",
+    "tomli",
+    "tomli-w",
+    "jsonschema",
+    "pyyaml"
+]
 logging = ["rich"]
-config = ["python-dotenv", "toml", "jsonschema"]
 
-# Console Features
-console_basic = ["rich"]
-console_full = ["rich", "python-dotenv", "markdown-it-py"]
-console_interactive = ["rich", "prompt-toolkit"]
+# Console & CLI
+cli = ["typer"]
+console = ["rich"]
+console_full = [
+    "rich",
+    "markdown-it-py"
+]
 
 # Document Processing
+docs_base = ["python-magic"]
 docs_markdown = ["markdown-it-py"]
-docs_pdf = ["pypdf", "python-magic"]
-docs_pdf_advanced = ["pypdf", "python-magic"]
+docs_pdf = ["pypdf", "PyMuPDF"]
+docs_word = ["python-docx"]
 docs_epub = ["ebooklib", "beautifulsoup4", "lxml"]
 docs_html = ["beautifulsoup4", "lxml"]
+docs_full = [
+    "pypdf",
+    "PyMuPDF",
+    "python-docx",
+    "ebooklib",
+    "beautifulsoup4",
+    "lxml",
+    "markdown-it-py",
+    "python-magic"
+]
 
 # Media Processing
-media_audio_basic = ["soundfile", "pydub"]
-media_audio_full = ["soundfile", "pydub", "moviepy"]
+media_audio = ["soundfile", "pydub"]
+media_video = ["opencv-python", "moviepy", "pymediainfo"]
 media_image = ["pillow"]
-media_video = ["opencv-python", "moviepy", "python-mediainfo"]
 media_full = [
     "soundfile",
     "pydub",
     "moviepy",
     "opencv-python",
-    "python-mediainfo"
+    "pymediainfo",
+    "pillow"
 ]
 
 # Security
-security_basic = ["cryptography"]
+security_crypto = ["cryptography"]
 security_auth = ["bcrypt", "pyjwt"]
 security_full = ["cryptography", "bcrypt", "pyjwt"]
 
 # Database
-db_core = ["sqlalchemy"]
-db_migrations = ["sqlalchemy", "alembic"]
+db_sql = ["sqlalchemy"]
+db_migrations = ["alembic"]
 db_postgres = ["asyncpg"]
+db_sqlite = ["aiosqlite"]
 db_duckdb = ["duckdb"]
-db_full = ["sqlalchemy", "alembic", "asyncpg", "duckdb"]
+db_full = [
+    "sqlalchemy",
+    "alembic",
+    "asyncpg",
+    "aiosqlite",
+    "duckdb"
+]
 
-# HTTP Clients
+# Data Processing
+data_numpy = ["numpy"]
+data_pandas = ["pandas", "openpyxl"]
+data_full = [
+    "numpy",
+    "pandas",
+    "openpyxl",
+    "duckdb"
+]
+
+# HTTP & Network
 http_sync = ["httpx"]
 http_async = ["aiohttp"]
-http_full = ["httpx", "aiohttp"]
+http_websockets = ["websockets"]
+http_full = ["httpx", "aiohttp", "websockets"]
 
 # File Operations
 files_async = ["aiofiles"]
+files_magic = ["python-magic"]
 files_full = ["aiofiles", "python-magic"]
 
-# AI/ML Features
-ai_core = ["numpy", "pydantic", "scikit-learn"]
-ai_llm = ["numpy", "pydantic", "httpx"]
-ai_rag = ["numpy", "pydantic", "httpx", "pypdf", "beautifulsoup4"]
-ai_optimization = ["numpy", "torch"]
+# AI/ML
+ai_numpy = ["numpy"]
+ai_torch = ["torch"]
+ai_sklearn = ["scikit-learn"]
+ai_nlp = ["transformers", "sentence-transformers"]
+ai_openai = ["openai", "httpx"]
 ai_full = [
     "numpy",
     "torch",
-    "pydantic",
-    "httpx",
-    "pypdf",
-    "beautifulsoup4",
-    "lxml",
-    "openai"
-]
-ai = [
-    "numpy",
-    "pydantic",
-    "httpx",
-    "pypdf",
-    "beautifulsoup4",
-    "lxml",
-    "openai",
+    "scikit-learn",
     "transformers",
-    "sentence-transformers"
+    "sentence-transformers",
+    "openai",
+    "httpx"
 ]
 
+# Cache & Storage
+cache_redis = ["redis", "hiredis"]
+cache_local = ["msgpack"]
+cache_full = ["redis", "hiredis", "msgpack"]
+
+# System
+system = ["psutil"]
+
 # Text Processing
-text_processing = [
+text_basic = ["langdetect"]
+text_full = [
     "langdetect",
     "markdown-it-py",
-    "pypdf"
+    "beautifulsoup4",
+    "lxml"
 ]
+
+# Serialization
+serialization = ["orjson", "msgpack", "toml", "pyyaml"]
 
 # Complete Bundles
 minimal = ["pydantic", "rich", "python-dotenv"]
@@ -155,8 +199,6 @@ standard = [
     "aiofiles"
 ]
 all = [
-    "sentence-transformers",
-    "openai",
     "pydantic",
     "pyyaml",
     "rich",
@@ -184,14 +226,9 @@ all = [
     "redis",
     "orjson",
     "websockets",
-    "transformers"
-]
-
-# Cache & Storage
-cache = [
-    "redis",
-    "msgpack",
-    "hiredis"
+    "transformers",
+    "sentence-transformers",
+    "openai"
 ]
 
 [tool.poetry.group.dev.dependencies]

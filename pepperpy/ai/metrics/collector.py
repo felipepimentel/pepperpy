@@ -128,6 +128,8 @@ class MetricsCollector(BaseModule):
             raise MetricsError("Custom handler not configured for metrics storage")
 
         try:
-            await handler(self._events)
+            result = handler(self._events)
+            if asyncio.iscoroutine(result):
+                await result
         except Exception as e:
             raise MetricsError(f"Custom handler failed: {str(e)}", cause=e)
