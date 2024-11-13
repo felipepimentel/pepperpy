@@ -1,30 +1,37 @@
-"""Embedding type definitions"""
+"""Embedding types and models"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import List
+from typing import Any, Dict, List
 
 import numpy as np
-
-from pepperpy.core.types import JsonDict
+from numpy.typing import NDArray
 
 
 @dataclass
 class EmbeddingVector:
     """Vector representation of text"""
 
-    vector: np.ndarray
+    vector: NDArray[np.float32]
     text: str
-    model: str
-    metadata: JsonDict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class EmbeddingBatch:
-    """Batch of embeddings"""
+    """Batch of embedding vectors"""
 
     vectors: List[EmbeddingVector]
     model: str
-    metadata: JsonDict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EmbeddingConfig:
+    """Configuration for embedding operations"""
+
+    model: str
+    provider: str
+    batch_size: int = 32
+    cache_enabled: bool = False
+    cache_ttl: int = 3600  # 1 hour in seconds
+    metadata: Dict[str, Any] = field(default_factory=dict)

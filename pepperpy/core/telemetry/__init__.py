@@ -1,8 +1,23 @@
-"""Telemetry module for monitoring and observability"""
+"""Telemetry module initialization"""
 
-from .collector import TelemetryCollector
-from .health import HealthCheck
-from .metrics import MetricsReporter
-from .tracing import TracingProvider
+from .health import HealthMonitor, Status
+from .metrics import MetricsCollector, MetricValue
+from .performance import PerformanceMonitor, ResourceUsage
+from .tracing import TraceEvent, Tracer
 
-__all__ = ["TelemetryCollector", "MetricsReporter", "TracingProvider", "HealthCheck"]
+__all__ = [
+    "HealthMonitor",
+    "Status",
+    "MetricsCollector",
+    "MetricValue",
+    "PerformanceMonitor",
+    "ResourceUsage",
+    "Tracer",
+    "TraceEvent",
+]
+
+# Export instances
+health = HealthMonitor()
+metrics = MetricsCollector()
+performance = PerformanceMonitor()
+tracing = Tracer()

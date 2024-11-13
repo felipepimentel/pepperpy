@@ -1,11 +1,16 @@
-"""Performance monitoring implementation"""
+"""Performance monitoring utilities"""
 
-import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import psutil
+
+from pepperpy.core.exceptions import PepperPyError
+
+
+class PerformanceError(PepperPyError):
+    """Performance monitoring error"""
 
 
 @dataclass
@@ -16,94 +21,80 @@ class ResourceUsage:
     memory_percent: float
     disk_usage: Dict[str, float]
     network_io: Dict[str, int]
-    timestamp: datetime
+    timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class PerformanceMonitor:
     """System performance monitor"""
 
-    def __init__(self, interval: int = 5):
-        self._interval = interval
-        self._task = None
-        self._running = False
-        self._handlers = []
-        self._history: List[ResourceUsage] = []
-        self._max_history = 1000
+    def __init__(self):
+        self._process = psutil.Process()
+        self._last_usage: Optional[ResourceUsage] = None
 
-    async def start(self) -> None:
-        """Start performance monitoring"""
-        self._running = True
-        self._task = asyncio.create_task(self._monitor_loop())
+    def get_resource_usage(self) -> ResourceUsage:
+        """Get current resource usage
 
-    async def stop(self) -> None:
-        """Stop performance monitoring"""
-        self._running = False
-        if self._task:
-            await self._task
-
-    def add_handler(self, handler: callable) -> None:
-        """Add performance data handler"""
-        self._handlers.append(handler)
-
-    async def get_current_usage(self) -> ResourceUsage:
-        """Get current resource usage"""
+        Returns:
+            ResourceUsage: Current resource usage information
+        """
         try:
-            # Get CPU usage
-            cpu_percent = psutil.cpu_percent(interval=1)
+            # Get CPU and memory usage
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            memory_percent = psutil.virtual_memory().percent
 
-            # Get memory usage
-            memory = psutil.virtual_memory()
-            memory_percent = memory.percent
+            # Get disk usage for all mounted partitions
+            disk_usage = {
+                partition.mountpoint: psutil.disk_usage(partition.mountpoint).percent
+                for partition in psutil.disk_partitions()
+                if partition.fstype
+            }
 
-            # Get disk usage
-            disk_usage = {}
-            for partition in psutil.disk_partitions():
-                try:
-                    usage = psutil.disk_usage(partition.mountpoint)
-                    disk_usage[partition.mountpoint] = usage.percent
-                except Exception:
-                    continue
-
-            # Get network I/O
+            # Get network I/O counters
             net_io = psutil.net_io_counters()
-            network_io = {"bytes_sent": net_io.bytes_sent, "bytes_recv": net_io.bytes_recv}
+            network_io = {
+                "bytes_sent": net_io.bytes_sent,
+                "bytes_recv": net_io.bytes_recv,
+                "packets_sent": net_io.packets_sent,
+                "packets_recv": net_io.packets_recv,
+            }
 
             usage = ResourceUsage(
                 cpu_percent=cpu_percent,
                 memory_percent=memory_percent,
                 disk_usage=disk_usage,
                 network_io=network_io,
-                timestamp=datetime.utcnow(),
             )
 
-            self._history.append(usage)
-            if len(self._history) > self._max_history:
-                self._history.pop(0)
-
+            self._last_usage = usage
             return usage
 
         except Exception as e:
-            print(f"Failed to get resource usage: {str(e)}")
-            return None
+            raise PerformanceError(f"Failed to get resource usage: {str(e)}", cause=e)
 
-    async def get_history(self, limit: Optional[int] = None) -> List[ResourceUsage]:
-        """Get usage history"""
-        if limit:
-            return self._history[-limit:]
-        return self._history
+    def get_process_info(self) -> Dict[str, Any]:
+        """Get current process information
 
-    async def _monitor_loop(self) -> None:
-        """Performance monitoring loop"""
-        while self._running:
-            try:
-                usage = await self.get_current_usage()
-                if usage:
-                    for handler in self._handlers:
-                        try:
-                            await handler(usage)
-                        except Exception as e:
-                            print(f"Performance handler failed: {str(e)}")
-            except Exception as e:
-                print(f"Performance monitoring failed: {str(e)}")
+        Returns:
+            Dict[str, Any]: Process information
+        """
+        try:
+            return {
+                "pid": self._process.pid,
+                "cpu_percent": self._process.cpu_percent(),
+                "memory_percent": self._process.memory_percent(),
+                "threads": len(self._process.threads()),
+                "open_files": len(self._process.open_files()),
+                "connections": len(self._process.connections()),
+            }
+        except Exception as e:
+            raise PerformanceError(f"Failed to get process info: {str(e)}", cause=e)
 
-            await asyncio.sleep(self._interval)
+    @property
+    def last_usage(self) -> Optional[ResourceUsage]:
+        """Get last recorded resource usage"""
+        return self._last_usage
+
+
+# Global performance monitor instance
+monitor = PerformanceMonitor()

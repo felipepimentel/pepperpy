@@ -1,12 +1,12 @@
 """PDF file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-import PyPDF2
+import aiofiles
 
 from ..exceptions import FileError
-from ..types import FileContent, FileMetadata
+from ..types import FileContent, FileMetadata, PDFDocument
 from .base import BaseHandler
 
 
@@ -17,55 +17,39 @@ class PDFHandler(BaseHandler):
         """Read PDF file"""
         try:
             metadata = await self._get_metadata(path)
+            # Lê o arquivo em modo binário usando aiofiles
+            async with aiofiles.open(path, mode="rb") as f:
+                content = await f.read()
 
-            # Read PDF content
-            with open(path, "rb") as file:
-                reader = PyPDF2.PdfReader(file)
-                content = {
-                    "pages": len(reader.pages),
-                    "text": [page.extract_text() for page in reader.pages],
-                    "metadata": reader.metadata,
-                }
+            # Parse PDF content
+            pdf_content: PDFDocument = self._parse_pdf(content)
 
-            return FileContent(content=content, metadata=metadata, format="pdf")
+            return FileContent(content=pdf_content, metadata=metadata.metadata, format="pdf")
         except Exception as e:
             raise FileError(f"Failed to read PDF file: {str(e)}", cause=e)
 
     async def write(
-        self, path: Path, content: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: PDFDocument, metadata: Optional[Dict[str, Any]] = None
     ) -> FileMetadata:
         """Write PDF file"""
         try:
-            writer = PyPDF2.PdfWriter()
-
-            # Add pages
-            if isinstance(content.get("pages"), list):
-                for page in content["pages"]:
-                    writer.add_page(page)
-
-            # Add metadata
-            if metadata:
-                writer.add_metadata(metadata)
-
-            # Write to file
-            with open(path, "wb") as file:
-                writer.write(file)
-
+            # Implementar a lógica de escrita do PDF
+            content.save(str(path))
             return await self._get_metadata(path)
         except Exception as e:
             raise FileError(f"Failed to write PDF file: {str(e)}", cause=e)
 
-    async def merge(self, paths: List[Path], output: Path) -> FileMetadata:
-        """Merge multiple PDF files"""
-        try:
-            merger = PyPDF2.PdfMerger()
+    def _parse_pdf(self, content: bytes) -> PDFDocument:
+        """Parse PDF content
 
-            for path in paths:
-                merger.append(str(path))
+        Args:
+            content: Raw PDF content in bytes
 
-            with open(output, "wb") as file:
-                merger.write(file)
+        Returns:
+            PDFDocument: Parsed PDF document
 
-            return await self._get_metadata(output)
-        except Exception as e:
-            raise FileError(f"Failed to merge PDF files: {str(e)}", cause=e)
+        Raises:
+            NotImplementedError: PDF parsing not implemented
+        """
+        # Implementar a lógica de parsing do PDF
+        raise NotImplementedError("PDF parsing not implemented")

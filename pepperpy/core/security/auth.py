@@ -5,13 +5,14 @@ import hmac
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import jwt
+from jwt.exceptions import PyJWTError
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
-from .exceptions import AuthError
+from .exceptions import AuthError, SecurityError
 
 
 @dataclass
@@ -22,6 +23,29 @@ class AuthToken:
     expires_at: datetime
     user_id: str
     metadata: Dict[str, str]
+
+
+class JWTHandler:
+    def __init__(self, secret_key: str, algorithm: str = "HS256"):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+
+    def create_access_token(
+        self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+    ) -> str:
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(minutes=15)
+        to_encode.update({"exp": expire})
+        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+
+    def decode(self, token: str) -> Dict[str, Any]:
+        try:
+            return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+        except PyJWTError as e:
+            raise SecurityError(f"Invalid token: {str(e)}")
 
 
 class AuthManager(BaseModule):
@@ -36,17 +60,18 @@ class AuthManager(BaseModule):
             dependencies=[],
             config={},
         )
-        self._secret = None
+        self._secret = secrets.token_hex(32)
         self._tokens = {}
+        self.jwt_handler = JWTHandler(self._secret)
 
     async def _setup(self) -> None:
         """Initialize auth manager"""
-        self._secret = secrets.token_hex(32)
+        pass
 
     async def _cleanup(self) -> None:
         """Cleanup auth resources"""
         self._tokens.clear()
-        self._secret = None
+        self._secret = secrets.token_hex(32)
 
     def _generate_salt(self) -> str:
         """Generate random salt"""
@@ -84,8 +109,9 @@ class AuthManager(BaseModule):
 
             # Generate JWT token
             expires_at = datetime.utcnow() + timedelta(hours=24)
-            token = jwt.encode(
-                {"user_id": user_id, "exp": expires_at}, self._secret, algorithm="HS256"
+            token = self.jwt_handler.create_access_token(
+                {"user_id": user_id},
+                expires_delta=timedelta(hours=24),
             )
 
             return AuthToken(token=token, expires_at=expires_at, user_id=user_id, metadata={})
@@ -98,14 +124,12 @@ class AuthManager(BaseModule):
     async def verify_token(self, token: str) -> Optional[str]:
         """Verify authentication token"""
         try:
-            payload = jwt.decode(token, self._secret, algorithms=["HS256"])
+            payload = self.jwt_handler.decode(token)
             return payload.get("user_id")
-        except jwt.ExpiredSignatureError:
-            raise AuthError("Token expired")
-        except jwt.InvalidTokenError as e:
-            raise AuthError(f"Invalid token: {str(e)}")
+        except PyJWTError as e:
+            raise SecurityError(f"Invalid token: {str(e)}")
         except Exception as e:
-            raise AuthError(f"Token verification failed: {str(e)}", cause=e)
+            raise SecurityError(f"Token verification failed: {str(e)}", cause=e)
 
 
 # Global auth manager instance

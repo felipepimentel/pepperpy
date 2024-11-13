@@ -1,4 +1,4 @@
-"""Embeddings client implementation"""
+"""Embedding client implementation"""
 
 from typing import List, Optional
 
@@ -7,77 +7,59 @@ from pepperpy.core.module import BaseModule, ModuleMetadata
 from .config import EmbeddingConfig
 from .exceptions import EmbeddingError
 from .providers import get_provider
-from .types import EmbeddingBatch, EmbeddingVector
+from .providers.base import BaseEmbeddingProvider
+from .types import EmbeddingVector
 
 
 class EmbeddingClient(BaseModule):
-    """Client for text embedding operations"""
+    """Client for embedding operations"""
+
+    _config: Optional[EmbeddingConfig]
+    _provider: Optional[BaseEmbeddingProvider]
 
     def __init__(self, config: Optional[EmbeddingConfig] = None):
         super().__init__()
+        self._config = config or EmbeddingConfig(
+            model="all-MiniLM-L6-v2",
+            provider="sentence_transformers",
+        )
         self.metadata = ModuleMetadata(
             name="embeddings",
             version="1.0.0",
             description="Text embedding operations",
             dependencies=[],
-            config=config.dict() if config else {},
+            config=self._config.dict(),
         )
         self._provider = None
-        self._cache = None
 
     async def _setup(self) -> None:
-        """Initialize embeddings provider"""
+        """Initialize embedding provider"""
         try:
-            self._provider = get_provider(self.config)
-            await self._provider.initialize()
-
-            if self.config.get("cache_enabled"):
-                from pepperpy.ai.cache import CacheManager
-
-                self._cache = CacheManager(self.config)
-                await self._cache.initialize()
-
+            if not self._config:
+                raise EmbeddingError("Embedding configuration is required")
+            self._provider = get_provider(self._config)
+            if hasattr(self._provider, "initialize"):
+                await self._provider.initialize()
         except Exception as e:
-            raise EmbeddingError("Failed to initialize embeddings", cause=e)
+            raise EmbeddingError("Failed to initialize embedding provider", cause=e)
 
     async def _cleanup(self) -> None:
-        """Cleanup embeddings resources"""
-        if self._provider:
+        """Cleanup embedding resources"""
+        if self._provider and hasattr(self._provider, "cleanup"):
             await self._provider.cleanup()
-        if self._cache:
-            await self._cache.cleanup()
 
-    async def embed_text(self, text: str) -> EmbeddingVector:
+    async def embed(self, text: str) -> EmbeddingVector:
         """Generate embedding for text"""
         if not self._provider:
-            raise EmbeddingError("Embeddings provider not initialized")
+            raise EmbeddingError("Embedding provider not initialized")
+        return await self._provider.embed_text(text)
 
-        # Check cache first
-        if self._cache:
-            cached = await self._cache.get(text)
-            if cached:
-                return cached
-
-        # Generate embedding
-        vector = await self._provider.embed_text(text)
-
-        # Cache result
-        if self._cache:
-            await self._cache.set(text, vector, ttl=self.config.get("cache_ttl"))
-
-        return vector
-
-    async def embed_batch(self, texts: List[str]) -> EmbeddingBatch:
+    async def embed_batch(self, texts: List[str]) -> List[EmbeddingVector]:
         """Generate embeddings for multiple texts"""
         if not self._provider:
-            raise EmbeddingError("Embeddings provider not initialized")
+            raise EmbeddingError("Embedding provider not initialized")
+        return await self._provider.embed_batch(texts)
 
-        vectors = []
-        batch_size = self.config.get("batch_size", 32)
 
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i : i + batch_size]
-            batch_vectors = await self._provider.embed_batch(batch)
-            vectors.extend(batch_vectors)
-
-        return EmbeddingBatch(vectors=vectors, model=self.config["model"])
+# Global embedding client instance
+embeddings = EmbeddingClient()

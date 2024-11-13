@@ -1,78 +1,83 @@
-"""Memory cache implementation with TTL support"""
+"""In-memory cache implementation"""
 
-import time
-from collections import OrderedDict
-from threading import Lock
-from typing import Any, Dict, Optional
+from datetime import datetime, timedelta
+from typing import Any, Dict, Generic, Optional, TypeVar
 
-from ..exceptions import CoreError
-from .strategies import CacheStrategy
+from .exceptions import CacheError
+
+KT = TypeVar("KT")
+VT = TypeVar("VT")
 
 
-class MemoryCache(CacheStrategy):
-    """Thread-safe memory cache with TTL"""
+class MemoryCache(Generic[KT, VT]):
+    """Simple in-memory cache implementation"""
 
-    def __init__(self, max_size: int = 1000, cleanup_interval: int = 60):
-        self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
-        self._max_size = max_size
-        self._cleanup_interval = cleanup_interval
-        self._last_cleanup = time.time()
-        self._lock = Lock()
+    def __init__(self):
+        self._cache: Dict[KT, Dict[str, Any]] = {}
 
-    async def get(self, key: str) -> Optional[Any]:
-        """Get value from cache"""
+    def get(self, key: KT) -> Optional[VT]:
+        """Get value from cache
+
+        Args:
+            key: Cache key
+
+        Returns:
+            Optional[VT]: Cached value if exists
+        """
         try:
-            with self._lock:
-                self._maybe_cleanup()
+            if key not in self._cache:
+                return None
 
-                if key not in self._cache:
-                    return None
+            entry = self._cache[key]
+            if "expires_at" in entry and datetime.now() >= entry["expires_at"]:
+                del self._cache[key]
+                return None
 
-                entry = self._cache[key]
-                if entry.get("expires_at") and time.time() > entry["expires_at"]:
-                    del self._cache[key]
-                    return None
-
-                # Move to end (most recently used)
-                self._cache.move_to_end(key)
-                return entry["value"]
+            return entry["value"]
         except Exception as e:
-            raise CoreError(f"Memory cache get failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to get value: {str(e)}", cause=e)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
-        """Set value in cache"""
+    def set(self, key: KT, value: VT, ttl: Optional[int] = None) -> None:
+        """Set value in cache
+
+        Args:
+            key: Cache key
+            value: Value to cache
+            ttl: Time to live in seconds
+        """
         try:
-            with self._lock:
-                self._maybe_cleanup()
-
-                # Remove oldest if at max size
-                if len(self._cache) >= self._max_size:
-                    self._cache.popitem(last=False)
-
-                expires_at = time.time() + ttl if ttl else None
-                self._cache[key] = {
-                    "value": value,
-                    "expires_at": expires_at,
-                    "created_at": time.time(),
-                }
-                self._cache.move_to_end(key)
+            entry: Dict[str, Any] = {"value": value}
+            if ttl is not None:
+                entry["expires_at"] = datetime.now() + timedelta(seconds=ttl)
+            self._cache[key] = entry
         except Exception as e:
-            raise CoreError(f"Memory cache set failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to set value: {str(e)}", cause=e)
 
-    def _maybe_cleanup(self) -> None:
-        """Cleanup expired entries if needed"""
-        now = time.time()
-        if now - self._last_cleanup > self._cleanup_interval:
-            self._cleanup()
-            self._last_cleanup = now
+    def delete(self, key: KT) -> None:
+        """Delete value from cache
 
-    def _cleanup(self) -> None:
-        """Remove expired entries"""
-        now = time.time()
-        expired = [
-            key
-            for key, entry in self._cache.items()
-            if entry.get("expires_at") and entry["expires_at"] <= now
-        ]
-        for key in expired:
-            del self._cache[key]
+        Args:
+            key: Cache key
+        """
+        try:
+            if key in self._cache:
+                del self._cache[key]
+        except Exception as e:
+            raise CacheError(f"Failed to delete value: {str(e)}", cause=e)
+
+    def clear(self) -> None:
+        """Clear all values from cache"""
+        try:
+            self._cache.clear()
+        except Exception as e:
+            raise CacheError(f"Failed to clear cache: {str(e)}", cause=e)
+
+    def __contains__(self, key: KT) -> bool:
+        """Check if key exists in cache"""
+        return key in self._cache and (
+            "expires_at" not in self._cache[key] or datetime.now() < self._cache[key]["expires_at"]
+        )
+
+    def __len__(self) -> int:
+        """Get current cache size"""
+        return len(self._cache)

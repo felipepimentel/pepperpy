@@ -1,118 +1,80 @@
 """Configuration file handler implementation"""
 
-import json
-from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
 
 import tomli
 import tomli_w
-import yaml
+from jsonschema import ValidationError, validate
 
-from ..base import FileHandler
 from ..exceptions import FileError
+from ..types import FileContent, FileMetadata
+from .base import BaseHandler
 
 
-class ConfigHandler(FileHandler):
+class ConfigHandler(BaseHandler):
     """Handler for configuration files"""
 
-    SUPPORTED_FORMATS = {
-        ".toml": ("tomli", "tomli_w"),
-        ".yaml": ("yaml", "yaml"),
-        ".yml": ("yaml", "yaml"),
-        ".json": ("json", "json"),
-        ".ini": ("ini", "ini"),
-    }
+    def __init__(self):
+        super().__init__()
+        self._schema: Optional[Dict[str, Any]] = None
 
-    async def read(self, path: Path) -> Dict[str, Any]:
+    async def read(self, path: Path) -> FileContent:
         """Read configuration file"""
         try:
-            format_type = path.suffix.lower()
-            if format_type not in self.SUPPORTED_FORMATS:
-                raise FileError(f"Unsupported config format: {format_type}")
+            metadata = await self._get_metadata(path)
+            content = await self._read_file(path)
 
-            with open(path, "r", encoding="utf-8") as f:
-                if format_type in (".yaml", ".yml"):
-                    return yaml.safe_load(f)
-                elif format_type == ".toml":
-                    return tomli.load(f)
-                elif format_type == ".json":
-                    return json.load(f)
-                elif format_type == ".ini":
-                    config = ConfigParser()
-                    config.read_file(f)
-                    return {section: dict(config.items(section)) for section in config.sections()}
+            # Parse config based on extension
+            if path.suffix == ".toml":
+                data = tomli.loads(content)
+            else:
+                raise FileError(f"Unsupported config format: {path.suffix}")
 
+            # Validate against schema if available
+            if self._schema is not None:
+                try:
+                    validate(instance=data, schema=self._schema)
+                except ValidationError as e:
+                    raise FileError(f"Config validation failed: {str(e)}")
+
+            return FileContent(content=data, metadata=metadata.metadata, format="config")
         except Exception as e:
-            raise FileError(f"Failed to read config: {str(e)}", cause=e)
+            raise FileError(f"Failed to read config file: {str(e)}", cause=e)
 
-    async def write(self, path: Path, content: Dict[str, Any], **kwargs: Any) -> None:
+    async def write(
+        self,
+        path: Path,
+        content: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> FileMetadata:
         """Write configuration file"""
         try:
-            format_type = path.suffix.lower()
-            if format_type not in self.SUPPORTED_FORMATS:
-                raise FileError(f"Unsupported config format: {format_type}")
+            # Validate against schema if available
+            if self._schema is not None:
+                try:
+                    validate(instance=content, schema=self._schema)
+                except ValidationError as e:
+                    raise FileError(f"Config validation failed: {str(e)}")
 
-            with open(path, "w", encoding="utf-8") as f:
-                if format_type in (".yaml", ".yml"):
-                    yaml.safe_dump(content, f, **kwargs)
-                elif format_type == ".toml":
-                    tomli_w.dump(content, f)
-                elif format_type == ".json":
-                    json.dump(content, f, indent=2, **kwargs)
-                elif format_type == ".ini":
-                    config = ConfigParser()
-                    for section, values in content.items():
-                        config[section] = values
-                    config.write(f)
-
-        except Exception as e:
-            raise FileError(f"Failed to write config: {str(e)}", cause=e)
-
-    async def merge(
-        self, paths: Sequence[Path], output_path: Path, strategy: str = "update"
-    ) -> None:
-        """Merge multiple configuration files"""
-        try:
-            result = {}
-
-            for path in paths:
-                config = await self.read(path)
-                if strategy == "update":
-                    result.update(config)
-                elif strategy == "deep":
-                    result = self._deep_merge(result, config)
-                else:
-                    raise FileError(f"Invalid merge strategy: {strategy}")
-
-            await self.write(output_path, result)
-
-        except Exception as e:
-            raise FileError(f"Failed to merge configs: {str(e)}", cause=e)
-
-    async def validate(self, path: Path, schema: Optional[Dict[str, Any]] = None) -> bool:
-        """Validate configuration file"""
-        try:
-            config = await self.read(path)
-
-            if schema:
-                from jsonschema import validate
-
-                validate(instance=config, schema=schema)
-
-            return True
-
-        except Exception as e:
-            raise FileError(f"Config validation failed: {str(e)}", cause=e)
-
-    def _deep_merge(self, dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
-        """Deep merge two dictionaries"""
-        result = dict1.copy()
-
-        for key, value in dict2.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = self._deep_merge(result[key], value)
+            # Convert to string based on format
+            if path.suffix == ".toml":
+                config_content = tomli_w.dumps(content)
             else:
-                result[key] = value
+                raise FileError(f"Unsupported config format: {path.suffix}")
 
-        return result
+            return await self._write_file(path, config_content)
+        except Exception as e:
+            raise FileError(f"Failed to write config file: {str(e)}", cause=e)
+
+    def set_schema(self, schema: Dict[str, Any]) -> None:
+        """Set JSON schema for validation
+
+        Args:
+            schema: JSON schema
+        """
+        self._schema = schema
+
+    def clear_schema(self) -> None:
+        """Clear JSON schema"""
+        self._schema = None

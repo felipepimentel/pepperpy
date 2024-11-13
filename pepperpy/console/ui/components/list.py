@@ -1,105 +1,103 @@
-"""List component implementation"""
+"""List component for console UI"""
 
-from dataclasses import dataclass
-from typing import Callable, List, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from ..styles import Style
-from .base import Component, ComponentConfig
+from rich.style import Style
+from rich.text import Text
+
+from pepperpy.console.ui.components.base import Component, ComponentConfig
+from pepperpy.console.ui.styles import styles
+
+T = TypeVar("T")
 
 
 @dataclass
-class ListItem:
-    """List item definition"""
+class ListItem(Generic[T]):
+    """List item configuration"""
 
-    text: str
-    value: any = None
+    value: T
+    label: str
     enabled: bool = True
-    metadata: dict = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-class ListView(Component):
-    """Scrollable list component"""
+class ListView(Component, Generic[T]):
+    """List view component"""
 
-    def __init__(
-        self,
-        config: ComponentConfig,
-        items: List[ListItem],
-        on_select: Optional[Callable[[ListItem], None]] = None,
-        show_scrollbar: bool = True,
-        selected_style: Optional[Style] = None,
-    ):
-        super().__init__(config)
-        self.items = items
-        self.on_select = on_select
-        self.show_scrollbar = show_scrollbar
-        self.selected_style = selected_style or Style(bold=True)
+    def __init__(self) -> None:
+        config = ComponentConfig(
+            style={
+                "default": Style(color="white"),
+                "selected": Style(color="cyan", bold=True),
+                "disabled": Style(color="gray50", dim=True),
+            },
+            metadata={
+                "show_bullets": True,
+                "bullet_char": "•",
+            },
+        )
+        super().__init__(config=config)
+        self._items: List[ListItem[T]] = []
         self._selected_index = 0
-        self._scroll_offset = 0
-        self._visible_items = config.height or 10
+
+    def add_item(self, value: T, label: str, enabled: bool = True) -> None:
+        """Add item to list
+
+        Args:
+            value: Item value
+            label: Item label
+            enabled: Whether item is enabled
+        """
+        item = ListItem(value=value, label=label, enabled=enabled)
+        self._items.append(item)
+
+    def clear(self) -> None:
+        """Clear all items"""
+        self._items.clear()
+        self._selected_index = 0
 
     @property
-    def selected_item(self) -> Optional[ListItem]:
-        """Get currently selected item"""
-        if not self.items:
+    def selected_item(self) -> Optional[ListItem[T]]:
+        """Get selected item"""
+        if not self._items:
             return None
-        return self.items[self._selected_index]
+        return self._items[self._selected_index]
 
-    async def _setup(self) -> None:
-        """Initialize list view"""
-        pass
-
-    async def _cleanup(self) -> None:
-        """Cleanup list view"""
-        pass
-
-    async def render(self) -> None:
-        """Render list view"""
-        if not self.config.visible or not self.items:
+    def select_next(self) -> None:
+        """Select next item"""
+        if not self._items:
             return
+        self._selected_index = (self._selected_index + 1) % len(self._items)
 
-        style = self.config.style or Style()
+    def select_previous(self) -> None:
+        """Select previous item"""
+        if not self._items:
+            return
+        self._selected_index = (self._selected_index - 1) % len(self._items)
 
-        # Calculate visible range
-        start = self._scroll_offset
-        end = min(start + self._visible_items, len(self.items))
+    def render(self) -> Text:
+        """Render list view"""
+        text = Text()
 
-        # Render visible items
-        for i in range(start, end):
-            y = self.config.y + (i - start)
-            item = self.items[i]
+        for i, item in enumerate(self._items):
+            if i > 0:
+                text.append("\n")
 
-            # Move cursor
-            print(f"\033[{y};{self.config.x}H", end="")
+            # Adicionar bullet se configurado
+            if self.config.metadata.get("show_bullets", True):
+                bullet = self.config.metadata.get("bullet_char", "•")
+                text.append(f"{bullet} ", style=styles.apply("default"))
 
-            # Apply styles
-            if i == self._selected_index:
-                print(f"{self.selected_style.apply()}", end="")
-            elif not item.enabled:
-                print(f"{style.disabled.apply()}", end="")
+            # Determinar estilo do item
+            if not item.enabled:
+                style = styles.apply("muted")
+            elif i == self._selected_index:
+                style = styles.apply("primary")
             else:
-                print(f"{style.apply()}", end="")
+                style = styles.apply("default")
 
-            # Render item
-            width = self.config.width or 40
-            text = item.text
-            if len(text) > width - 4:
-                text = text[: width - 7] + "..."
-            print(f"  {text:<{width-2}}", end="")
+            # Adicionar label do item
+            text.append(item.label, style=style)
 
-            print(f"{style.reset()}")
-
-        # Render scrollbar
-        if self.show_scrollbar and len(self.items) > self._visible_items:
-            scrollbar_height = self._visible_items
-            thumb_size = max(1, int(scrollbar_height * self._visible_items / len(self.items)))
-            thumb_pos = int(scrollbar_height * self._scroll_offset / len(self.items))
-
-            for i in range(scrollbar_height):
-                y = self.config.y + i
-                x = self.config.x + (self.config.width or 40) + 1
-                print(f"\033[{y};{x}H│", end="")
-
-                if i >= thumb_pos and i < thumb_pos + thumb_size:
-                    print("█", end="")
-                else:
-                    print("░", end="")
+        return text

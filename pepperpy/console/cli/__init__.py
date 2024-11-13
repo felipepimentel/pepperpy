@@ -1,7 +1,14 @@
-"""Command Line Interface module"""
+"""Console CLI module"""
 
-from .app import CLI
-from .config import CLIConfig
-from .types import Argument, Command, Option
+from .app import CLIApp, app
+from .exceptions import ArgumentError, CLIError, CommandError
 
-__all__ = ["CLI", "CLIConfig", "Command", "Option", "Argument"]
+__all__ = [
+    # App
+    "CLIApp",
+    "app",
+    # Exceptions
+    "CLIError",
+    "ArgumentError",
+    "CommandError",
+]

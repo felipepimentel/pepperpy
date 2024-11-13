@@ -1,44 +1,34 @@
 """Core logging module"""
 
-from dataclasses import dataclass
-from enum import Enum
-from typing import Optional, Protocol
+import logging
+from typing import Optional
+
+from .config import LogConfig, LogLevel
+from .logger import Logger
 
 
-class Logger(Protocol):
-    """Logger protocol defining the interface for logger instances"""
+class LoggerAdapter(Logger):
+    def __init__(self, logger: logging.Logger):
+        self._logger = logger
 
-    def debug(self, msg: str, *args, **kwargs) -> None: ...
-    def info(self, msg: str, *args, **kwargs) -> None: ...
-    def warning(self, msg: str, *args, **kwargs) -> None: ...
-    def error(self, msg: str, *args, **kwargs) -> None: ...
-    def critical(self, msg: str, *args, **kwargs) -> None: ...
+    def debug(self, msg: str, *args, **kwargs) -> None:
+        self._logger.debug(msg, *args, **kwargs)
 
+    def info(self, msg: str, *args, **kwargs) -> None:
+        self._logger.info(msg, *args, **kwargs)
 
-class LogLevel(str, Enum):
-    """Log level definitions"""
+    def warning(self, msg: str, *args, **kwargs) -> None:
+        self._logger.warning(msg, *args, **kwargs)
 
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
+    def error(self, msg: str, *args, **kwargs) -> None:
+        self._logger.error(msg, *args, **kwargs)
 
-
-@dataclass
-class LogConfig:
-    """Logging configuration"""
-
-    name: str
-    level: LogLevel
-    console_enabled: bool = True
-    colors_enabled: bool = True
-    file_path: Optional[str] = None
+    def critical(self, msg: str, *args, **kwargs) -> None:
+        self._logger.critical(msg, *args, **kwargs)
 
 
 def get_logger(name: str, config: Optional[LogConfig] = None) -> Logger:
     """Get configured logger instance"""
-    import logging
     import sys
 
     from rich.logging import RichHandler
@@ -75,7 +65,7 @@ def get_logger(name: str, config: Optional[LogConfig] = None) -> Logger:
         handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
         logger.addHandler(handler)
 
-    return logger
+    return LoggerAdapter(logger)
 
 
 __all__ = ["LogLevel", "LogConfig", "get_logger", "Logger"]

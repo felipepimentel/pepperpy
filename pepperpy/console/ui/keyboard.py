@@ -1,84 +1,98 @@
 """Keyboard input handling"""
 
-import sys
-import termios
-import tty
-from dataclasses import dataclass
-from enum import Enum
-from typing import Optional
+import asyncio
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any, Dict, Union
+
+from .exceptions import InputError
 
 
-class Key(Enum):
-    """Common keyboard keys"""
+class KeyCode(Enum):
+    """Key codes"""
 
-    UP = "UP"
-    DOWN = "DOWN"
-    LEFT = "LEFT"
-    RIGHT = "RIGHT"
-    ENTER = "ENTER"
-    ESC = "ESC"
-    SPACE = "SPACE"
-    BACKSPACE = "BACKSPACE"
-    TAB = "TAB"
-    CTRL_C = "CTRL_C"
+    ENTER = auto()
+    ESCAPE = auto()
+    BACKSPACE = auto()
+    DELETE = auto()
+    TAB = auto()
+    UP = auto()
+    DOWN = auto()
+    LEFT = auto()
+    RIGHT = auto()
+    HOME = auto()
+    END = auto()
+    PAGE_UP = auto()
+    PAGE_DOWN = auto()
+    INSERT = auto()
+    CTRL_C = auto()
+    CTRL_D = auto()
 
 
 @dataclass
-class KeyEvent:
-    """Keyboard event information"""
+class Key:
+    """Keyboard key"""
 
-    key: Key
-    char: Optional[str] = None
-    ctrl: bool = False
+    code: Union[KeyCode, str]
     alt: bool = False
+    ctrl: bool = False
+    shift: bool = False
+    meta: bool = False
+    modifiers: Dict[str, Any] = field(default_factory=dict)
 
 
 class KeyboardManager:
-    """Manages keyboard input in raw mode"""
+    """Keyboard input manager"""
 
     def __init__(self):
-        self._fd = sys.stdin.fileno()
-        self._old_settings = None
+        self._queue: asyncio.Queue[Key] = asyncio.Queue()
+        self._running = False
 
-    def __enter__(self):
-        """Enter raw mode"""
-        self._old_settings = termios.tcgetattr(self._fd)
-        tty.setraw(self._fd)
-        return self
+    async def initialize(self) -> None:
+        """Initialize keyboard manager"""
+        self._running = True
 
-    def __exit__(self, *args):
-        """Restore terminal settings"""
-        if self._old_settings:
-            termios.tcsetattr(self._fd, termios.TCSADRAIN, self._old_settings)
+    async def cleanup(self) -> None:
+        """Cleanup keyboard manager"""
+        self._running = False
+        while not self._queue.empty():
+            await self._queue.get()
 
-    def get_key(self) -> KeyEvent:
-        """Get next keyboard event"""
-        char = sys.stdin.read(1)
+    async def get_key(self) -> Key:
+        """Get next key press
 
-        # Handle special keys
-        if char == "\x1b":  # ESC sequence
-            next_char = sys.stdin.read(1)
-            if next_char == "[":
-                code = sys.stdin.read(1)
-                return KeyEvent(
-                    key={"A": Key.UP, "B": Key.DOWN, "C": Key.RIGHT, "D": Key.LEFT}.get(
-                        code, Key.ESC
-                    )
-                )
-            return KeyEvent(key=Key.ESC)
+        Returns:
+            Key: Next key press
+        """
+        try:
+            return await self._queue.get()
+        except Exception as e:
+            raise InputError(f"Failed to get key: {str(e)}", cause=e)
 
-        # Handle control keys
-        elif ord(char) < 32:
-            return KeyEvent(
-                key={
-                    "\r": Key.ENTER,
-                    "\t": Key.TAB,
-                    "\x7f": Key.BACKSPACE,
-                    "\x03": Key.CTRL_C,
-                    " ": Key.SPACE,
-                }.get(char, char),
-                ctrl=True,
-            )
+    def put_key(self, key: Key) -> None:
+        """Put key in queue
 
-        # Regular character
-        return KeyEvent(key=char, char=char)
+        Args:
+            key: Key to put in queue
+        """
+        if self._running:
+            self._queue.put_nowait(key)
+
+
+# Common keys
+ENTER = Key(KeyCode.ENTER)
+ESCAPE = Key(KeyCode.ESCAPE)
+BACKSPACE = Key(KeyCode.BACKSPACE)
+DELETE = Key(KeyCode.DELETE)
+TAB = Key(KeyCode.TAB)
+UP = Key(KeyCode.UP)
+DOWN = Key(KeyCode.DOWN)
+LEFT = Key(KeyCode.LEFT)
+RIGHT = Key(KeyCode.RIGHT)
+HOME = Key(KeyCode.HOME)
+END = Key(KeyCode.END)
+PAGE_UP = Key(KeyCode.PAGE_UP)
+PAGE_DOWN = Key(KeyCode.PAGE_DOWN)
+INSERT = Key(KeyCode.INSERT)
+CTRL_C = Key(KeyCode.CTRL_C)
+CTRL_D = Key(KeyCode.CTRL_D)

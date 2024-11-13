@@ -1,39 +1,23 @@
-"""Security specific exceptions"""
+"""Security-related exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class SecurityError(CoreError):
-    """Base exception for security errors"""
-
-    pass
+class SecurityError(PepperPyError):
+    """Base security error"""
 
 
 class AuthError(SecurityError):
     """Authentication error"""
 
-    pass
-
 
 class PermissionError(SecurityError):
-    """Permission denied error"""
-
-    pass
-
-
-class RoleError(SecurityError):
-    """Role validation error"""
-
-    pass
+    """Permission error"""
 
 
 class TokenError(SecurityError):
-    """Token validation error"""
-
-    pass
+    """Token error"""
 
 
-class ConfigError(SecurityError):
-    """Security configuration error"""
-
-    pass
+class CryptoError(SecurityError):
+    """Cryptography error"""

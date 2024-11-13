@@ -1,6 +1,8 @@
 """File handling types"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Protocol, runtime_checkable
 
 
@@ -64,3 +66,77 @@ class SpreadsheetStats:
     numeric_stats: Dict[str, Dict[str, float]]
     memory_usage: int
     duplicates: int
+
+
+@dataclass
+class FileMetadata:
+    """File metadata"""
+
+    path: Path
+    size: int
+    created_at: datetime
+    modified_at: datetime
+    mime_type: Optional[str] = None
+    encoding: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Chapter:
+    """E-book chapter"""
+
+    title: str
+    content: str
+    order: int
+    level: int = 1
+    identifier: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EpubTOC:
+    """E-book table of contents"""
+
+    items: List[Chapter]
+    max_depth: int = 3
+
+
+@dataclass
+class ImageInfo:
+    """Image information"""
+
+    width: int
+    height: int
+    mode: str
+    format: str
+    channels: Optional[int] = None
+    bits: Optional[int] = None
+    dpi: Optional[tuple[float, float]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class AudioInfo:
+    """Audio file information"""
+
+    duration: float
+    sample_rate: int
+    channels: int
+    format: str
+    bit_depth: Optional[int] = None
+    bitrate: Optional[int] = None
+    codec: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class FileStats:
+    """File statistics"""
+
+    name: str
+    extension: str
+    size: int
+    created_at: datetime
+    modified_at: datetime
+    hash: str
+    metadata: Dict[str, Any] = field(default_factory=dict)

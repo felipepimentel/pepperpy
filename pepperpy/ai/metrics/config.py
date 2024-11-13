@@ -1,21 +1,22 @@
 """Metrics configuration"""
 
-from dataclasses import dataclass
-from typing import Callable, List, Optional
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, Optional
 
 from pepperpy.core.config import ModuleConfig
-
-from .types import MetricEvent
 
 
 @dataclass
 class MetricsConfig(ModuleConfig):
     """Configuration for metrics collection"""
 
-    storage_backend: str = "memory"  # memory, file, custom
-    file_path: Optional[str] = None
-    custom_handler: Optional[Callable[[List[MetricEvent]], None]] = None
-    auto_flush_enabled: bool = True
-    flush_interval: int = 60  # seconds
-    flush_threshold: int = 100  # events
-    include_metadata: bool = True
+    enabled: bool = True
+    interval: int = 60  # Intervalo de coleta em segundos
+    batch_size: int = 100  # Tamanho do lote para processamento
+    storage_path: Optional[str] = None  # Caminho para armazenamento
+    max_samples: int = 1000  # Número máximo de amostras
+    retention_days: int = 30  # Dias para retenção dos dados
+
+    def dict(self) -> Dict[str, Any]:
+        """Convert config to dictionary"""
+        return asdict(self)

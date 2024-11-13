@@ -1,23 +1,72 @@
-"""UI styles"""
+"""UI style definitions"""
 
-from enum import Enum
-from typing import Optional
+from dataclasses import dataclass
+from typing import Dict, Optional, Tuple, Union
 
-from .themes import Theme
+from rich.color import Color
+from rich.style import Style
 
 
-class Style(str, Enum):
-    """Style definitions"""
+@dataclass
+class StyleConfig:
+    """Style configuration"""
 
-    DEFAULT = "default"
-    INFO = "info"
-    SUCCESS = "success"
-    WARNING = "warning"
-    ERROR = "error"
-    HIGHLIGHT = "highlight"
+    color: Optional[Union[str, Color, Tuple[int, int, int]]] = None
+    bold: bool = False
+    italic: bool = False
+    underline: bool = False
+    blink: bool = False
+    reverse: bool = False
+    dim: bool = False
 
-    def apply(self, theme: Optional[Theme] = None) -> str:
-        """Apply style using theme"""
-        if not theme:
-            return str(self.value)
-        return theme.styles.get(self.value, self.value)
+    def to_rich_style(self) -> Style:
+        """Convert to Rich Style"""
+        # Converter tuple de cores para Color se necessário
+        color = self.color
+        if isinstance(color, tuple) and len(color) == 3:
+            # Ensure that the values are integers between 0 and 255
+            r, g, b = [float(x) / 255.0 for x in color if isinstance(x, int) and 0 <= x <= 255]
+            color = Color.from_rgb(r, g, b)
+
+        return Style(
+            color=color,
+            bold=self.bold,
+            italic=self.italic,
+            underline=self.underline,
+            blink=self.blink,
+            reverse=self.reverse,
+            dim=self.dim,
+        )
+
+
+class StyleManager:
+    """Style manager for UI components"""
+
+    def __init__(self):
+        self._styles: Dict[str, StyleConfig] = {}
+
+    def register(self, name: str, style: StyleConfig) -> None:
+        """Register style"""
+        self._styles[name] = style
+
+    def get(self, name: str, default: Optional[StyleConfig] = None) -> StyleConfig:
+        """Get style by name"""
+        return self._styles.get(name, default or StyleConfig())
+
+    def apply(self, name: str) -> Style:
+        """Get Rich Style by name"""
+        return self.get(name).to_rich_style()
+
+
+# Global style manager instance
+styles = StyleManager()
+
+# Register default styles
+styles.register("default", StyleConfig())
+styles.register("primary", StyleConfig(color="blue", bold=True))
+styles.register("secondary", StyleConfig(color="cyan"))
+styles.register("success", StyleConfig(color="green"))
+styles.register("warning", StyleConfig(color="yellow"))
+styles.register("error", StyleConfig(color="red", bold=True))
+styles.register("info", StyleConfig(color="white"))
+styles.register("muted", StyleConfig(dim=True))

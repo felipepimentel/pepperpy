@@ -5,15 +5,7 @@ from typing import Dict
 from .core.app import ConsoleApp
 from .core.config import ConsoleConfig
 from .rich.app import RichConsole
-from .ui.components import (
-    Button,
-    Input,
-    Menu,
-    Table,
-    TextInput,
-    Toast,
-    ToastType,
-)
+from .ui.components import Button, Input, Menu, Table, TextInput, Toast, ToastType
 from .ui.components.wizard import WizardStep
 from .ui.layout import Layout
 from .ui.screen import Screen

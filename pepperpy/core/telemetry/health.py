@@ -1,77 +1,121 @@
-"""Health check implementation"""
+"""Health check utilities"""
 
-import asyncio
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Protocol, runtime_checkable
+
+from pepperpy.core.exceptions import PepperPyError
 
 
-class HealthStatus(Enum):
+class HealthError(PepperPyError):
+    """Health check error"""
+
+
+class Status(Enum):
     """Health check status"""
 
-    HEALTHY = "healthy"
+    UP = "up"
+    DOWN = "down"
     DEGRADED = "degraded"
-    UNHEALTHY = "unhealthy"
 
 
-class HealthCheck:
-    """Health check manager"""
+@runtime_checkable
+class HealthCheck(Protocol):
+    """Health check protocol"""
 
-    def __init__(self, interval: int = 60):
-        self._checks: Dict[str, callable] = {}
-        self._results: Dict[str, Dict[str, Any]] = {}
-        self._interval = interval
-        self._task = None
-        self._running = False
+    name: str
+    description: str
 
-    async def start(self) -> None:
-        """Start health checks"""
-        self._running = True
-        self._task = asyncio.create_task(self._check_loop())
+    def check(self) -> Status: ...
 
-    async def stop(self) -> None:
-        """Stop health checks"""
-        self._running = False
-        if self._task:
-            await self._task
 
-    def add_check(self, name: str, check: callable) -> None:
-        """Add health check"""
-        self._checks[name] = check
+@dataclass
+class HealthResult:
+    """Health check result"""
 
-    async def get_status(self) -> Dict[str, Any]:
-        """Get overall health status"""
-        status = HealthStatus.HEALTHY
-        details = {}
+    status: Status
+    timestamp: datetime = field(default_factory=datetime.now)
+    details: Dict[str, Any] = field(default_factory=dict)
 
-        for name, result in self._results.items():
-            details[name] = result
-            if result["status"] == HealthStatus.UNHEALTHY:
-                status = HealthStatus.UNHEALTHY
-            elif result["status"] == HealthStatus.DEGRADED and status != HealthStatus.UNHEALTHY:
-                status = HealthStatus.DEGRADED
 
-        return {"status": status, "timestamp": datetime.utcnow(), "details": details}
+class HealthMonitor:
+    """System health monitor"""
 
-    async def _check_loop(self) -> None:
-        """Health check loop"""
-        while self._running:
-            try:
-                for name, check in self._checks.items():
-                    try:
-                        result = await check()
-                        self._results[name] = {
-                            "status": result.get("status", HealthStatus.UNHEALTHY),
-                            "message": result.get("message", "Check failed"),
-                            "timestamp": datetime.utcnow(),
-                        }
-                    except Exception as e:
-                        self._results[name] = {
-                            "status": HealthStatus.UNHEALTHY,
-                            "message": str(e),
-                            "timestamp": datetime.utcnow(),
-                        }
-            except Exception as e:
-                print(f"Health check loop failed: {str(e)}")
+    def __init__(self):
+        self._checks: Dict[str, HealthCheck] = {}
+        self._results: Dict[str, HealthResult] = {}
 
-            await asyncio.sleep(self._interval)
+    def register_check(self, check: HealthCheck) -> None:
+        """Register health check
+
+        Args:
+            check: Health check to register
+        """
+        self._checks[check.name] = check
+
+    def remove_check(self, name: str) -> None:
+        """Remove health check
+
+        Args:
+            name: Name of check to remove
+        """
+        if name in self._checks:
+            del self._checks[name]
+            if name in self._results:
+                del self._results[name]
+
+    def check_health(self, name: Optional[str] = None) -> Dict[str, HealthResult]:
+        """Run health checks
+
+        Args:
+            name: Optional name of specific check to run
+
+        Returns:
+            Dict[str, HealthResult]: Health check results
+        """
+        try:
+            if name:
+                if name not in self._checks:
+                    raise HealthError(f"Health check not found: {name}")
+                check = self._checks[name]
+                result = HealthResult(status=check.check())
+                self._results[name] = result
+                return {name: result}
+
+            results = {}
+            for check_name, check in self._checks.items():
+                try:
+                    status = check.check()
+                    result = HealthResult(status=status)
+                except Exception as e:
+                    result = HealthResult(
+                        status=Status.DOWN,
+                        details={"error": str(e)},
+                    )
+                results[check_name] = result
+                self._results[check_name] = result
+
+            return results
+
+        except Exception as e:
+            raise HealthError(f"Health check failed: {str(e)}", cause=e)
+
+    def get_results(self, name: Optional[str] = None) -> Dict[str, HealthResult]:
+        """Get health check results
+
+        Args:
+            name: Optional name of specific check result to get
+
+        Returns:
+            Dict[str, HealthResult]: Health check results
+        """
+        if name:
+            if name not in self._results:
+                raise HealthError(f"Health check result not found: {name}")
+            return {name: self._results[name]}
+        return self._results.copy()
+
+
+# Global health monitor instance
+monitor = HealthMonitor()

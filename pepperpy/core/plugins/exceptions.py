@@ -1,27 +1,19 @@
-"""Plugin system exceptions"""
+"""Plugin-related exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class PluginError(CoreError):
-    """Base exception for plugin errors"""
-
-    pass
+class PluginError(PepperPyError):
+    """Base plugin error"""
 
 
 class PluginLoadError(PluginError):
-    """Error loading plugin"""
-
-    pass
+    """Plugin loading error"""
 
 
 class PluginNotFoundError(PluginError):
-    """Plugin not found"""
-
-    pass
+    """Plugin not found error"""
 
 
-class PluginValidationError(PluginError):
-    """Plugin validation error"""
-
-    pass
+class PluginConfigError(PluginError):
+    """Plugin configuration error"""

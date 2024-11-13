@@ -1,142 +1,85 @@
-"""Logger implementation"""
+"""Logging utilities"""
 
 import asyncio
-import sys
-from dataclasses import asdict
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Protocol
 
-from pepperpy.core.module import BaseModule, ModuleMetadata
-
-from .config import LogConfig, LogLevel
 from .exceptions import LoggingError
-from .formatters import LogFormatter
-from .handlers import ConsoleHandler, FileHandler
+from .formatters import JsonFormatter
+from .handlers import AsyncHandler
 
 
-class Logger(BaseModule):
-    """Core logger implementation"""
+@dataclass
+class LogRecord:
+    """Log record data"""
 
-    def __init__(self, name: str, config: Optional[LogConfig] = None):
-        super().__init__()
-        self.metadata = ModuleMetadata(
-            name="logger",
-            version="1.0.0",
-            description=f"Logger for {name}",
-            dependencies=[],
-            config=asdict(config) if config else {},
-        )
-        self._name = name
-        self._handlers = []
-        self._formatter = None
-        self._queue = asyncio.Queue()
-        self._worker = None
-        self._running = False
+    level: str
+    message: str
+    timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    async def _setup(self) -> None:
-        """Initialize logger"""
+
+class LogHandler(Protocol):
+    """Log handler protocol"""
+
+    async def handle(self, record: Dict[str, Any]) -> None: ...
+
+
+class Logger:
+    """Async logger implementation"""
+
+    def __init__(self, name: str):
+        self.name = name
+        self._handlers: List[LogHandler] = []
+        self._formatter = JsonFormatter()
+
+    def add_handler(self, handler: LogHandler) -> None:
+        """Add log handler"""
+        self._handlers.append(handler)
+
+    async def log(self, level: str, message: str, **metadata: Any) -> None:
+        """Log message with metadata"""
         try:
-            config_dict = self.config
-            # Setup formatter
-            self._formatter = LogFormatter(
-                fmt=config_dict.get("format"),
-                date_fmt=config_dict.get("date_format"),
-                colors=config_dict.get("colors_enabled", True),
-            )
-
-            # Setup handlers
-            if config_dict.get("console_enabled", True):
-                self._handlers.append(ConsoleHandler(self._formatter))
-
-            if config_dict.get("file_enabled", False):
-                file_path = config_dict.get("file_path")
-                if not file_path:
-                    raise LoggingError("File path not configured for file handler")
-                self._handlers.append(FileHandler(self._formatter, file_path))
-
-            # Start async worker if enabled
-            if config_dict.get("async_enabled", True):
-                self._running = True
-                self._worker = asyncio.create_task(self._process_queue())
-
+            record = LogRecord(level=level, message=message, metadata=metadata)
+            record_dict = {
+                "level": record.level,
+                "message": record.message,
+                "timestamp": record.timestamp.isoformat(),
+                **record.metadata,
+            }
+            await asyncio.gather(*(handler.handle(record_dict) for handler in self._handlers))
         except Exception as e:
-            raise LoggingError(f"Failed to initialize logger: {str(e)}", cause=e)
+            raise LoggingError(f"Failed to log message: {str(e)}", cause=e)
 
-    async def _cleanup(self) -> None:
-        """Cleanup logger resources"""
-        self._running = False
-        if self._worker:
-            self._worker.cancel()
-            try:
-                await self._worker
-            except asyncio.CancelledError:
-                pass
-
-        # Cleanup handlers
-        for handler in self._handlers:
-            await handler.cleanup()
-
-    async def _process_queue(self) -> None:
-        """Process log queue"""
-        while self._running:
-            try:
-                record = await self._queue.get()
-                for handler in self._handlers:
-                    await handler.emit(record)
-                self._queue.task_done()
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                print(f"Error processing log queue: {str(e)}", file=sys.stderr)
-
-    async def log(self, level: Union[LogLevel, str], message: str, **kwargs: Any) -> None:
-        """Log a message"""
-        if isinstance(level, str):
-            try:
-                level = LogLevel[level.upper()]
-            except KeyError:
-                level = LogLevel.INFO
-
-        record = {
-            "timestamp": datetime.now(),
-            "level": level.value,
-            "module": self._name,
-            "message": message,
-            "metadata": {**self.config.get("metadata", {}), **kwargs},
-        }
-
-        if self.config.get("async_enabled", True):
-            await self._queue.put(record)
-        else:
-            for handler in self._handlers:
-                await handler.emit(record)
-
-    async def debug(self, message: str, **kwargs: Any) -> None:
+    async def debug(self, message: str, **metadata: Any) -> None:
         """Log debug message"""
-        await self.log(LogLevel.DEBUG, message, **kwargs)
+        await self.log("DEBUG", message, **metadata)
 
-    async def info(self, message: str, **kwargs: Any) -> None:
+    async def info(self, message: str, **metadata: Any) -> None:
         """Log info message"""
-        await self.log(LogLevel.INFO, message, **kwargs)
+        await self.log("INFO", message, **metadata)
 
-    async def warning(self, message: str, **kwargs: Any) -> None:
+    async def warning(self, message: str, **metadata: Any) -> None:
         """Log warning message"""
-        await self.log(LogLevel.WARNING, message, **kwargs)
+        await self.log("WARNING", message, **metadata)
 
-    async def error(self, message: str, **kwargs: Any) -> None:
+    async def error(self, message: str, **metadata: Any) -> None:
         """Log error message"""
-        await self.log(LogLevel.ERROR, message, **kwargs)
+        await self.log("ERROR", message, **metadata)
 
-    async def critical(self, message: str, **kwargs: Any) -> None:
+    async def critical(self, message: str, **metadata: Any) -> None:
         """Log critical message"""
-        await self.log(LogLevel.CRITICAL, message, **kwargs)
+        await self.log("CRITICAL", message, **metadata)
 
 
 _loggers: Dict[str, Logger] = {}
 
 
-def get_logger(name: str, config: Optional[LogConfig] = None) -> Logger:
-    """Get or create a logger instance"""
+def get_logger(name: str) -> Logger:
+    """Get or create logger by name"""
     if name not in _loggers:
-        _loggers[name] = Logger(name, config)
+        logger = Logger(name)
+        logger.add_handler(AsyncHandler())
+        _loggers[name] = logger
     return _loggers[name]

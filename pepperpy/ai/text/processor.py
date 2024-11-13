@@ -19,7 +19,7 @@ class TextProcessor(BaseModule):
             version="1.0.0",
             description="Text processing functionality",
             dependencies=[],
-            config=config.dict() if config else {},
+            config=vars(config) if config else {},
         )
 
     async def _setup(self) -> None:

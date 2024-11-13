@@ -1,33 +1,35 @@
-"""Network exceptions"""
+"""Network-related exceptions"""
 
-from typing import Optional
-
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class NetworkError(CoreError):
-    """Base network error"""
-
-    def __init__(
-        self, message: str, status_code: Optional[int] = None, cause: Optional[Exception] = None
-    ) -> None:
-        super().__init__(message, cause)
-        self.status_code = status_code
+class NetworkError(PepperPyError):
+    """Base exception for network-related errors"""
 
 
 class ConnectionError(NetworkError):
-    """Connection establishment error"""
+    """Connection error"""
 
-    pass
+
+class RequestError(NetworkError):
+    """Request error"""
+
+
+class ResponseError(NetworkError):
+    """Response error"""
 
 
 class TimeoutError(NetworkError):
-    """Request timeout error"""
-
-    pass
+    """Timeout error"""
 
 
-class WebSocketError(NetworkError):
-    """WebSocket specific error"""
+class SSLError(NetworkError):
+    """SSL error"""
 
-    pass
+
+class ProxyError(NetworkError):
+    """Proxy error"""
+
+
+class DNSError(NetworkError):
+    """DNS resolution error"""

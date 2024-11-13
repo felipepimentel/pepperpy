@@ -13,6 +13,9 @@ from .types import LLMResponse, Message
 class LLMClient(BaseModule):
     """Client for language model operations"""
 
+    _provider = None
+    _config: Optional[LLMConfig] = None
+
     def __init__(self, config: Optional[LLMConfig] = None):
         super().__init__()
         self.metadata = ModuleMetadata(
@@ -23,11 +26,12 @@ class LLMClient(BaseModule):
             config=config.dict() if config else {},
         )
         self._provider = None
+        self._config = config
 
     async def _setup(self) -> None:
         """Initialize LLM provider"""
         try:
-            self._provider = get_provider(self.config)
+            self._provider = get_provider(self._config)
             await self._provider.initialize()
         except Exception as e:
             raise LLMError("Failed to initialize LLM provider", cause=e)
@@ -47,5 +51,5 @@ class LLMClient(BaseModule):
         """Stream responses from messages"""
         if not self._provider:
             raise LLMError("LLM provider not initialized")
-        async for response in self._provider.stream(messages):
+        async for response in await self._provider.stream(messages):
             yield response

@@ -53,3 +53,4 @@ pepperpy/
 5. **Error Handling**: Define module-specific exceptions, preferably within the module, and handle errors in a clear, predictable manner.
 6. **Type Safety**: All modules should use full and consistent type annotations, with `mypy` and `ruff` to ensure code consistency.
 7. **Comment Guidelines**: Avoid generating comments that describe the implementation, such as `# Implementation of RichApp`, or any other unnecessary comments. Always provide complete and functional code without generic comments.
+8. **Documentation**: All documentation and comments must be generated in English.

@@ -1,21 +1,19 @@
-"""Logging specific exceptions"""
+"""Logging-related exceptions"""
 
-from pepperpy.core.exceptions import CoreError
-
-
-class LoggingError(CoreError):
-    """Base exception for logging errors"""
-
-    pass
+from pepperpy.core.exceptions import PepperPyError
 
 
-class HandlerError(LoggingError):
-    """Error in log handler operation"""
-
-    pass
+class LoggingError(PepperPyError):
+    """Base logging error"""
 
 
-class FormatterError(LoggingError):
-    """Error in log formatting"""
+class LogHandlerError(LoggingError):
+    """Log handler error"""
 
-    pass
+
+class LogFormatterError(LoggingError):
+    """Log formatter error"""
+
+
+class LogFilterError(LoggingError):
+    """Log filter error"""

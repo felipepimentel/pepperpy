@@ -3,175 +3,156 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import librosa
 import numpy as np
 import soundfile as sf
 from pydub import AudioSegment
 
-from ..base import FileHandler
 from ..exceptions import FileError
-from ..types import AudioInfo
+from ..types import AudioInfo, FileContent, FileMetadata
+from .base import BaseHandler
 
 
-class AudioHandler(FileHandler):
+class AudioHandler(BaseHandler):
     """Handler for audio files"""
 
-    SUPPORTED_FORMATS = {
-        ".wav": "WAV",
-        ".mp3": "MP3",
-        ".ogg": "OGG",
-        ".flac": "FLAC",
-        ".m4a": "M4A",
-        ".aac": "AAC",
-    }
-
-    async def read(self, path: Path, return_type: str = "array") -> Union[np.ndarray, AudioSegment]:
+    async def read(self, path: Path) -> FileContent:
         """Read audio file"""
         try:
-            if return_type == "array":
-                data, sample_rate = sf.read(path)
-                return data
-            elif return_type == "segment":
-                return AudioSegment.from_file(str(path))
-            else:
-                raise FileError(f"Invalid return type: {return_type}")
+            metadata = await self._get_metadata(path)
+            data, sample_rate = sf.read(str(path))
+
+            # Extract audio info
+            info = AudioInfo(
+                duration=len(data) / sample_rate,
+                sample_rate=sample_rate,
+                channels=data.shape[1] if len(data.shape) > 1 else 1,
+                format=path.suffix[1:],  # Remove dot from extension
+                metadata=metadata.metadata,
+            )
+
+            return FileContent(content=data, metadata={"info": info}, format="audio")
         except Exception as e:
-            raise FileError(f"Failed to read audio: {str(e)}", cause=e)
+            raise FileError(f"Failed to read audio file: {str(e)}", cause=e)
 
     async def write(
         self,
         path: Path,
-        content: Union[np.ndarray, AudioSegment],
-        sample_rate: Optional[int] = None,
-        **kwargs: Any,
-    ) -> None:
+        content: np.ndarray,
+        metadata: Optional[Dict[str, Any]] = None,
+        sample_rate: int = 44100,
+    ) -> FileMetadata:
         """Write audio file"""
         try:
-            if isinstance(content, np.ndarray):
-                if not sample_rate:
-                    raise FileError("Sample rate required for numpy array")
-                sf.write(path, content, sample_rate, **kwargs)
-            elif isinstance(content, AudioSegment):
-                content.export(str(path), format=path.suffix[1:], **kwargs)
+            sf.write(str(path), content, sample_rate)
+            return await self._get_metadata(path)
+        except Exception as e:
+            raise FileError(f"Failed to write audio file: {str(e)}", cause=e)
+
+    def concatenate(self, segments: List[np.ndarray], crossfade: int = 100) -> np.ndarray:
+        """Concatenate audio segments with optional crossfade
+
+        Args:
+            segments: List of audio segments
+            crossfade: Crossfade duration in milliseconds
+
+        Returns:
+            np.ndarray: Concatenated audio
+        """
+        if not segments:
+            return np.array([])
+
+        if len(segments) == 1:
+            return segments[0]
+
+        result = segments[0]
+        for segment in segments[1:]:
+            if crossfade > 0:
+                # Convert crossfade from ms to samples
+                xf_samples = int(crossfade * 44.1)  # Assuming 44.1kHz
+                result = np.concatenate(
+                    (
+                        result[:-xf_samples],
+                        result[-xf_samples:] * np.linspace(1, 0, xf_samples)
+                        + segment[:xf_samples] * np.linspace(0, 1, xf_samples),
+                        segment[xf_samples:],
+                    )
+                )
             else:
-                raise FileError(f"Unsupported content type: {type(content)}")
-        except Exception as e:
-            raise FileError(f"Failed to write audio: {str(e)}", cause=e)
+                result = np.concatenate((result, segment))
 
-    async def get_info(self, path: Path) -> AudioInfo:
-        """Get audio file information"""
-        try:
-            y, sr = librosa.load(path, sr=None)
-            duration = librosa.get_duration(y=y, sr=sr)
+        return result
 
-            return AudioInfo(
-                duration=duration,
-                sample_rate=sr,
-                channels=y.shape[1] if len(y.shape) > 1 else 1,
-                format=path.suffix[1:].upper(),
-                bit_depth=y.dtype.itemsize * 8,
-                num_samples=len(y),
-            )
-        except Exception as e:
-            raise FileError(f"Failed to get audio info: {str(e)}", cause=e)
+    def apply_effects(
+        self, audio: Union[np.ndarray, AudioSegment], effects: Dict[str, Any]
+    ) -> Union[np.ndarray, AudioSegment]:
+        """Apply audio effects
 
-    async def convert(self, input_path: Path, output_path: Path, **kwargs: Any) -> None:
-        """Convert audio format"""
-        try:
-            audio = await self.read(input_path, return_type="segment")
-            await self.write(output_path, audio, **kwargs)
-        except Exception as e:
-            raise FileError(f"Failed to convert audio: {str(e)}", cause=e)
+        Args:
+            audio: Audio data
+            effects: Dictionary of effects to apply
 
-    async def split(
-        self, path: Path, output_dir: Path, segment_length: float, overlap: float = 0.0
-    ) -> List[Path]:
-        """Split audio into segments"""
-        try:
-            y, sr = librosa.load(path, sr=None)
-            segment_samples = int(segment_length * sr)
-            overlap_samples = int(overlap * sr)
-            hop_length = segment_samples - overlap_samples
+        Returns:
+            Union[np.ndarray, AudioSegment]: Processed audio
+        """
+        result = audio
 
-            segments = []
-            for i in range(0, len(y), hop_length):
-                segment = y[i : i + segment_samples]
-                if len(segment) < segment_samples:
-                    break
+        if isinstance(result, np.ndarray):
+            # NumPy array effects
+            if effects.get("normalize", False):
+                result = result / np.max(np.abs(result))
 
-                output_path = output_dir / f"segment_{i//hop_length}.wav"
-                sf.write(output_path, segment, sr)
-                segments.append(output_path)
+            if "fade_in" in effects or "fade_out" in effects:
+                fade_in = effects.get("fade_in", 0)
+                fade_out = effects.get("fade_out", 0)
+                samples = len(result)
 
-            return segments
+                if fade_in:
+                    fade_in_samples = int(fade_in * 44.1)  # Assuming 44.1kHz
+                    result[:fade_in_samples] *= np.linspace(0, 1, fade_in_samples)
 
-        except Exception as e:
-            raise FileError(f"Failed to split audio: {str(e)}", cause=e)
+                if fade_out:
+                    fade_out_samples = int(fade_out * 44.1)
+                    result[-fade_out_samples:] *= np.linspace(1, 0, fade_out_samples)
 
-    async def merge(self, paths: List[Path], output_path: Path, crossfade: float = 0.0) -> None:
-        """Merge multiple audio files"""
-        try:
-            segments = [await self.read(path, return_type="segment") for path in paths]
+            if "speed" in effects:
+                speed = float(effects["speed"])
+                if speed != 1.0:
+                    samples = len(result)
+                    result = np.interp(
+                        np.linspace(0, samples, int(samples / speed)),
+                        np.arange(samples),
+                        result,
+                    )
 
-            result = segments[0]
-            for segment in segments[1:]:
-                result = result.append(segment, crossfade=int(crossfade * 1000))
+            if effects.get("reverse", False):
+                result = np.flip(result)
 
-            await self.write(output_path, result)
+        else:
+            # pydub AudioSegment effects
+            segment: AudioSegment = result
 
-        except Exception as e:
-            raise FileError(f"Failed to merge audio: {str(e)}", cause=e)
+            if effects.get("normalize", False):
+                # Implementação manual da normalização para AudioSegment
+                peak_amplitude = segment.max
+                if peak_amplitude > 0:
+                    segment = segment.apply_gain(-peak_amplitude)
 
-    async def extract_features(self, path: Path) -> Dict[str, np.ndarray]:
-        """Extract audio features"""
-        try:
-            y, sr = librosa.load(path, sr=None)
+            if "fade_in" in effects:
+                segment = segment.fade_in(int(effects["fade_in"] * 1000))
 
-            return {
-                "mfcc": librosa.feature.mfcc(y=y, sr=sr),
-                "spectral_centroid": librosa.feature.spectral_centroid(y=y, sr=sr),
-                "chroma": librosa.feature.chroma_stft(y=y, sr=sr),
-                "tempo": librosa.beat.tempo(y=y, sr=sr),
-                "onset_env": librosa.onset.onset_strength(y=y, sr=sr),
-                "pitch": librosa.yin(y=y, sr=sr, fmin=20, fmax=2000),
-            }
+            if "fade_out" in effects:
+                segment = segment.fade_out(int(effects["fade_out"] * 1000))
 
-        except Exception as e:
-            raise FileError(f"Failed to extract features: {str(e)}", cause=e)
+            if "speed" in effects:
+                speed = float(effects["speed"])
+                if speed != 1.0:
+                    segment = segment._spawn(
+                        segment.raw_data, overrides={"frame_rate": int(segment.frame_rate * speed)}
+                    )
 
-    async def apply_effects(self, path: Path, output_path: Path, effects: Dict[str, Any]) -> None:
-        """Apply audio effects"""
-        try:
-            audio = await self.read(path, return_type="segment")
+            if effects.get("reverse", False):
+                segment = segment.reverse()
 
-            for effect, params in effects.items():
-                if effect == "normalize":
-                    audio = audio.normalize(**params)
-                elif effect == "fade":
-                    audio = audio.fade(**params)
-                elif effect == "speed":
-                    audio = audio.speedup(**params)
-                elif effect == "reverse":
-                    audio = audio.reverse()
-                elif effect == "volume":
-                    audio = audio + params  # dB adjustment
-                else:
-                    raise FileError(f"Unknown effect: {effect}")
+            result = segment
 
-            await self.write(output_path, audio)
-
-        except Exception as e:
-            raise FileError(f"Failed to apply effects: {str(e)}", cause=e)
-
-    async def validate(self, path: Path) -> bool:
-        """Validate audio file"""
-        try:
-            if path.suffix.lower() not in self.SUPPORTED_FORMATS:
-                return False
-
-            # Try to read file
-            await self.read(path)
-            return True
-
-        except Exception:
-            return False
+        return result

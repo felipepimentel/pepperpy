@@ -1,271 +1,118 @@
-"""Task management implementation"""
+"""Task scheduling and management"""
 
 import asyncio
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Awaitable, Callable, Dict, Optional, TypeVar
 
-from .exceptions import CoreError
-from .logging import get_logger
-from .module import BaseModule, ModuleMetadata
+from pepperpy.core.exceptions import PepperPyError
 
-
-class TaskError(CoreError):
-    """Task management error"""
-
-    pass
+T = TypeVar("T")
 
 
-class TaskStatus(Enum):
-    """Task execution status"""
-
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+class TaskError(PepperPyError):
+    """Task-related error"""
 
 
 @dataclass
-class TaskConfig:
-    """Configuration for task scheduler"""
+class Task:
+    """Task configuration"""
 
-    max_concurrent: int = 10
-    default_timeout: float = 300.0  # 5 minutes
-    retry_count: int = 3
-    retry_delay: float = 1.0
-    preserve_completed: bool = True
-    max_history: int = 1000
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class TaskInfo:
-    """Task execution information"""
-
-    id: str
     name: str
-    status: TaskStatus
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    error: Optional[Exception] = None
-    result: Any = None
-    retries: int = 0
-    timeout: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    func: Callable[..., Awaitable[Any]]
+    interval: timedelta
+    last_run: Optional[datetime] = None
+    next_run: Optional[datetime] = None
+    running: bool = False
+    args: tuple = ()
+    kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
-class TaskScheduler(BaseModule):
-    """Async task scheduler"""
+class TaskScheduler:
+    """Task scheduler for managing periodic tasks"""
 
-    def __init__(self, config: Optional[TaskConfig] = None):
-        super().__init__()
-        self.metadata = ModuleMetadata(
-            name="task_scheduler",
-            version="1.0.0",
-            description="Async task scheduling",
-            dependencies=[],
-            config=config.__dict__ if config else TaskConfig().__dict__,
-        )
-        self._tasks: Dict[str, TaskInfo] = {}
-        self._running: Dict[str, asyncio.Task] = {}
-        self._queue: asyncio.Queue = asyncio.Queue()
-        self._worker: Optional[asyncio.Task] = None
-        self._running = False
-        self._listeners: List[Callable] = []
-        self._logger = get_logger(__name__)
+    def __init__(self):
+        self._tasks: Dict[str, Task] = {}
+        self._running: Dict[str, Task] = {}
+        self._stop = False
 
-    async def _setup(self) -> None:
-        """Initialize task scheduler"""
-        try:
-            self._running = True
-            self._worker = asyncio.create_task(self._process_queue())
-        except Exception as e:
-            raise TaskError("Failed to initialize task scheduler", cause=e)
-
-    async def _cleanup(self) -> None:
-        """Cleanup task scheduler"""
-        try:
-            self._running = False
-            if self._worker:
-                await self._worker
-                self._worker = None
-
-            # Cancel running tasks
-            for task in self._running.values():
-                task.cancel()
-            await asyncio.gather(*self._running.values(), return_exceptions=True)
-            self._running.clear()
-
-        except Exception as e:
-            await self._logger.error(f"Error during cleanup: {str(e)}")
-
-    async def schedule(
+    def add_task(
         self,
         name: str,
-        coroutine: Callable,
-        *args,
-        timeout: Optional[float] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        **kwargs,
-    ) -> str:
-        """Schedule task for execution"""
-        task_id = str(uuid.uuid4())
-        info = TaskInfo(
-            id=task_id,
+        func: Callable[..., Awaitable[T]],
+        interval: timedelta,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """Add task to scheduler
+
+        Args:
+            name: Task name
+            func: Task function
+            interval: Task interval
+            args: Task arguments
+            kwargs: Task keyword arguments
+        """
+        if name in self._tasks:
+            raise TaskError(f"Task {name} already exists")
+
+        task = Task(
             name=name,
-            status=TaskStatus.PENDING,
-            timeout=timeout or self.config.get("default_timeout"),
-            metadata=metadata or {},
+            func=func,
+            interval=interval,
+            args=args,
+            kwargs=kwargs,
+            next_run=datetime.now(),
         )
-        self._tasks[task_id] = info
+        self._tasks[name] = task
 
-        await self._queue.put((task_id, coroutine, args, kwargs))
-        await self._notify_listeners("scheduled", info)
-        return task_id
+    def remove_task(self, name: str) -> None:
+        """Remove task from scheduler
 
-    async def schedule_periodic(
-        self,
-        name: str,
-        coroutine: Callable,
-        interval: Union[int, float, timedelta],
-        *args,
-        metadata: Optional[Dict[str, Any]] = None,
-        **kwargs,
-    ) -> str:
-        """Schedule periodic task"""
-        if isinstance(interval, timedelta):
-            interval = interval.total_seconds()
+        Args:
+            name: Task name
+        """
+        if name not in self._tasks:
+            raise TaskError(f"Task {name} not found")
 
-        async def periodic_wrapper():
-            while True:
-                try:
-                    await coroutine(*args, **kwargs)
-                except asyncio.CancelledError:
-                    break
-                except Exception as e:
-                    await self._logger.error(f"Error in periodic task {name}: {str(e)}")
-                await asyncio.sleep(interval)
+        if name in self._running:
+            raise TaskError(f"Task {name} is running")
 
-        return await self.schedule(
-            name,
-            periodic_wrapper,
-            metadata={"periodic": True, "interval": interval, **(metadata or {})},
-        )
+        del self._tasks[name]
 
-    async def cancel(self, task_id: str) -> None:
-        """Cancel scheduled or running task"""
-        if task_id in self._running:
-            self._running[task_id].cancel()
-            info = self._tasks[task_id]
-            info.status = TaskStatus.CANCELLED
-            info.completed_at = datetime.utcnow()
-            await self._notify_listeners("cancelled", info)
+    async def start(self) -> None:
+        """Start task scheduler"""
+        self._stop = False
+        while not self._stop:
+            now = datetime.now()
+            for task in self._tasks.values():
+                if task.next_run and now >= task.next_run and not task.running:
+                    await self._run_task(task)
+            await asyncio.sleep(1)
 
-    def get_task(self, task_id: str) -> Optional[TaskInfo]:
-        """Get task information"""
-        return self._tasks.get(task_id)
+    def stop(self) -> None:
+        """Stop task scheduler"""
+        self._stop = True
+        self._running.clear()
 
-    def get_tasks(
-        self, status: Optional[TaskStatus] = None, name: Optional[str] = None
-    ) -> List[TaskInfo]:
-        """Get tasks with optional filters"""
-        tasks = list(self._tasks.values())
-        if status:
-            tasks = [t for t in tasks if t.status == status]
-        if name:
-            tasks = [t for t in tasks if t.name == name]
-        return tasks
+    async def _run_task(self, task: Task) -> None:
+        """Run task
 
-    def add_listener(self, listener: Callable) -> None:
-        """Add task event listener"""
-        self._listeners.append(listener)
-
-    def remove_listener(self, listener: Callable) -> None:
-        """Remove task event listener"""
-        self._listeners.remove(listener)
-
-    async def _process_queue(self) -> None:
-        """Process task queue"""
-        while self._running:
-            try:
-                # Wait for available slot
-                while len(self._running) >= self.config.get("max_concurrent"):
-                    await asyncio.sleep(0.1)
-
-                # Get next task
-                task_id, coroutine, args, kwargs = await self._queue.get()
-
-                # Update status
-                info = self._tasks[task_id]
-                info.status = TaskStatus.RUNNING
-                info.started_at = datetime.utcnow()
-                await self._notify_listeners("started", info)
-
-                # Create and start task with timeout
-                task = asyncio.create_task(self._run_task(task_id, coroutine, *args, **kwargs))
-                self._running[task_id] = task
-
-                self._queue.task_done()
-
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                await self._logger.error(f"Error processing task queue: {str(e)}")
-
-    async def _run_task(self, task_id: str, coroutine: Callable, *args, **kwargs) -> None:
-        """Run task with timeout and retry"""
-        info = self._tasks[task_id]
+        Args:
+            task: Task to run
+        """
         try:
-            # Run with timeout
-            result = await asyncio.wait_for(coroutine(*args, **kwargs), timeout=info.timeout)
-            info.status = TaskStatus.COMPLETED
-            info.result = result
-
-        except asyncio.TimeoutError:
-            info.status = TaskStatus.FAILED
-            info.error = TaskError("Task timeout exceeded")
-
-        except asyncio.CancelledError:
-            info.status = TaskStatus.CANCELLED
-
+            task.running = True
+            self._running[task.name] = task
+            await task.func(*task.args, **task.kwargs)
+            task.last_run = datetime.now()
+            task.next_run = task.last_run + task.interval
         except Exception as e:
-            info.status = TaskStatus.FAILED
-            info.error = e
-
-            # Retry if needed
-            if info.retries < self.config.get("retry_count") and not isinstance(
-                e, asyncio.CancelledError
-            ):
-                info.retries += 1
-                await asyncio.sleep(self.config.get("retry_delay") * (2 ** (info.retries - 1)))
-                await self._queue.put((task_id, coroutine, args, kwargs))
-                return
-
+            raise TaskError(f"Task {task.name} failed: {str(e)}", cause=e)
         finally:
-            info.completed_at = datetime.utcnow()
-            if task_id in self._running:
-                del self._running[task_id]
-
-            # Clean up if needed
-            if not self.config.get("preserve_completed") and info.status in (
-                TaskStatus.COMPLETED,
-                TaskStatus.CANCELLED,
-            ):
-                del self._tasks[task_id]
-
-            await self._notify_listeners("completed", info)
-
-    async def _notify_listeners(self, event: str, task: TaskInfo) -> None:
-        """Notify task event listeners"""
-        for listener in self._listeners:
-            try:
-                await listener(event, task)
-            except Exception as e:
-                await self._logger.error(f"Error in task listener: {str(e)}")
+            task.running = False
+            if task.name in self._running:
+                del self._running[task.name]
 
 
 # Global task scheduler instance

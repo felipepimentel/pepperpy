@@ -1,119 +1,107 @@
-"""Wizard component for step-by-step configuration"""
+"""Wizard component for console UI"""
 
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Pattern, Union
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
-from ..styles import Style
-from .base import Component, ComponentConfig
+from rich.style import Style
+from rich.text import Text
+
+from pepperpy.console.ui.components.base import Component, ComponentConfig
+from pepperpy.console.ui.keys import Key
 
 
 @dataclass
 class WizardStep:
-    """Configuration wizard step"""
+    """Wizard step configuration"""
 
-    name: str
-    prompt: str
-    required: bool = True
-    default: Any = None
-    choices: Optional[List[str]] = None
-    multiple: bool = False
-    validator: Optional[Callable[[str], bool]] = None
-    pattern: Optional[Union[str, Pattern]] = None
-    help_text: Optional[str] = None
-    type: str = "text"
-    fields: Optional[Dict[str, tuple[str, Any]]] = None
+    title: str
+    content: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class Wizard(Component):
-    """Step-by-step configuration wizard"""
+    """Wizard component for step-by-step interfaces"""
 
-    def __init__(
-        self,
-        config: ComponentConfig,
-        steps: List[WizardStep],
-        title: Optional[str] = None,
-        show_help: bool = True,
-        style: Optional[Style] = None,
-    ):
-        super().__init__(config)
-        self.steps = steps
-        self.title = title
-        self.show_help = show_help
-        self.style = style or Style.DEFAULT
-        self._current_step = 0
-        self._values: Dict[str, Any] = {}
+    def __init__(self) -> None:
+        config = ComponentConfig(
+            x=0,
+            y=0,
+            width=80,
+            height=24,
+            style={
+                "title": Style(color="blue", bold=True),
+                "content": Style(color="white"),
+                "navigation": Style(color="cyan"),
+            },
+        )
+        super().__init__(config=config)
+        self.steps: List[WizardStep] = []
+        self.current_step = 0
 
-    async def render(self) -> None:
-        """Render current wizard step"""
-        if not self.config.visible:
-            return
+    def add_step(self, title: str, content: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        """Add step to wizard"""
+        self.steps.append(WizardStep(title=title, content=content, metadata=metadata or {}))
 
-        # Render title if present
-        if self.title:
-            print(
-                f"\033[{self.config.y};{self.config.x}H{self.style.apply()}{self.title}{self.style.reset()}"
-            )
-
-        # Render current step
-        if self._current_step < len(self.steps):
-            step = self.steps[self._current_step]
-            y = self.config.y + (2 if self.title else 0)
-
-            # Render prompt
-            print(f"\033[{y};{self.config.x}H{step.prompt}")
-
-            # Render help text if enabled
-            if self.show_help and step.help_text:
-                print(
-                    f"\033[{y+1};{self.config.x}H{Style.INFO.apply()}{step.help_text}{Style.INFO.reset()}"
-                )
-
-            # Render choices if present
-            if step.choices:
-                for i, choice in enumerate(step.choices):
-                    print(f"\033[{y+2+i};{self.config.x+2}H{i+1}. {choice}")
-
-            # Render current value if any
-            if step.name in self._values:
-                value = self._values[step.name]
-                print(f"\033[{y+2};{self.config.x}H> {value}")
-
-    async def handle_input(self, value: str) -> bool:
-        """Handle input for current step"""
-        if self._current_step >= len(self.steps):
+    def next_step(self) -> bool:
+        """Move to next step"""
+        if not self.config.visible or self.current_step >= len(self.steps) - 1:
             return False
-
-        step = self.steps[self._current_step]
-
-        # Validate input
-        if step.required and not value:
-            return False
-
-        if step.validator and not step.validator(value):
-            return False
-
-        if step.pattern:
-            import re
-
-            pattern = (
-                step.pattern if isinstance(step.pattern, Pattern) else re.compile(step.pattern)
-            )
-            if not pattern.match(value):
-                return False
-
-        # Store value
-        self._values[step.name] = value
-
-        # Move to next step
-        self._current_step += 1
+        self.current_step += 1
         return True
 
-    @property
-    def values(self) -> Dict[str, Any]:
-        """Get collected values"""
-        return self._values.copy()
+    def previous_step(self) -> bool:
+        """Move to previous step"""
+        if not self.config.visible or self.current_step <= 0:
+            return False
+        self.current_step -= 1
+        return True
 
-    @property
-    def is_complete(self) -> bool:
-        """Check if wizard is complete"""
-        return self._current_step >= len(self.steps)
+    def render(self) -> Text:
+        """Render wizard"""
+        if not self.steps or not self.config.visible:
+            return Text()
+
+        text = Text()
+        step = self.steps[self.current_step]
+
+        # Render title
+        title = f"Step {self.current_step + 1}/{len(self.steps)}: {step.title}"
+        text.append(
+            f"{' ' * self.config.x}{title}\n",
+            style=self.config.style.get("title", Style()),
+        )
+
+        # Render content
+        content_lines = step.content.split("\n")
+        for line in content_lines:
+            text.append(
+                f"{' ' * self.config.x}{line}\n",
+                style=self.config.style.get("content", Style()),
+            )
+
+        # Render navigation
+        nav_text = []
+        if self.current_step > 0:
+            nav_text.append("← Previous")
+        if self.current_step < len(self.steps) - 1:
+            nav_text.append("Next →")
+
+        if nav_text:
+            text.append(
+                f"{' ' * self.config.x}{' | '.join(nav_text)}",
+                style=self.config.style.get("navigation", Style()),
+            )
+
+        return text
+
+    async def handle_input(self, key: Key) -> bool:
+        """Handle input event"""
+        if not self.config.visible:
+            return False
+
+        if key == Key.LEFT and self.current_step > 0:
+            return self.previous_step()
+        elif key == Key.RIGHT and self.current_step < len(self.steps) - 1:
+            return self.next_step()
+
+        return False

@@ -1,82 +1,113 @@
-"""Distributed tracing implementation"""
+"""Execution tracing utilities"""
 
-import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
+
+from pepperpy.core.exceptions import PepperPyError
+
+
+class TracingError(PepperPyError):
+    """Tracing error"""
 
 
 @dataclass
-class Span:
-    """Trace span information"""
+class TraceEvent:
+    """Trace event information"""
 
-    id: str
-    trace_id: str
-    parent_id: Optional[str]
     name: str
-    start_time: datetime
-    end_time: Optional[datetime] = None
-    tags: Dict[str, str] = None
-    error: Optional[Exception] = None
+    category: str
+    timestamp: datetime = field(default_factory=datetime.now)
+    duration: Optional[float] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-class TracingProvider:
-    """Distributed tracing provider"""
+class Tracer:
+    """Execution tracer"""
 
     def __init__(self):
-        self._spans: Dict[str, Span] = {}
-        self._handlers = []
-        self._context = {}
+        self._events: List[TraceEvent] = []
+        self._active_spans: Dict[str, TraceEvent] = {}
 
-    def add_handler(self, handler: callable) -> None:
-        """Add tracing handler"""
-        self._handlers.append(handler)
+    def start_span(
+        self, name: str, category: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """Start a new trace span
 
-    async def start_span(
-        self, name: str, parent_id: Optional[str] = None, tags: Optional[Dict[str, str]] = None
-    ) -> str:
-        """Start new span"""
-        span_id = str(uuid.uuid4())
-        trace_id = parent_id or span_id
+        Args:
+            name: Span name
+            category: Span category
+            metadata: Additional span metadata
+        """
+        if name in self._active_spans:
+            raise TracingError(f"Span already active: {name}")
 
-        span = Span(
-            id=span_id,
-            trace_id=trace_id,
-            parent_id=parent_id,
+        event = TraceEvent(
             name=name,
-            start_time=datetime.utcnow(),
-            tags=tags or {},
+            category=category,
+            metadata=metadata or {},
         )
+        self._active_spans[name] = event
 
-        self._spans[span_id] = span
-        return span_id
+    def end_span(self, name: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        """End an active trace span
 
-    async def end_span(self, span_id: str, error: Optional[Exception] = None) -> None:
-        """End span"""
-        if span_id in self._spans:
-            span = self._spans[span_id]
-            span.end_time = datetime.utcnow()
-            span.error = error
+        Args:
+            name: Span name
+            metadata: Additional span metadata
+        """
+        if name not in self._active_spans:
+            raise TracingError(f"Span not active: {name}")
 
-            # Notify handlers
-            for handler in self._handlers:
-                try:
-                    await handler(span)
-                except Exception as e:
-                    print(f"Tracing handler failed: {str(e)}")
+        event = self._active_spans[name]
+        event.duration = (datetime.now() - event.timestamp).total_seconds()
+        if metadata:
+            event.metadata.update(metadata)
 
-            del self._spans[span_id]
+        self._events.append(event)
+        del self._active_spans[name]
 
-    async def add_tag(self, span_id: str, key: str, value: str) -> None:
-        """Add tag to span"""
-        if span_id in self._spans:
-            self._spans[span_id].tags[key] = value
+    def add_event(
+        self,
+        name: str,
+        category: str,
+        duration: Optional[float] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Add a trace event
 
-    def get_current_span(self) -> Optional[Span]:
-        """Get current span"""
-        return self._spans.get(self._context.get("current_span_id"))
+        Args:
+            name: Event name
+            category: Event category
+            duration: Event duration in seconds
+            metadata: Additional event metadata
+        """
+        event = TraceEvent(
+            name=name,
+            category=category,
+            duration=duration,
+            metadata=metadata or {},
+        )
+        self._events.append(event)
 
-    async def clear(self) -> None:
-        """Clear all spans"""
-        self._spans.clear()
-        self._context.clear()
+    def get_events(self, category: Optional[str] = None) -> List[TraceEvent]:
+        """Get recorded trace events
+
+        Args:
+            category: Filter events by category
+
+        Returns:
+            List[TraceEvent]: List of trace events
+        """
+        if category is None:
+            return self._events.copy()
+        return [event for event in self._events if event.category == category]
+
+    def clear(self) -> None:
+        """Clear all recorded events"""
+        self._events.clear()
+        self._active_spans.clear()
+
+
+# Global tracer instance
+tracer = Tracer()

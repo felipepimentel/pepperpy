@@ -1,27 +1,19 @@
-"""Configuration specific exceptions"""
+"""Configuration-related exceptions"""
 
-from pepperpy.core.exceptions import CoreError
-
-
-class ConfigError(CoreError):
-    """Base exception for configuration errors"""
-
-    pass
+from pepperpy.core.exceptions import PepperPyError
 
 
-class ValidationError(ConfigError):
-    """Configuration validation error"""
-
-    pass
+class ConfigError(PepperPyError):
+    """Base configuration error"""
 
 
-class LoadError(ConfigError):
+class ConfigLoadError(ConfigError):
     """Configuration loading error"""
 
-    pass
+
+class ConfigValidationError(ConfigError):
+    """Configuration validation error"""
 
 
-class SaveError(ConfigError):
-    """Configuration saving error"""
-
-    pass
+class ConfigParseError(ConfigError):
+    """Configuration parsing error"""

@@ -1,118 +1,92 @@
-"""Data transformation implementation"""
+"""Data transformation utilities"""
 
-from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
-from ..exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class TransformError(CoreError):
+class TransformError(PepperPyError):
     """Transform error"""
 
-    pass
 
-
-class TransformType(Enum):
-    """Transform types"""
-
-    CAST = "cast"
-    FORMAT = "format"
-    REPLACE = "replace"
-    FILTER = "filter"
-    MAP = "map"
-    CUSTOM = "custom"
-
-
-@dataclass
-class Transform:
-    """Data transform definition"""
-
-    type: TransformType
-    config: Dict[str, Any]
+T = TypeVar("T")
+TransformValue = Union[str, List[Any], Any]
+TransformOptions = Dict[str, Any]
+TransformFunc = Callable[[TransformValue, TransformOptions], TransformValue]
 
 
 class Transformer:
     """Data transformer"""
 
-    def __init__(self, transforms: List[Transform]):
-        self.transforms = transforms
+    def __init__(self) -> None:
+        self._transforms: Dict[str, TransformFunc] = {}
+        self._register_default_transforms()
 
-    def apply(self, data: Any) -> Any:
-        """Apply transforms to data"""
-        result = data
+    def _register_default_transforms(self) -> None:
+        """Register default transforms"""
+        self._transforms.update(
+            {
+                "format": self._format_transform,
+                "replace": self._replace_transform,
+                "filter": self._filter_transform,
+                "map": self._map_transform,
+            }
+        )
 
-        for transform in self.transforms:
-            try:
-                if transform.type == TransformType.CAST:
-                    result = self._cast(result, transform.config)
-                elif transform.type == TransformType.FORMAT:
-                    result = self._format(result, transform.config)
-                elif transform.type == TransformType.REPLACE:
-                    result = self._replace(result, transform.config)
-                elif transform.type == TransformType.FILTER:
-                    result = self._filter(result, transform.config)
-                elif transform.type == TransformType.MAP:
-                    result = self._map(result, transform.config)
-                elif transform.type == TransformType.CUSTOM:
-                    result = self._custom(result, transform.config)
-            except Exception as e:
-                raise TransformError(f"Transform {transform.type.value} failed: {str(e)}")
+    def transform(
+        self, value: TransformValue, transform: str, options: Optional[Dict[str, Any]] = None
+    ) -> TransformValue:
+        """Transform value using specified transform
 
-        return result
+        Args:
+            value: Value to transform
+            transform: Transform to apply
+            options: Transform options
 
-    def _cast(self, value: Any, config: Dict[str, Any]) -> Any:
-        """Cast value to type"""
-        target_type = config["type"]
-        if target_type == "int":
-            return int(value)
-        elif target_type == "float":
-            return float(value)
-        elif target_type == "str":
-            return str(value)
-        elif target_type == "bool":
-            return bool(value)
-        elif target_type == "list":
-            return list(value)
-        elif target_type == "dict":
-            return dict(value)
-        raise TransformError(f"Unsupported cast type: {target_type}")
+        Returns:
+            Any: Transformed value
 
-    def _format(self, value: str, config: Dict[str, Any]) -> str:
-        """Format string value"""
-        template = config["template"]
+        Raises:
+            TransformError: If transform fails
+        """
         try:
+            if transform not in self._transforms:
+                raise TransformError(f"Unknown transform: {transform}")
+
+            transform_func = self._transforms[transform]
+            return transform_func(value, options or {})
+        except Exception as e:
+            raise TransformError(f"Transform failed: {str(e)}", cause=e)
+
+    def _format_transform(self, value: TransformValue, options: TransformOptions) -> str:
+        """Format value using template"""
+        template = options.get("template", "{}")
+        if isinstance(value, (str, int, float)):
             return template.format(value)
-        except KeyError as e:
-            raise TransformError(f"Missing format key: {str(e)}")
-        except ValueError as e:
-            raise TransformError(f"Invalid format: {str(e)}")
+        return template.format(str(value))
 
-    def _replace(self, value: str, config: Dict[str, Any]) -> str:
-        """Replace in string value"""
-        for old, new in config["replacements"].items():
-            value = value.replace(old, new)
-        return value
+    def _replace_transform(self, value: TransformValue, options: TransformOptions) -> str:
+        """Replace substring in value"""
+        if not isinstance(value, str):
+            value = str(value)
+        old = options.get("old", "")
+        new = options.get("new", "")
+        return value.replace(old, new)
 
-    def _filter(self, value: List[Any], config: Dict[str, Any]) -> List[Any]:
-        """Filter list values"""
-        if not isinstance(value, (list, tuple)):
+    def _filter_transform(self, value: TransformValue, options: TransformOptions) -> List[Any]:
+        """Filter list using predicate"""
+        if not isinstance(value, list):
             raise TransformError("Value must be a list")
+        predicate = options.get("predicate", lambda x: bool(x))
+        return list(filter(predicate, value))
 
-        condition = config["condition"]
-        return [x for x in value if condition(x)]
-
-    def _map(self, value: List[Any], config: Dict[str, Any]) -> List[Any]:
-        """Map list values"""
-        if not isinstance(value, (list, tuple)):
+    def _map_transform(self, value: TransformValue, options: TransformOptions) -> List[Any]:
+        """Map function over list"""
+        if not isinstance(value, list):
             raise TransformError("Value must be a list")
+        func = options.get("func", lambda x: x)
+        return list(map(func, value))
 
-        transform = config["transform"]
-        return [transform(x) for x in value]
 
-    def _custom(self, value: Any, config: Dict[str, Any]) -> Any:
-        """Apply custom transform"""
-        transform_func = config["function"]
-        if not callable(transform_func):
-            raise TransformError("Custom transform must be callable")
-        return transform_func(value)
+# Global transformer instance
+transformer = Transformer()

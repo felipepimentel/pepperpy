@@ -1,39 +1,19 @@
-"""UI specific exceptions"""
+"""Console UI exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class UIError(CoreError):
-    """Base exception for UI errors"""
-
-    pass
+class UIError(PepperPyError):
+    """Base UI error"""
 
 
 class RenderError(UIError):
-    """Error during component rendering"""
-
-    pass
-
-
-class LayoutError(UIError):
-    """Error in layout management"""
-
-    pass
+    """Render error"""
 
 
 class InputError(UIError):
-    """Error handling user input"""
-
-    pass
+    """Input error"""
 
 
-class ComponentError(UIError):
-    """Error in component operation"""
-
-    pass
-
-
-class ValidationError(UIError):
-    """Error in component validation"""
-
-    pass
+class LayoutError(UIError):
+    """Layout error"""

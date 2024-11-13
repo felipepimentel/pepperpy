@@ -22,7 +22,7 @@ class YAMLHandler(BaseHandler):
             # Parse YAML content
             data = yaml.safe_load(content)
 
-            return FileContent(content=data, metadata=metadata, format="yaml")
+            return FileContent(content=data, metadata=metadata.metadata, format="yaml")
         except Exception as e:
             raise FileError(f"Failed to read YAML file: {str(e)}", cause=e)
 

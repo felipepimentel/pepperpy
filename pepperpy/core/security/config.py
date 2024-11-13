@@ -3,20 +3,30 @@
 from dataclasses import dataclass, field
 from typing import Dict
 
-from pepperpy.core.config import ModuleConfig
+
+@dataclass
+class SecurityConfig:
+    """Security configuration"""
+
+    secret_key: str
+    algorithm: str = "HS256"
+    token_expiration: int = 3600  # 1 hour
+    password_min_length: int = 8
+    password_require_numbers: bool = True
+    password_require_special: bool = True
+    password_require_uppercase: bool = True
+    password_require_lowercase: bool = True
+    metadata: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
-class SecurityConfig(ModuleConfig):
-    """Configuration for security"""
+class AuthConfig:
+    """Authentication configuration"""
 
-    secret_key: str
-    token_expiry: int = 3600  # 1 hour
-    password_min_length: int = 8
-    password_require_special: bool = True
-    password_require_numbers: bool = True
+    enabled: bool = True
+    allow_registration: bool = True
+    require_email_verification: bool = False
     max_login_attempts: int = 3
     lockout_duration: int = 300  # 5 minutes
-    session_timeout: int = 1800  # 30 minutes
-    allow_multiple_sessions: bool = True
+    session_duration: int = 86400  # 24 hours
     metadata: Dict[str, str] = field(default_factory=dict)

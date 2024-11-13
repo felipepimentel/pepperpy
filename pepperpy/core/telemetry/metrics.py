@@ -1,71 +1,99 @@
-"""Metrics collection and reporting"""
+"""Metrics collection utilities"""
 
-import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Protocol, Union, runtime_checkable
+
+from pepperpy.core.exceptions import PepperPyError
+
+
+class MetricsError(PepperPyError):
+    """Metrics collection error"""
+
+
+MetricValue = Union[int, float, str]
+
+
+@runtime_checkable
+class Metric(Protocol):
+    """Metric protocol"""
+
+    name: str
+    description: str
+    value: MetricValue
+    labels: Dict[str, str]
 
 
 @dataclass
-class Metric:
-    """Metric data point"""
+class MetricData:
+    """Metric data"""
 
     name: str
-    value: float
-    tags: Dict[str, str]
-    timestamp: datetime
-    type: str = "gauge"  # gauge, counter, histogram
+    value: MetricValue
+    timestamp: datetime = field(default_factory=datetime.now)
+    labels: Dict[str, str] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-class MetricsReporter:
-    """Metrics collection and reporting"""
+class MetricsCollector:
+    """System metrics collector"""
 
-    def __init__(self, interval: int = 10):
-        self._metrics: List[Metric] = []
-        self._interval = interval
-        self._task = None
-        self._running = False
-        self._handlers = []
+    def __init__(self):
+        self._metrics: Dict[str, List[MetricData]] = {}
 
-    async def start(self) -> None:
-        """Start metrics reporting"""
-        self._running = True
-        self._task = asyncio.create_task(self._report_loop())
-
-    async def stop(self) -> None:
-        """Stop metrics reporting"""
-        self._running = False
-        if self._task:
-            await self._task
-
-    def add_handler(self, handler: callable) -> None:
-        """Add metrics handler"""
-        self._handlers.append(handler)
-
-    async def record(
-        self, name: str, value: float, tags: Optional[Dict[str, str]] = None, type: str = "gauge"
+    def record(
+        self,
+        name: str,
+        value: MetricValue,
+        labels: Optional[Dict[str, str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Record metric"""
-        metric = Metric(
-            name=name, value=value, tags=tags or {}, timestamp=datetime.utcnow(), type=type
+        """Record metric value
+
+        Args:
+            name: Metric name
+            value: Metric value
+            labels: Optional metric labels
+            metadata: Optional metric metadata
+        """
+        metric = MetricData(
+            name=name,
+            value=value,
+            labels=labels or {},
+            metadata=metadata or {},
         )
-        self._metrics.append(metric)
 
-    async def _report_loop(self) -> None:
-        """Metrics reporting loop"""
-        while self._running:
-            try:
-                if self._metrics:
-                    metrics = self._metrics.copy()
-                    self._metrics.clear()
+        if name not in self._metrics:
+            self._metrics[name] = []
+        self._metrics[name].append(metric)
 
-                    for handler in self._handlers:
-                        try:
-                            await handler(metrics)
-                        except Exception as e:
-                            print(f"Metrics handler failed: {str(e)}")
+    def get_metrics(self, name: Optional[str] = None) -> Dict[str, List[MetricData]]:
+        """Get recorded metrics
 
-            except Exception as e:
-                print(f"Metrics reporting failed: {str(e)}")
+        Args:
+            name: Optional name of specific metric to get
 
-            await asyncio.sleep(self._interval)
+        Returns:
+            Dict[str, List[MetricData]]: Recorded metrics
+        """
+        if name:
+            if name not in self._metrics:
+                raise MetricsError(f"Metric not found: {name}")
+            return {name: self._metrics[name]}
+        return self._metrics.copy()
+
+    def clear(self, name: Optional[str] = None) -> None:
+        """Clear recorded metrics
+
+        Args:
+            name: Optional name of specific metric to clear
+        """
+        if name:
+            if name in self._metrics:
+                del self._metrics[name]
+        else:
+            self._metrics.clear()
+
+
+# Global metrics collector instance
+collector = MetricsCollector()

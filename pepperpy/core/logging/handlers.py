@@ -1,65 +1,32 @@
-"""Log handlers implementation"""
+"""Logging handlers"""
 
-import sys
-from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any, Dict
 
-from .exceptions import HandlerError
-from .formatters import LogFormatter
+from .exceptions import LogHandlerError
 
 
-class BaseHandler(ABC):
-    """Base class for log handlers"""
+class AsyncHandler:
+    """Async log handler"""
 
-    def __init__(self, formatter: LogFormatter):
-        self.formatter = formatter
-
-    @abstractmethod
-    async def emit(self, record: Dict[str, Any]) -> None:
-        """Emit log record"""
-        pass
-
-    @abstractmethod
-    async def cleanup(self) -> None:
-        """Cleanup handler resources"""
-        pass
-
-
-class ConsoleHandler(BaseHandler):
-    """Handler for console output"""
-
-    async def emit(self, record: Dict[str, Any]) -> None:
-        """Emit log record to console"""
+    async def handle(self, record: Dict[str, Any]) -> None:
+        """Handle log record"""
         try:
-            message = self.formatter.format(record)
-            print(message, file=sys.stdout)
-            sys.stdout.flush()
+            # Implementação do handler assíncrono
+            raise NotImplementedError("Async handler not implemented")
         except Exception as e:
-            raise HandlerError(f"Failed to emit console log: {str(e)}", cause=e)
-
-    async def cleanup(self) -> None:
-        """Cleanup console handler"""
-        sys.stdout.flush()
+            raise LogHandlerError(f"Failed to handle log record: {str(e)}", cause=e)
 
 
-class FileHandler(BaseHandler):
-    """Handler for file output"""
+class FileHandler:
+    """File log handler"""
 
-    def __init__(self, formatter: LogFormatter, file_path: str):
-        super().__init__(formatter)
-        self.file_path = Path(file_path)
-        self.file_path.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(self, path: str):
+        self.path = path
 
-    async def emit(self, record: Dict[str, Any]) -> None:
-        """Emit log record to file"""
+    async def handle(self, record: Dict[str, Any]) -> None:
+        """Handle log record"""
         try:
-            message = self.formatter.format(record)
-            with self.file_path.open("a", encoding="utf-8") as f:
-                f.write(message + "\n")
+            # Implementação do handler de arquivo
+            raise NotImplementedError("File handler not implemented")
         except Exception as e:
-            raise HandlerError(f"Failed to emit file log: {str(e)}", cause=e)
-
-    async def cleanup(self) -> None:
-        """Cleanup file handler"""
-        pass  # File is closed after each write
+            raise LogHandlerError(f"Failed to handle log record: {str(e)}", cause=e)

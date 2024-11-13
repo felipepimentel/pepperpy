@@ -15,9 +15,9 @@ class VectorCache:
 
     def __init__(self, config: CacheConfig):
         self.config = config
-        self._vectors = []
-        self._metadata = []
-        self._index = None
+        self._vectors: List[np.ndarray] = []
+        self._metadata: List[VectorEntry] = []
+        self._index: Optional[NearestNeighbors] = None
 
     async def initialize(self) -> None:
         """Initialize vector cache"""
@@ -37,6 +37,9 @@ class VectorCache:
     async def add(self, key: str, vector: Any, metadata: Optional[Dict] = None) -> None:
         """Add vector to cache"""
         try:
+            if self._index is None:
+                raise CacheError("Vector cache not initialized")
+
             vector = np.array(vector).reshape(1, -1)
             self._vectors.append(vector)
             self._metadata.append(VectorEntry(key=key, vector=vector, metadata=metadata or {}))
@@ -51,7 +54,7 @@ class VectorCache:
     ) -> List[VectorEntry]:
         """Search for similar vectors"""
         try:
-            if not self._vectors:
+            if not self._vectors or self._index is None:
                 return []
 
             vector = np.array(vector).reshape(1, -1)

@@ -1,147 +1,113 @@
-"""Chat history component implementation"""
+"""Chat component for console UI"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from ..styles import Style, Theme
-from .base import Component, ComponentConfig
-from .richtext import RichText
+from rich.style import Style
+from rich.text import Text
+
+from pepperpy.console.ui.components.base import Component, ComponentConfig
+from pepperpy.console.ui.styles import styles
 
 
 @dataclass
 class ChatMessage:
-    """Chat message representation"""
+    """Chat message data"""
 
     content: str
     sender: str
-    timestamp: datetime = None
-    metadata: dict = None
-    is_user: bool = False
+    timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-class ChatHistory(Component):
-    """Component for displaying chat history"""
+class ChatView(Component):
+    """Chat view component"""
 
-    def __init__(
-        self,
-        config: ComponentConfig,
-        messages: List[ChatMessage] = None,
-        show_timestamps: bool = True,
-        show_sender: bool = True,
-        theme: Optional[Theme] = None,
-    ):
-        super().__init__(config)
-        self.messages = messages or []
-        self.show_timestamps = show_timestamps
-        self.show_sender = show_sender
-        self.theme = theme or Theme(
-            primary=Style(fg_color=(70, 130, 180)),  # User messages
-            secondary=Style(fg_color=(60, 179, 113)),  # AI messages
-            info=Style(fg_color=(169, 169, 169)),  # Timestamps
+    def __init__(self) -> None:
+        config = ComponentConfig(
+            style={
+                "timestamp": Style(color="gray50", dim=True),
+                "sender": Style(color="cyan", bold=True),
+                "content": Style(color="white"),
+                "system": Style(color="yellow"),
+                "user": Style(color="green"),
+                "assistant": Style(color="blue"),
+            }
         )
-        self._scroll_offset = 0
-        self._visible_lines = 0
+        super().__init__(config=config)
+        self._messages: List[ChatMessage] = []
+        self._max_width = 80
 
-    async def add_message(self, message: ChatMessage) -> None:
-        """Add new message to history"""
-        if not message.timestamp:
-            message.timestamp = datetime.now()
-        self.messages.append(message)
+    def add_message(
+        self, content: str, sender: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """Add message to chat
 
-        # Auto-scroll to bottom
-        self._scroll_offset = max(0, len(self.messages) - self._visible_lines)
-        await self.render()
+        Args:
+            content: Message content
+            sender: Message sender
+            metadata: Optional message metadata
+        """
+        message = ChatMessage(
+            content=content,
+            sender=sender,
+            metadata=metadata or {},
+        )
+        self._messages.append(message)
 
-    async def clear(self) -> None:
-        """Clear chat history"""
-        self.messages.clear()
-        self._scroll_offset = 0
-        await self.render()
+    def clear(self) -> None:
+        """Clear all messages"""
+        self._messages.clear()
 
-    async def scroll_up(self) -> None:
-        """Scroll chat history up"""
-        if self._scroll_offset > 0:
-            self._scroll_offset -= 1
-            await self.render()
+    def render(self) -> Text:
+        """Render chat view"""
+        text = Text()
 
-    async def scroll_down(self) -> None:
-        """Scroll chat history down"""
-        if self._scroll_offset < len(self.messages) - self._visible_lines:
-            self._scroll_offset += 1
-            await self.render()
+        for i, message in enumerate(self._messages):
+            if i > 0:
+                text.append("\n\n")
 
-    async def _setup(self) -> None:
-        """Initialize chat history"""
-        self._visible_lines = self.config.height or 10
+            # Render timestamp
+            timestamp = message.timestamp.strftime("%H:%M:%S")
+            text.append(f"[{timestamp}] ", style=styles.apply("muted"))
 
-    async def _cleanup(self) -> None:
-        """Cleanup chat history"""
-        pass
-
-    async def render(self) -> None:
-        """Render chat history"""
-        if not self.config.visible:
-            return
-
-        # Calculate visible range
-        start_idx = self._scroll_offset
-        end_idx = min(start_idx + self._visible_lines, len(self.messages))
-
-        # Clear display area
-        for i in range(self._visible_lines):
-            print(f"\033[{self.config.y + i};{self.config.x}H\033[K")
-
-        current_y = self.config.y
-        for idx in range(start_idx, end_idx):
-            message = self.messages[idx]
-
-            # Render message header
-            if self.show_sender or self.show_timestamps:
-                header_parts = []
-
-                if self.show_sender:
-                    style = self.theme.primary if message.is_user else self.theme.secondary
-                    header_parts.append(f"{style.apply()}{message.sender}{style.reset()}")
-
-                if self.show_timestamps and message.timestamp:
-                    time_str = message.timestamp.strftime("%H:%M:%S")
-                    header_parts.append(
-                        f"{self.theme.info.apply()}{time_str}{self.theme.info.reset()}"
-                    )
-
-                print(f"\033[{current_y};{self.config.x}H{' | '.join(header_parts)}")
-                current_y += 1
-
-            # Render message content
-            content_style = self.theme.primary if message.is_user else self.theme.secondary
-            rich_text = RichText(
-                config=ComponentConfig(
-                    x=self.config.x + 2,
-                    y=current_y,
-                    width=self.config.width - 4 if self.config.width else None,
-                    style=content_style,
-                ),
-                text=message.content,
-                parse_markdown=True,
-                word_wrap=True,
+            # Render sender
+            sender_style = (
+                "system"
+                if message.sender == "system"
+                else "user" if message.sender == "user" else "assistant"
             )
-            await rich_text.render()
+            text.append(f"{message.sender}: ", style=styles.apply(sender_style))
 
-            # Update position for next message
-            current_y += rich_text._wrapped_lines.__len__() + 1
+            # Render content
+            # Quebrar o texto em linhas para respeitar a largura máxima
+            words = message.content.split()
+            current_line = []
+            current_width = 0
 
-        # Render scrollbar if needed
-        if len(self.messages) > self._visible_lines:
-            scrollbar_height = self._visible_lines
-            thumb_size = max(1, int(scrollbar_height * self._visible_lines / len(self.messages)))
-            thumb_pos = int(scrollbar_height * self._scroll_offset / len(self.messages))
-
-            for i in range(scrollbar_height):
-                x = self.config.x + (self.config.width or 80) - 1
-                print(f"\033[{self.config.y + i};{x}H", end="")
-
-                if i >= thumb_pos and i < thumb_pos + thumb_size:
-                    print("█", end="")
+            for word in words:
+                word_width = len(word)
+                if current_width + word_width + 1 > self._max_width:
+                    # Adicionar a linha atual
+                    if current_line:
+                        text.append(" ".join(current_line) + "\n", style=styles.apply("default"))
+                    current_line = [word]
+                    current_width = word_width
                 else:
-                    print("░", end="")
+                    current_line.append(word)
+                    current_width += word_width + 1
+
+            # Adicionar a última linha
+            if current_line:
+                text.append(" ".join(current_line), style=styles.apply("default"))
+
+        return text
+
+    def set_max_width(self, width: int) -> None:
+        """Set maximum content width
+
+        Args:
+            width: Maximum width in characters
+        """
+        self._max_width = max(40, width)  # Mínimo de 40 caracteres

@@ -1,6 +1,7 @@
 """Text processing configuration"""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from typing import Any, Dict
 
 from pepperpy.core.config import ModuleConfig
 
@@ -9,11 +10,13 @@ from pepperpy.core.config import ModuleConfig
 class TextConfig(ModuleConfig):
     """Configuration for text processing"""
 
-    max_chunk_size: int = 1000
-    overlap: int = 100
-    respect_sentences: bool = True
-    respect_paragraphs: bool = True
     use_tokenizer: bool = False
     tokenizer_model: str = "gpt2"
+    max_chunk_size: int = 1000
     min_chunk_size: int = 100
-    preserve_whitespace: bool = False
+    overlap: int = 100
+    respect_sentences: bool = True
+
+    def dict(self) -> Dict[str, Any]:
+        """Convert config to dictionary"""
+        return asdict(self)

@@ -1,68 +1,83 @@
-"""Spinner component implementation"""
+"""Spinner component for console UI"""
 
 import asyncio
-from typing import List, Optional
+import itertools
+from typing import Any, Optional
 
-from ..styles import Style
-from .base import Component, ComponentConfig
+from rich.style import Style
+from rich.text import Text
+
+from pepperpy.console.ui.components.base import Component, ComponentConfig
+from pepperpy.console.ui.styles import styles
 
 
 class Spinner(Component):
     """Animated spinner component"""
 
-    DEFAULT_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-
-    def __init__(
-        self,
-        config: ComponentConfig,
-        text: str = "",
-        frames: Optional[List[str]] = None,
-        interval: float = 0.1,
-    ):
-        super().__init__(config)
-        self.text = text
-        self.frames = frames or self.DEFAULT_FRAMES
-        self.interval = interval
-        self._frame_index = 0
+    def __init__(self) -> None:
+        config = ComponentConfig(
+            style={
+                "spinner": Style(color="cyan", bold=True),
+                "text": Style(color="white"),
+            }
+        )
+        super().__init__(config=config)
+        self._frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        self._frame_iter = itertools.cycle(self._frames)
         self._running = False
-        self._task = None
+        self._text = ""
+        self._task: Optional[asyncio.Task[None]] = None
 
-    async def start(self) -> None:
-        """Start spinner animation"""
+    def start(self, text: str = "") -> None:
+        """Start spinner animation
+
+        Args:
+            text: Text to display next to spinner
+        """
+        self._text = text
         self._running = True
-        self._task = asyncio.create_task(self._animate())
+        if not self._task:
+            self._task = asyncio.create_task(self._animate())
 
-    async def stop(self) -> None:
+    def stop(self) -> None:
         """Stop spinner animation"""
         self._running = False
         if self._task:
-            await self._task
+            self._task.cancel()
+            self._task = None
 
     async def _animate(self) -> None:
         """Animate spinner"""
-        while self._running:
-            await self.render()
-            self._frame_index = (self._frame_index + 1) % len(self.frames)
-            await asyncio.sleep(self.interval)
+        try:
+            while self._running:
+                await asyncio.sleep(0.1)
+                next(self._frame_iter)
+        except asyncio.CancelledError:
+            pass
 
-    async def _setup(self) -> None:
-        """Initialize spinner"""
-        pass
+    def render(self) -> Text:
+        """Render spinner
 
-    async def _cleanup(self) -> None:
-        """Cleanup spinner"""
-        await self.stop()
+        Returns:
+            Text: Rendered spinner
+        """
+        text = Text()
+        frame = next(self._frame_iter) if self._running else "●"
 
-    async def render(self) -> None:
-        """Render spinner frame"""
-        if not self.config.visible:
-            return
+        # Render spinner
+        text.append(frame, style=styles.apply("primary"))
 
-        style = self.config.style or Style()
+        # Render text
+        if self._text:
+            text.append(f" {self._text}", style=styles.apply("default"))
 
-        # Move cursor and clear line
-        print(f"\033[{self.config.y};{self.config.x}H\033[K", end="")
+        return text
 
-        # Render current frame and text
-        frame = self.frames[self._frame_index]
-        print(f"{style.apply()}{frame} {self.text}{style.reset()}", end="")
+    def __enter__(self) -> "Spinner":
+        """Enter context manager"""
+        self.start()
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Exit context manager"""
+        self.stop()

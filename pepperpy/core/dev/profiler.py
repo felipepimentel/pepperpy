@@ -3,13 +3,23 @@
 import asyncio
 import cProfile
 import functools
+import io
 import pstats
-from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Callable, Dict, Optional, TypeVar
+from contextlib import asynccontextmanager, redirect_stdout
+from typing import AsyncIterator, Awaitable, Callable, Dict, Optional, TypeVar, cast
+
+from typing_extensions import ParamSpec
 
 from pepperpy.core.logging import get_logger
 
 T = TypeVar("T")
+P = ParamSpec("P")
+
+
+# Estendendo Stats para incluir os atributos que sabemos que existem
+class ExtendedStats(pstats.Stats):
+    total_calls: int
+    total_tt: float
 
 
 class AsyncProfiler:
@@ -19,7 +29,7 @@ class AsyncProfiler:
         self.name = name
         self._profiler = cProfile.Profile()
         self._logger = get_logger(__name__)
-        self._stats: Dict[str, pstats.Stats] = {}
+        self._stats: Dict[str, ExtendedStats] = {}
 
     @asynccontextmanager
     async def profile(self) -> AsyncIterator["AsyncProfiler"]:
@@ -33,7 +43,7 @@ class AsyncProfiler:
             yield self
         finally:
             self._profiler.disable()
-            stats = pstats.Stats(self._profiler)
+            stats = cast(ExtendedStats, pstats.Stats(self._profiler))
             stats.sort_stats("cumulative")
             self._stats[self.name] = stats
             await self._logger.debug(
@@ -42,20 +52,20 @@ class AsyncProfiler:
                 total_time=stats.total_tt,
             )
 
-    def profile_function(self, func: Callable[..., T]) -> Callable[..., T]:
+    def profile_function(self, func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
         """Decorator for profiling async functions
 
         Args:
             func: Function to profile
 
         Returns:
-            Callable[..., T]: Decorated function
+            Callable[P, Awaitable[T]]: Decorated function
         """
         if not asyncio.iscoroutinefunction(func):
             raise ValueError("Can only profile async functions")
 
         @functools.wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> T:
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             profiler = AsyncProfiler(f"{func.__name__}_{id(func)}")
             async with profiler.profile():
                 return await func(*args, **kwargs)
@@ -66,8 +76,42 @@ class AsyncProfiler:
         """Print profiling statistics"""
         for name, stats in self._stats.items():
             print(f"\nProfile stats for {name}:")
-            stats.print_stats(limit)
+            if limit is not None:
+                stats.print_stats(limit)
+            else:
+                stats.print_stats()
 
-    def get_stats(self) -> Dict[str, pstats.Stats]:
+    def get_stats(self) -> Dict[str, ExtendedStats]:
         """Get raw profiling statistics"""
         return self._stats
+
+
+class ProfileStats:
+    def __init__(self, profiler: cProfile.Profile):
+        self.profiler = profiler
+        self._stats: ExtendedStats | None = None
+
+    @property
+    def stats(self) -> ExtendedStats:
+        if self._stats is None:
+            self._stats = cast(ExtendedStats, pstats.Stats(self.profiler))
+        return self._stats
+
+    def print_stats(self, amount: Optional[int] = None) -> str:
+        output = io.StringIO()
+        stats = self.stats.sort_stats(pstats.SortKey.TIME)
+
+        total_calls = stats.total_calls
+        total_time = stats.total_tt
+
+        output.write(f"Total calls: {total_calls}\n")
+        output.write(f"Total time: {total_time:.3f}s\n\n")
+
+        # Redirecionar a saída para o StringIO
+        with redirect_stdout(output):
+            if amount is not None:
+                stats.print_stats(amount)
+            else:
+                stats.print_stats()
+
+        return output.getvalue()

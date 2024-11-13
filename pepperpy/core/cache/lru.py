@@ -1,61 +1,88 @@
 """LRU cache implementation"""
 
-import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional
+from typing import Generic, Optional, TypeVar
 
-from ..exceptions import CoreError
-from .strategies import CacheStrategy
+from .exceptions import CacheError
+
+KT = TypeVar("KT")
+VT = TypeVar("VT")
 
 
-class LRUCache(CacheStrategy):
-    """Least Recently Used cache implementation"""
+class LRUCache(Generic[KT, VT]):
+    """LRU (Least Recently Used) cache implementation"""
 
-    def __init__(self, max_size: int = 1000):
-        self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
-        self._max_size = max_size
+    def __init__(self, capacity: int):
+        """Initialize LRU cache
 
-    async def get(self, key: str) -> Optional[Any]:
-        """Get value from cache"""
+        Args:
+            capacity: Maximum number of items to store
+        """
+        self.capacity = capacity
+        self._cache: OrderedDict[KT, VT] = OrderedDict()
+
+    def get(self, key: KT) -> Optional[VT]:
+        """Get value from cache
+
+        Args:
+            key: Cache key
+
+        Returns:
+            Optional[VT]: Cached value if exists
+        """
         try:
             if key not in self._cache:
                 return None
-
-            entry = self._cache[key]
-            if entry.get("expires_at") and time.time() > entry["expires_at"]:
-                del self._cache[key]
-                return None
-
-            # Move to end (most recently used)
-            self._cache.move_to_end(key)
-            return entry["value"]
+            value = self._cache.pop(key)
+            self._cache[key] = value
+            return value
         except Exception as e:
-            raise CoreError(f"LRU cache get failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to get value: {str(e)}", cause=e)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
-        """Set value in cache"""
-        try:
-            # Remove oldest if at max size
-            if len(self._cache) >= self._max_size:
-                self._cache.popitem(last=False)
+    def put(self, key: KT, value: VT) -> None:
+        """Put value in cache
 
-            expires_at = time.time() + ttl if ttl else None
-            self._cache[key] = {"value": value, "expires_at": expires_at}
-            self._cache.move_to_end(key)
-        except Exception as e:
-            raise CoreError(f"LRU cache set failed: {str(e)}", cause=e)
-
-    async def delete(self, key: str) -> None:
-        """Delete value from cache"""
+        Args:
+            key: Cache key
+            value: Value to cache
+        """
         try:
             if key in self._cache:
-                del self._cache[key]
+                self._cache.pop(key)
+            elif len(self._cache) >= self.capacity:
+                self._cache.popitem(last=False)
+            self._cache[key] = value
         except Exception as e:
-            raise CoreError(f"LRU cache delete failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to put value: {str(e)}", cause=e)
 
-    async def clear(self) -> None:
-        """Clear all values"""
+    def remove(self, key: KT) -> None:
+        """Remove value from cache
+
+        Args:
+            key: Cache key
+        """
+        try:
+            if key in self._cache:
+                self._cache.pop(key)
+        except Exception as e:
+            raise CacheError(f"Failed to remove value: {str(e)}", cause=e)
+
+    def clear(self) -> None:
+        """Clear all values from cache"""
         try:
             self._cache.clear()
         except Exception as e:
-            raise CoreError(f"LRU cache clear failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to clear cache: {str(e)}", cause=e)
+
+    @property
+    def size(self) -> int:
+        """Get current cache size"""
+        return len(self._cache)
+
+    def __contains__(self, key: KT) -> bool:
+        """Check if key exists in cache"""
+        return key in self._cache
+
+    def __len__(self) -> int:
+        """Get current cache size"""
+        return len(self._cache)

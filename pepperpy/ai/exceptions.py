@@ -1,27 +1,23 @@
 """AI module exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class AIError(CoreError):
+class AIError(PepperPyError):
     """Base exception for AI errors"""
-
-    pass
 
 
 class ModelError(AIError):
-    """Model-related error"""
-
-    pass
+    """Error during model operations"""
 
 
-class ProviderError(AIError):
-    """Provider-related error"""
-
-    pass
+class ProcessingError(AIError):
+    """Error during data processing"""
 
 
 class ValidationError(AIError):
-    """Validation error"""
+    """Error during data validation"""
 
-    pass
+
+class ConfigurationError(AIError):
+    """Error in AI configuration"""

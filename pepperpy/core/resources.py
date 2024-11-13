@@ -1,68 +1,102 @@
 """Resource management utilities"""
 
-from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict
+import inspect
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any, Dict, Optional, Type, TypeVar, Union, overload
 
-from .exceptions import CoreError
+T = TypeVar("T")
+ResourceType = Union[str, Path, Type[Any], Callable[..., Any]]
+
+
+def get_resource_path(resource: ResourceType) -> Path:
+    """Get path to a resource
+
+    Args:
+        resource: Resource to get path for. Can be:
+            - A string path
+            - A Path object
+            - A class
+            - A function/method
+
+    Returns:
+        Path: Path to the resource
+    """
+    if isinstance(resource, (str, Path)):
+        return Path(resource)
+
+    if inspect.isclass(resource) or inspect.isfunction(resource):
+        module = inspect.getmodule(resource)
+        if module is None:
+            raise ValueError(f"Could not determine module for {resource}")
+        module_file = getattr(module, "__file__", None)
+        if module_file is None:
+            raise ValueError(f"Could not determine file for module of {resource}")
+        return Path(module_file).parent
+
+    raise ValueError(f"Invalid resource type: {type(resource)}")
 
 
 class ResourceManager:
-    """Manager for async resources"""
+    """Resource manager for handling file paths and module locations"""
 
-    def __init__(self):
-        self._resources: Dict[str, Any] = {}
-        self._initializers: Dict[str, callable] = {}
-
-    async def initialize(self, name: str) -> Any:
-        """Initialize resource
+    def __init__(self, base_path: Optional[Union[str, Path]] = None):
+        """Initialize resource manager
 
         Args:
-            name: Resource identifier
+            base_path: Base path for resolving relative paths. Defaults to current directory.
+        """
+        self.base_path = Path(base_path or Path.cwd())
+        self._paths: Dict[str, Path] = {}
+
+    def register(self, name: str, resource: ResourceType) -> None:
+        """Register a resource path
+
+        Args:
+            name: Name to register resource as
+            resource: Resource to register. Can be:
+                - A string path
+                - A Path object
+                - A class
+                - A function/method
+        """
+        path = get_resource_path(resource)
+        if not path.is_absolute():
+            path = self.base_path / path
+        self._paths[name] = path
+
+    @overload
+    def get(self, name: str) -> Path: ...
+
+    @overload
+    def get(self, name: str, as_str: bool) -> Union[str, Path]: ...
+
+    def get(self, name: str, as_str: bool = False) -> Union[str, Path]:
+        """Get path to a registered resource
+
+        Args:
+            name: Name of registered resource
+            as_str: Return path as string instead of Path object
 
         Returns:
-            Any: Initialized resource
+            Union[str, Path]: Path to resource
 
         Raises:
-            CoreError: If resource initializer not found
+            KeyError: If resource is not registered
         """
-        if name not in self._resources:
-            if name not in self._initializers:
-                raise CoreError(f"No initializer for resource: {name}")
-            self._resources[name] = await self._initializers[name]()
-        return self._resources[name]
+        if name not in self._paths:
+            raise KeyError(f"Resource not registered: {name}")
 
-    async def cleanup(self) -> None:
-        """Cleanup all resources"""
-        for resource in self._resources.values():
-            if hasattr(resource, "cleanup"):
-                await resource.cleanup()
-        self._resources.clear()
+        path = self._paths[name]
+        return str(path) if as_str else path
 
-    @asynccontextmanager
-    async def scope(self) -> AsyncIterator["ResourceManager"]:
-        """Resource scope context manager
-
-        Returns:
-            AsyncIterator[ResourceManager]: Resource manager instance
-
-        Example:
-            async with resources.scope() as rm:
-                resource = await rm.initialize("my_resource")
-        """
-        try:
-            yield self
-        finally:
-            await self.cleanup()
-
-    def register_initializer(self, name: str, initializer: callable) -> None:
-        """Register resource initializer
+    def __contains__(self, name: str) -> bool:
+        """Check if resource is registered
 
         Args:
-            name: Resource identifier
-            initializer: Async function to initialize resource
+            name: Name of resource to check
+
+        Returns:
+            bool: True if resource is registered
         """
-        self._initializers[name] = initializer
-
-
-# Global resource manager instance
-resources = ResourceManager()
+        return name in self._paths

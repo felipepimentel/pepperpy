@@ -1,22 +1,53 @@
-"""Enhanced Markdown handler implementation"""
+"""Enhanced Markdown file handler implementation"""
 
-import re
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import mistune
-from bs4 import BeautifulSoup
+from markdown_it import MarkdownIt
+from markdown_it.token import Token
 
 from ..exceptions import FileError
-from ..types import FileContent, Section, TableOfContents
+from ..types import FileContent, FileMetadata
 from .base import BaseHandler
 
 
-class EnhancedMarkdownHandler(BaseHandler):
-    """Enhanced handler for Markdown files"""
+@dataclass
+class Section:
+    """Markdown document section"""
+
+    title: str
+    level: int
+    content: str
+    start: int
+    end: int
+
+
+@dataclass
+class TableOfContents:
+    """Markdown document table of contents"""
+
+    sections: List[Section]
+    max_depth: int = 3
+
+
+@dataclass
+class MarkdownOptions:
+    """Markdown parser options"""
+
+    max_depth: int = 3
+    include_titles: bool = True
+    include_sections: bool = True
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class MarkdownEnhancedHandler(BaseHandler):
+    """Enhanced handler for Markdown files with TOC and section support"""
 
     def __init__(self):
-        self._parser = mistune.create_markdown(plugins=["table", "footnotes"])
+        super().__init__()
+        self._parser = MarkdownIt("commonmark", {"html": True})
+        self._options = MarkdownOptions()
 
     async def read(self, path: Path) -> FileContent:
         """Read Markdown file with enhanced features"""
@@ -24,127 +55,66 @@ class EnhancedMarkdownHandler(BaseHandler):
             metadata = await self._get_metadata(path)
             content = await self._read_file(path)
 
-            return FileContent(content=content, metadata=metadata, format="markdown")
+            # Parse content and extract sections
+            tokens = self._parser.parse(content)
+            sections = self._extract_sections(tokens)
+            toc = self._generate_toc(sections)
+
+            # Generate final content
+            enhanced_metadata = {
+                **metadata.metadata,
+                "toc": toc,
+                "sections": sections,
+            }
+
+            return FileContent(
+                content=content, metadata=enhanced_metadata, format="markdown_enhanced"
+            )
         except Exception as e:
-            raise FileError(f"Failed to read Markdown file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read enhanced Markdown file: {str(e)}", cause=e)
 
-    async def get_sections(self, content: str) -> List[Section]:
-        """Extract sections based on headers"""
-        sections = []
-        current_section = None
-        lines = content.split("\n")
+    async def write(
+        self, path: Path, content: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> FileMetadata:
+        """Write Markdown file"""
+        try:
+            return await self._write_file(path, content)
+        except Exception as e:
+            raise FileError(f"Failed to write enhanced Markdown file: {str(e)}", cause=e)
 
-        for line in lines:
-            header_match = re.match(r"^(#{1,6})\s+(.+)$", line)
-            if header_match:
-                level = len(header_match.group(1))
-                title = header_match.group(2)
+    def _extract_sections(self, tokens: List[Token]) -> List[Section]:
+        """Extract sections from Markdown tokens"""
+        sections: List[Section] = []
+        current_section: Optional[Section] = None
+        content_buffer: List[str] = []
 
-                section = Section(title=title, level=level, content=[], subsections=[])
+        for token in tokens:
+            if token.type == "heading_open":
+                if current_section:
+                    current_section.content = "".join(content_buffer)
+                    sections.append(current_section)
 
-                if not current_section or level <= current_section.level:
-                    sections.append(section)
-                    current_section = section
-                else:
-                    current_section.subsections.append(section)
-            elif current_section:
-                current_section.content.append(line)
+                level = int(token.tag[1])  # h1 -> 1, h2 -> 2, etc.
+                title_token = tokens[tokens.index(token) + 1]
+                current_section = Section(
+                    title=title_token.content,
+                    level=level,
+                    content="",
+                    start=token.map[0] if token.map else 0,
+                    end=0,
+                )
+                content_buffer = []
+            elif token.type == "inline":
+                content_buffer.append(token.content)
+
+        if current_section:
+            current_section.content = "".join(content_buffer)
+            sections.append(current_section)
 
         return sections
 
-    async def get_toc(self, content: str) -> TableOfContents:
-        """Generate table of contents"""
-        toc = []
-        lines = content.split("\n")
-
-        for line in lines:
-            header_match = re.match(r"^(#{1,6})\s+(.+)$", line)
-            if header_match:
-                level = len(header_match.group(1))
-                title = header_match.group(2)
-
-                # Generate anchor
-                anchor = re.sub(r"[^\w\s-]", "", title.lower())
-                anchor = re.sub(r"[-\s]+", "-", anchor)
-
-                toc.append({"title": title, "level": level, "anchor": anchor})
-
-        return TableOfContents(items=toc)
-
-    async def extract_links(self, content: str) -> List[Dict[str, str]]:
-        """Extract all links from content"""
-        html = self._parser(content)
-        soup = BeautifulSoup(html, "html.parser")
-
-        return [
-            {"text": a.text, "url": a["href"], "title": a.get("title", "")}
-            for a in soup.find_all("a")
-        ]
-
-    async def extract_images(self, content: str) -> List[Dict[str, str]]:
-        """Extract all images from content"""
-        html = self._parser(content)
-        soup = BeautifulSoup(html, "html.parser")
-
-        return [
-            {"alt": img.get("alt", ""), "src": img["src"], "title": img.get("title", "")}
-            for img in soup.find_all("img")
-        ]
-
-    async def extract_code_blocks(
-        self, content: str, language: Optional[str] = None
-    ) -> List[Dict[str, str]]:
-        """Extract code blocks with optional language filter"""
-        blocks = []
-        pattern = r"```(\w+)?\n(.*?)\n```"
-
-        for match in re.finditer(pattern, content, re.DOTALL):
-            block_lang = match.group(1) or ""
-            if not language or block_lang == language:
-                blocks.append({"language": block_lang, "code": match.group(2)})
-
-        return blocks
-
-    async def extract_metadata(self, content: str) -> Dict[str, Any]:
-        """Extract YAML front matter"""
-        import yaml
-
-        match = re.match(r"^---\n(.*?)\n---\n", content, re.DOTALL)
-        if match:
-            try:
-                return yaml.safe_load(match.group(1))
-            except Exception:
-                pass
-        return {}
-
-    async def search_text(
-        self, content: str, query: str, context_lines: int = 2
-    ) -> List[Dict[str, Any]]:
-        """Search text with context"""
-        results = []
-        lines = content.split("\n")
-
-        for i, line in enumerate(lines):
-            if query.lower() in line.lower():
-                start = max(0, i - context_lines)
-                end = min(len(lines), i + context_lines + 1)
-
-                results.append({"line_number": i + 1, "line": line, "context": lines[start:end]})
-
-        return results
-
-    async def convert_to_html(self, content: str, **kwargs) -> str:
-        """Convert Markdown to HTML with options"""
-        return self._parser(content)
-
-    async def create_section(self, title: str, level: int, content: str) -> str:
-        """Create a new section"""
-        return f"{'#' * level} {title}\n\n{content}"
-
-    async def merge_files(self, paths: List[Path], separator: str = "\n---\n") -> str:
-        """Merge multiple Markdown files"""
-        contents = []
-        for path in paths:
-            content = await self._read_file(path)
-            contents.append(content)
-        return separator.join(contents)
+    def _generate_toc(self, sections: List[Section]) -> TableOfContents:
+        """Generate table of contents from sections"""
+        max_depth = self._options.max_depth
+        filtered_sections = [section for section in sections if section.level <= max_depth]
+        return TableOfContents(sections=filtered_sections, max_depth=max_depth)

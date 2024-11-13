@@ -1,78 +1,103 @@
-"""Dialog component implementation"""
+"""Dialog component for console UI"""
 
-from typing import Callable, List, Optional
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional
 
-from ..styles import Style
-from .base import Component, ComponentConfig
+from rich.style import Style
+from rich.text import Text
+
+from pepperpy.console.ui.components.base import Component, ComponentConfig
+from pepperpy.console.ui.keyboard import ENTER, ESCAPE, Key
+from pepperpy.console.ui.styles import styles
+
+
+@dataclass
+class DialogButton:
+    """Dialog button configuration"""
+
+    label: str
+    callback: Optional[Callable[[], None]] = None
+    enabled: bool = True
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class Dialog(Component):
-    """Dialog box component"""
+    """Dialog component"""
 
-    def __init__(
-        self,
-        config: ComponentConfig,
-        title: str,
-        content: str,
-        buttons: List[str] = None,
-        on_close: Optional[Callable[[str], None]] = None,
-    ):
-        super().__init__(config)
+    def __init__(self) -> None:
+        config = ComponentConfig(
+            style={
+                "title": Style(color="cyan", bold=True),
+                "content": Style(color="white"),
+                "button": Style(color="blue"),
+                "button_focused": Style(color="cyan", bold=True),
+                "button_disabled": Style(color="gray50", dim=True),
+            }
+        )
+        super().__init__(config=config)
+        self.title = ""
+        self.content = ""
+        self.buttons: List[DialogButton] = []
+        self.focused_button = 0
+        self.visible = True
+
+    def add_button(self, label: str, callback: Optional[Callable[[], None]] = None) -> None:
+        """Add button to dialog"""
+        self.buttons.append(DialogButton(label=label, callback=callback))
+
+    async def handle_input(self, key: Key) -> bool:
+        """Handle input event"""
+        if not self.visible or not self.buttons:
+            return False
+
+        if key == ENTER:
+            button = self.buttons[self.focused_button]
+            if button.enabled and button.callback:
+                button.callback()
+            return True
+
+        if key == ESCAPE:
+            self.visible = False
+            return True
+
+        return False
+
+    def render(self) -> Text:
+        """Render dialog"""
+        if not self.visible:
+            return Text()
+
+        text = Text()
+
+        # Render title
+        if self.title:
+            text.append(self.title + "\n", style=styles.apply("primary"))
+
+        # Render content
+        if self.content:
+            text.append(self.content + "\n\n", style=styles.apply("default"))
+
+        # Render buttons
+        for i, button in enumerate(self.buttons):
+            if i > 0:
+                text.append(" ")
+
+            style = (
+                styles.apply("focused")
+                if i == self.focused_button and button.enabled
+                else styles.apply("muted" if not button.enabled else "default")
+            )
+            text.append(f"[ {button.label} ]", style=style)
+
+        return text
+
+    def show(self, title: str, content: str) -> None:
+        """Show dialog with title and content"""
         self.title = title
         self.content = content
-        self.buttons = buttons or ["OK"]
-        self.on_close = on_close
-        self._selected_button = 0
-        self._visible = True
+        self.visible = True
+        self.focused_button = 0
 
-    async def _setup(self) -> None:
-        """Initialize dialog"""
-        pass
-
-    async def _cleanup(self) -> None:
-        """Cleanup dialog"""
-        pass
-
-    async def render(self) -> None:
-        """Render dialog box"""
-        if not self._visible:
-            return
-
-        style = self.config.style or Style()
-        width = self.config.width or max(
-            len(self.title) + 4,
-            max(len(line) for line in self.content.split("\n")) + 4,
-            sum(len(b) + 4 for b in self.buttons) + len(self.buttons) - 1,
-        )
-        height = self.content.count("\n") + 5
-
-        # Draw box
-        print(f"\033[{self.config.y};{self.config.x}H{style.apply()}┌{'─' * (width-2)}┐")
-
-        # Title
-        title_pos = (width - len(self.title)) // 2
-        print(
-            f"\033[{self.config.y+1};{self.config.x}H│{' ' * title_pos}{self.title}{' ' * (width-title_pos-len(self.title)-2)}│"
-        )
-
-        print(f"\033[{self.config.y+2};{self.config.x}H├{'─' * (width-2)}┤")
-
-        # Content
-        for i, line in enumerate(self.content.split("\n")):
-            print(f"\033[{self.config.y+3+i};{self.config.x}H│ {line:<{width-4}} │")
-
-        # Buttons
-        button_y = self.config.y + height - 1
-        button_x = (
-            self.config.x
-            + (width - sum(len(b) + 4 for b in self.buttons) - len(self.buttons) + 1) // 2
-        )
-
-        for i, button in enumerate(self.buttons):
-            if i == self._selected_button:
-                print(f"\033[{button_y};{button_x}H[{button}]", end="")
-            else:
-                print(f"\033[{button_y};{button_x}H {button} ", end="")
-            button_x += len(button) + 4
-
-        print(f"{style.reset()}")
+    def hide(self) -> None:
+        """Hide dialog"""
+        self.visible = False

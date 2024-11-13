@@ -1,10 +1,7 @@
 """LLM type definitions"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Dict, Optional
-
-from pepperpy.core.types import JsonDict
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -14,8 +11,7 @@ class Message:
     role: str
     content: str
     name: Optional[str] = None
-    metadata: JsonDict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -25,6 +21,4 @@ class LLMResponse:
     content: str
     model: str
     usage: Dict[str, int]
-    finish_reason: Optional[str] = None
-    metadata: JsonDict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = field(default_factory=dict)

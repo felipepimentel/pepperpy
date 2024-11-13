@@ -3,113 +3,66 @@
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageOps
+from PIL.Image import Resampling
 
-from ..base import FileHandler
 from ..exceptions import FileError
-from ..types import ImageInfo
+from ..types import FileContent, FileMetadata, ImageInfo
+from .base import BaseHandler
 
 
-class ImageHandler(FileHandler):
+class ImageHandler(BaseHandler):
     """Handler for image files"""
 
-    SUPPORTED_FORMATS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"}
-
-    async def read(self, path: Path, mode: Optional[str] = None) -> Image.Image:
+    async def read(self, path: Path) -> FileContent:
         """Read image file"""
         try:
-            image = Image.open(path)
-            if mode and image.mode != mode:
-                image = image.convert(mode)
-            return image
-        except Exception as e:
-            raise FileError(f"Failed to read image: {str(e)}", cause=e)
-
-    async def write(self, path: Path, image: Image.Image, **kwargs: Any) -> None:
-        """Write image file"""
-        try:
-            image.save(path, **kwargs)
-        except Exception as e:
-            raise FileError(f"Failed to write image: {str(e)}", cause=e)
-
-    async def get_info(self, path: Path) -> ImageInfo:
-        """Get image information"""
-        try:
+            metadata = await self._get_metadata(path)
             with Image.open(path) as img:
-                return ImageInfo(
+                # Extract image info
+                info = ImageInfo(
                     width=img.width,
                     height=img.height,
                     mode=img.mode,
-                    format=img.format or path.suffix[1:].upper(),
+                    format=img.format or "",
+                    channels=len(img.getbands()),
+                    bits=8,  # Default to 8 bits per channel
                     dpi=img.info.get("dpi"),
-                    exif=img.getexif() if hasattr(img, "getexif") else None,
+                    metadata=dict(img.info),
                 )
-        except Exception as e:
-            raise FileError(f"Failed to get image info: {str(e)}", cause=e)
 
-    async def resize(
+                enhanced_metadata = {
+                    **metadata.metadata,
+                    "info": info,
+                }
+
+                return FileContent(content=img.copy(), metadata=enhanced_metadata, format="image")
+        except Exception as e:
+            raise FileError(f"Failed to read image file: {str(e)}", cause=e)
+
+    async def write(
         self,
-        image: Image.Image,
-        size: Tuple[int, int],
-        resample: int = Image.Resampling.LANCZOS,
-        keep_aspect: bool = True,
+        path: Path,
+        content: Image.Image,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> FileMetadata:
+        """Write image file"""
+        try:
+            content.save(path)
+            return await self._get_metadata(path)
+        except Exception as e:
+            raise FileError(f"Failed to write image file: {str(e)}", cause=e)
+
+    def resize(
+        self, image: Image.Image, size: Tuple[int, int], keep_aspect: bool = True
     ) -> Image.Image:
         """Resize image"""
-        try:
-            if keep_aspect:
-                image.thumbnail(size, resample)
-                return image
-            return image.resize(size, resample)
-        except Exception as e:
-            raise FileError(f"Failed to resize image: {str(e)}", cause=e)
+        if keep_aspect:
+            return ImageOps.contain(image, size, Resampling.LANCZOS)
+        return image.resize(size, Resampling.LANCZOS)
 
-    async def apply_filters(self, image: Image.Image, filters: Dict[str, Any]) -> Image.Image:
-        """Apply multiple filters"""
-        try:
-            result = image.copy()
-
-            for filter_name, params in filters.items():
-                if filter_name == "blur":
-                    result = result.filter(ImageFilter.GaussianBlur(params.get("radius", 2)))
-                elif filter_name == "sharpen":
-                    result = result.filter(ImageFilter.SHARPEN)
-                elif filter_name == "brightness":
-                    enhancer = ImageEnhance.Brightness(result)
-                    result = enhancer.enhance(params.get("factor", 1.0))
-                elif filter_name == "contrast":
-                    enhancer = ImageEnhance.Contrast(result)
-                    result = enhancer.enhance(params.get("factor", 1.0))
-                elif filter_name == "color":
-                    enhancer = ImageEnhance.Color(result)
-                    result = enhancer.enhance(params.get("factor", 1.0))
-                else:
-                    raise FileError(f"Unknown filter: {filter_name}")
-
-            return result
-
-        except Exception as e:
-            raise FileError(f"Failed to apply filters: {str(e)}", cause=e)
-
-    async def create_thumbnail(
-        self, path: Path, output_path: Path, size: Tuple[int, int], quality: int = 85
-    ) -> None:
+    def create_thumbnail(self, image: Image.Image, size: Tuple[int, int]) -> Image.Image:
         """Create image thumbnail"""
-        try:
-            image = await self.read(path)
-            thumb = await self.resize(image, size)
-            await self.write(output_path, thumb, quality=quality, optimize=True)
-        except Exception as e:
-            raise FileError(f"Failed to create thumbnail: {str(e)}", cause=e)
-
-    async def validate(self, path: Path) -> bool:
-        """Validate image file"""
-        try:
-            if path.suffix.lower() not in self.SUPPORTED_FORMATS:
-                return False
-
-            with Image.open(path) as img:
-                img.verify()
-            return True
-
-        except Exception:
-            return False
+        thumb = image.copy()
+        thumb.thumbnail(size, Resampling.LANCZOS)
+        return thumb

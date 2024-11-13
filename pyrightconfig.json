@@ -1,6 +1,6 @@
 {
     "venvPath": "/home/pimentel/.cache/pypoetry/virtualenvs",
-    "include": ["./src", "./tests"],
+    "include": ["./pepperpy", "./tests", "./examples"],
     "exclude": [
       "**/.pyenv",
       "**/site-packages",

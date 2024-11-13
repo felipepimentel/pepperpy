@@ -4,96 +4,78 @@ import asyncio
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional
+from typing import Any, AsyncGenerator, Awaitable, Callable, Dict, TypeVar, cast
 
 from pepperpy.core.logging import get_logger
+
+T = TypeVar("T")
 
 
 @dataclass
 class BenchmarkResult:
-    """Benchmark measurement result"""
+    """Benchmark result data"""
 
     name: str
-    duration: float
+    elapsed: float
     iterations: int
     metadata: Dict[str, Any]
-    stats: Dict[str, float]
 
 
-class AsyncBenchmark:
-    """Async function benchmarking"""
+class Benchmark:
+    """Benchmark runner"""
 
     def __init__(self, name: str):
         self.name = name
-        self._results: List[float] = []
-        self._metadata: Dict[str, Any] = {}
         self._logger = get_logger(__name__)
+        self._start_time: float = 0
+        self._end_time: float = 0
 
     @asynccontextmanager
-    async def measure(self) -> AsyncIterator[BenchmarkResult]:
-        """Measure execution time
-
-        Returns:
-            AsyncIterator[BenchmarkResult]: Benchmark measurement result
-        """
-        start_time = time.perf_counter()
-        try:
-            yield None
-        finally:
-            duration = time.perf_counter() - start_time
-            self._results.append(duration)
-            await self._logger.debug(
-                f"Benchmark {self.name}: {duration:.6f}s", duration=duration, **self._metadata
-            )
-
-    async def run(
-        self,
-        func: Callable,
-        iterations: int = 1,
-        warmup: int = 0,
-        cooldown: float = 0,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> BenchmarkResult:
+    async def run(self) -> AsyncGenerator[BenchmarkResult, None]:
         """Run benchmark
 
-        Args:
-            func: Function to benchmark
-            iterations: Number of iterations
-            warmup: Number of warmup iterations
-            cooldown: Cooldown time between iterations
-            metadata: Additional metadata
-
-        Returns:
-            BenchmarkResult: Benchmark results
+        Yields:
+            AsyncGenerator[BenchmarkResult, None]: Benchmark result
         """
-        self._metadata = metadata or {}
+        self._start_time = time.perf_counter()
+        try:
+            result = BenchmarkResult(
+                name=self.name,
+                elapsed=0.0,
+                iterations=1,
+                metadata={},
+            )
+            yield result
+        finally:
+            self._end_time = time.perf_counter()
+            result.elapsed = self._end_time - self._start_time
+            await self._logger.debug(
+                f"Benchmark {self.name} completed",
+                elapsed=result.elapsed,
+                iterations=result.iterations,
+            )
 
-        # Warmup
-        for _ in range(warmup):
-            await func()
-            if cooldown > 0:
-                await asyncio.sleep(cooldown)
 
-        # Benchmark
-        for _ in range(iterations):
-            async with self.measure():
-                await func()
-            if cooldown > 0:
-                await asyncio.sleep(cooldown)
+def benchmark(name: str) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
+    """Decorator for benchmarking functions
 
-        # Calculate stats
-        durations = self._results[-iterations:]
-        stats = {
-            "min": min(durations),
-            "max": max(durations),
-            "avg": sum(durations) / len(durations),
-            "total": sum(durations),
-        }
+    Args:
+        name: Benchmark name
 
-        return BenchmarkResult(
-            name=self.name,
-            duration=stats["total"],
-            iterations=iterations,
-            metadata=self._metadata,
-            stats=stats,
-        )
+    Returns:
+        Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]: Decorated function
+    """
+
+    def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
+        async def wrapper(*args: Any, **kwargs: Any) -> T:
+            bench = Benchmark(name)
+            async with bench.run():
+                if asyncio.iscoroutinefunction(func):
+                    result = await func(*args, **kwargs)
+                else:
+                    result = func(*args, **kwargs)
+            return cast(T, result)
+
+        return wrapper
+
+    return decorator

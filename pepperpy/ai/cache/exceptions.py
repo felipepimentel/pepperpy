@@ -1,9 +1,9 @@
 """Cache specific exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class CacheError(CoreError):
+class CacheError(PepperPyError):
     """Base exception for cache errors"""
 
     pass

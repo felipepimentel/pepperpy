@@ -1,21 +1,15 @@
 """Text processing exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class TextProcessingError(CoreError):
+class TextProcessingError(PepperPyError):
     """Base exception for text processing errors"""
 
-    pass
 
-
-class TextValidationError(TextProcessingError):
-    """Error during text validation"""
-
-    pass
-
-
-class TextChunkingError(TextProcessingError):
+class ChunkingError(TextProcessingError):
     """Error during text chunking"""
 
-    pass
+
+class ProcessingError(TextProcessingError):
+    """Error during text processing"""

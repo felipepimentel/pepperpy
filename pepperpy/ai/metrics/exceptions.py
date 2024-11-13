@@ -1,21 +1,19 @@
-"""Metrics specific exceptions"""
+"""AI metrics exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class MetricsError(CoreError):
+class MetricsError(PepperPyError):
     """Base exception for metrics errors"""
 
-    pass
+
+class CollectionError(MetricsError):
+    """Error during metrics collection"""
 
 
-class MetricsStorageError(MetricsError):
-    """Error during metrics storage operation"""
-
-    pass
+class ValidationError(MetricsError):
+    """Error during metrics validation"""
 
 
-class MetricsFlushError(MetricsError):
-    """Error during metrics flush operation"""
-
-    pass
+class ProcessingError(MetricsError):
+    """Error during metrics processing"""

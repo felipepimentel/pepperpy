@@ -1,27 +1,19 @@
-"""CLI specific exceptions"""
+"""CLI exceptions"""
 
-from pepperpy.core.exceptions import CoreError
+from pepperpy.core.exceptions import PepperPyError
 
 
-class CLIError(CoreError):
-    """Base exception for CLI errors"""
-
-    pass
+class CLIError(PepperPyError):
+    """Base CLI error"""
 
 
 class CommandError(CLIError):
-    """Error during command execution"""
-
-    pass
+    """Command error"""
 
 
 class ArgumentError(CLIError):
-    """Error in command arguments"""
-
-    pass
+    """Argument error"""
 
 
 class ValidationError(CLIError):
-    """Error in argument validation"""
-
-    pass
+    """Validation error"""

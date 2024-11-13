@@ -5,100 +5,117 @@ import functools
 import inspect
 import sys
 import traceback
-from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Callable, Dict, TypeVar
+from contextlib import contextmanager
+from typing import Any, Awaitable, Callable, Dict, Iterator, Optional, TypeVar, cast
 
 from pepperpy.core.logging import get_logger
 
 T = TypeVar("T")
 
 
-class AsyncDebugger:
-    """Async function debugger"""
+class Debugger:
+    """Debug context manager"""
 
     def __init__(self, name: str):
         self.name = name
         self._logger = get_logger(__name__)
-        self._traces: Dict[str, list] = {}
-        self._active = False
+        self._locals: Dict[str, Any] = {}
 
-    @asynccontextmanager
-    async def trace(self) -> AsyncIterator["AsyncDebugger"]:
-        """Trace execution with debug information
+    @contextmanager
+    def debug(self) -> Iterator[None]:
+        """Debug context
 
-        Returns:
-            AsyncIterator[AsyncDebugger]: Debugger instance
+        Yields:
+            Iterator[None]: Debug context
         """
-        self._active = True
         try:
-            yield self
+            frame = inspect.currentframe()
+            if frame is not None:
+                caller = frame.f_back
+                if caller is not None:
+                    self._locals = dict(caller.f_locals)
+            yield
+        except Exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            if exc_traceback is not None:
+                frames = traceback.extract_tb(exc_traceback)
+                for frame in frames:
+                    # Criar uma cópia local das informações do frame
+                    error_info = {
+                        "function": frame.name,
+                        "line": frame.line,
+                        "locals": self._locals.copy(),
+                    }
+                    # Usar uma função síncrona para logging
+                    self._log_error(
+                        f"Error in {frame.filename}:{frame.lineno}",
+                        error_info,
+                    )
+            raise
         finally:
-            self._active = False
-            if self._traces:
-                await self._logger.debug(f"Debug trace for {self.name}", traces=self._traces)
+            self._locals.clear()
 
-    def _get_trace_info(self) -> Dict[str, Any]:
-        """Get current trace information"""
-        frame = sys._getframe(2)
-        info = {
-            "file": frame.f_code.co_filename,
-            "function": frame.f_code.co_name,
-            "line": frame.f_lineno,
-            "locals": {k: str(v) for k, v in frame.f_locals.items() if not k.startswith("_")},
-        }
-        return info
+    def _log_error(self, message: str, error_info: Dict[str, Any]) -> None:
+        """Log error synchronously"""
+        # Criar uma string formatada com todas as informações
+        error_msg = (
+            f"{message}\n"
+            f"Function: {error_info['function']}\n"
+            f"Line: {error_info['line']}\n"
+            f"Local variables: {error_info['locals']}"
+        )
+        print(error_msg, file=sys.stderr)
 
-    def debug_function(self, func: Callable[..., T]) -> Callable[..., T]:
-        """Decorator for debugging async functions
 
-        Args:
-            func: Function to debug
+def debug(name: Optional[str] = None) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Decorator for debugging functions
 
-        Returns:
-            Callable[..., T]: Decorated function
-        """
-        if not asyncio.iscoroutinefunction(func):
-            raise ValueError("Can only debug async functions")
+    Args:
+        name: Debug context name
+
+    Returns:
+        Callable[[Callable[..., T]], Callable[..., T]]: Decorated function
+    """
+
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        debug_name = name or func.__name__
+
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            debugger = Debugger(debug_name)
+            with debugger.debug():
+                return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def debug_async(
+    name: Optional[str] = None,
+) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
+    """Decorator for debugging async functions
+
+    Args:
+        name: Debug context name
+
+    Returns:
+        Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]: Decorated function
+    """
+
+    def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
+        debug_name = name or func.__name__
 
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> T:
-            if not self._active:
-                return await func(*args, **kwargs)
-
-            # Get function info
-            sig = inspect.signature(func)
-            bound_args = sig.bind(*args, **kwargs)
-            func_info = {
-                "name": func.__name__,
-                "args": str(bound_args.arguments),
-                "source": inspect.getsource(func),
-            }
-
-            try:
-                # Record entry
-                trace_id = f"{func.__name__}_{id(func)}"
-                self._traces[trace_id] = [{"event": "enter", "info": func_info}]
-
-                # Execute function
-                result = await func(*args, **kwargs)
-
-                # Record success
-                self._traces[trace_id].append({"event": "exit", "info": {"result": str(result)}})
-
-                return result
-
-            except Exception as e:
-                # Record error
-                self._traces[trace_id].append(
-                    {
-                        "event": "error",
-                        "info": {
-                            "type": type(e).__name__,
-                            "message": str(e),
-                            "traceback": traceback.format_exc(),
-                        },
-                    }
-                )
-                raise
+            debugger = Debugger(debug_name)
+            with debugger.debug():
+                if asyncio.iscoroutinefunction(func):
+                    result = await func(*args, **kwargs)
+                    return cast(T, result)
+                result = func(*args, **kwargs)
+                return cast(T, result)
 
         return wrapper
+
+    return decorator

@@ -1,67 +1,95 @@
 """Distributed cache implementation"""
 
-from typing import Any, Optional
+from typing import Optional
 
-import msgpack
-from redis import asyncio as aioredis
+import redis.asyncio as redis
 
-from ..exceptions import CoreError
-from .strategies import CacheStrategy
+from .exceptions import CacheConnectionError, CacheError
 
 
-class RedisCache(CacheStrategy):
+class DistributedCache:
     """Redis-based distributed cache"""
 
-    def __init__(
-        self, host: str = "localhost", port: int = 6379, password: Optional[str] = None, db: int = 0
-    ):
-        self._redis = None
-        self._config = {"host": host, "port": port, "password": password, "db": db}
+    def __init__(self, url: str):
+        """Initialize distributed cache
 
-    async def initialize(self) -> None:
-        """Initialize Redis connection"""
+        Args:
+            url: Redis connection URL
+        """
+        self._url = url
+        self._client: Optional[redis.Redis] = None
+
+    async def connect(self) -> None:
+        """Connect to Redis server"""
         try:
-            self._redis = await aioredis.create_redis_pool(**self._config)
+            self._client = await redis.from_url(self._url)
+            await self._client.ping()
         except Exception as e:
-            raise CoreError(f"Failed to initialize Redis cache: {str(e)}", cause=e)
+            raise CacheConnectionError(f"Failed to connect to Redis: {str(e)}", cause=e)
 
-    async def cleanup(self) -> None:
-        """Cleanup Redis connection"""
-        if self._redis:
-            self._redis.close()
-            await self._redis.wait_closed()
+    async def disconnect(self) -> None:
+        """Disconnect from Redis server"""
+        if self._client is not None:
+            await self._client.close()
+            self._client = None
 
-    async def get(self, key: str) -> Optional[Any]:
-        """Get value from Redis"""
+    async def get(self, key: str) -> Optional[str]:
+        """Get value from cache
+
+        Args:
+            key: Cache key
+
+        Returns:
+            Optional[str]: Cached value if exists
+        """
+        if self._client is None:
+            raise CacheError("Not connected to Redis")
+
         try:
-            value = await self._redis.get(key)
-            if value:
-                return msgpack.unpackb(value, raw=False)
-            return None
+            value = await self._client.get(key)
+            return value.decode("utf-8") if value else None
         except Exception as e:
-            raise CoreError(f"Redis get failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to get value: {str(e)}", cause=e)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
-        """Set value in Redis"""
+    async def set(self, key: str, value: str, ttl: Optional[int] = None) -> None:
+        """Set value in cache
+
+        Args:
+            key: Cache key
+            value: Value to cache
+            ttl: Time to live in seconds
+        """
+        if self._client is None:
+            raise CacheError("Not connected to Redis")
+
         try:
-            packed = msgpack.packb(value, use_bin_type=True)
-            if ttl:
-                await self._redis.setex(key, ttl, packed)
+            if ttl is not None:
+                await self._client.setex(key, ttl, value)
             else:
-                await self._redis.set(key, packed)
+                await self._client.set(key, value)
         except Exception as e:
-            raise CoreError(f"Redis set failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to set value: {str(e)}", cause=e)
 
     async def delete(self, key: str) -> None:
-        """Delete value from Redis"""
+        """Delete value from cache
+
+        Args:
+            key: Cache key
+        """
+        if self._client is None:
+            raise CacheError("Not connected to Redis")
+
         try:
-            await self._redis.delete(key)
+            await self._client.delete(key)
         except Exception as e:
-            raise CoreError(f"Redis delete failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to delete value: {str(e)}", cause=e)
 
     async def clear(self) -> None:
-        """Clear all values"""
+        """Clear all values from cache"""
+        if self._client is None:
+            raise CacheError("Not connected to Redis")
+
         try:
-            await self._redis.flushdb()
+            await self._client.flushdb()
         except Exception as e:
-            raise CoreError(f"Redis clear failed: {str(e)}", cause=e)
+            raise CacheError(f"Failed to clear cache: {str(e)}", cause=e)
