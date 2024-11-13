@@ -7,9 +7,13 @@ from rich.panel import Panel
 
 from .core.app import ConsoleApp
 from .core.config import ConsoleConfig
-from .ui.components import Button, Input, Menu, Table, TextInput, Toast, ToastType
+from .ui.components.button import Button
+from .ui.components.input import Input, TextInput
+from .ui.components.layout import Layout
+from .ui.components.menu import Menu
+from .ui.components.table import Table
+from .ui.components.toast import Toast, ToastType
 from .ui.components.wizard import WizardStep
-from .ui.layout import Layout
 from .ui.screen import Screen
 from .ui.styles import Style
 from .ui.themes import Theme
@@ -45,6 +49,10 @@ class Console:
     def info(self, message: str) -> None:
         """Display info message in a yellow panel"""
         self._print_panel(message, border_style="yellow")
+
+    def warning(self, message: str) -> None:
+        """Display warning message"""
+        self.print(f"⚠️  {message}", style="yellow")
 
     def _print_panel(
         self,

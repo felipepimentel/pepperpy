@@ -3,14 +3,18 @@
 import asyncio
 from typing import List
 
-from rich.align import Align
-from rich.box import DOUBLE, ROUNDED
-from rich.layout import Layout
-from rich.panel import Panel
-from rich.table import Table
-
 from pepperpy.console import Console
-from pepperpy.console.ui import ChatView, Dialog, Form, FormField, ListView, ProgressBar
+from pepperpy.console.ui import (
+    ChatView,
+    Dialog,
+    Form,
+    FormField,
+    Layout,
+    ListView,
+    Panel,
+    ProgressBar,
+    Table,
+)
 from pepperpy.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -39,12 +43,11 @@ async def demo_chat_view() -> None:
 
     # Criar um painel estilizado para o chat
     panel = Panel(
-        chat.render(),
-        title="[bold cyan]Chat Demo[/]",
-        subtitle="[dim]Press Ctrl+C to continue[/]",
-        border_style="cyan",
-        box=ROUNDED,
-        padding=(1, 2),
+        content=chat,
+        title="Chat Demo",
+        subtitle="Press Ctrl+C to continue",
+        style="cyan",
+        border_style="rounded",
     )
 
     console = Console()
@@ -67,12 +70,11 @@ async def demo_progress_bar() -> None:
         start = stage_num * 25
         end = (stage_num + 1) * 25
 
-        # Criar um painel para cada estágio
         panel = Panel(
-            progress.render(),
-            title=f"[bold {color}]{desc}[/]",
-            border_style=color,
-            box=ROUNDED,
+            content=progress,
+            title=desc,
+            style=color,
+            border_style="rounded",
         )
 
         for i in range(start, end + 1, 5):
@@ -127,33 +129,32 @@ async def demo_form() -> None:
 
     def submit() -> None:
         console = Console()
-        console.print("[bold green]✅ Form submitted successfully![/]")
+        console.success("Form submitted successfully!")
 
     form.add_button("📤 Submit", submit)
     await form.initialize()
 
     # Criar layout com duas colunas
     layout = Layout()
-    layout.split_column(
-        Layout(
-            Panel(
-                form.render(),
-                title="[bold blue]Registration Form[/]",
-                border_style="blue",
-                box=DOUBLE,
-            ),
+    layout.split(
+        Panel(
+            content=form,
+            title="Registration Form",
+            style="blue",
+            border_style="double",
         ),
-        Layout(
-            Panel(
+        Panel(
+            content=(
                 "✨ Fill out the form above to register\n"
                 "📝 All fields are required\n"
                 "❓ Press Tab to navigate between fields\n"
-                "↵  Press Enter to submit",
-                title="[bold cyan]Instructions[/]",
-                border_style="cyan",
-                box=ROUNDED,
+                "↵  Press Enter to submit"
             ),
+            title="Instructions",
+            style="cyan",
+            border_style="rounded",
         ),
+        direction="vertical",
     )
 
     console = Console()
@@ -177,9 +178,9 @@ async def demo_list_view() -> None:
         list_view.add_item(value, label, enabled)
 
     # Criar tabela de estatísticas
-    stats_table = Table(box=ROUNDED, border_style="cyan")
+    stats_table = Table()
     stats_table.add_column("Category", style="cyan")
-    stats_table.add_column("Count", justify="right", style="green")
+    stats_table.add_column("Count", align="right", style="green")
 
     stats = {
         "Active": sum(1 for _, _, e in items if e),
@@ -192,25 +193,21 @@ async def demo_list_view() -> None:
 
     # Layout combinando lista e estatísticas
     layout = Layout()
-    layout.split_row(
-        Layout(
-            Panel(
-                list_view.render(),
-                title="[bold blue]Task List[/]",
-                border_style="blue",
-                box=DOUBLE,
-            ),
-            ratio=2,
+    layout.split(
+        Panel(
+            content=list_view,
+            title="Task List",
+            style="blue",
+            border_style="double",
         ),
-        Layout(
-            Panel(
-                Align.center(stats_table),
-                title="[bold cyan]Statistics[/]",
-                border_style="cyan",
-                box=ROUNDED,
-            ),
-            ratio=1,
+        Panel(
+            content=stats_table,
+            title="Statistics",
+            style="cyan",
+            border_style="rounded",
         ),
+        direction="horizontal",
+        ratios=[2, 1],
     )
 
     console = Console()
@@ -233,68 +230,41 @@ async def demo_dialog() -> None:
     ]
 
     # Criar tabela de mudanças
-    changes_table = Table(box=ROUNDED, show_header=False)
-    changes_table.add_column("Change", style="cyan")
+    changes_table = Table()
+    changes_table.add_column("Change", style="cyan", show_header=False)
+
     for change in changes:
         changes_table.add_row(change)
 
     dialog.content = (
-        f"[bold]Current version:[/] {current_version}\n"
-        f"[bold]New version:[/] [green]{new_version}[/]\n\n"
-        "[bold]Changes:[/]\n"
+        f"Current version: {current_version}\n"
+        f"New version: {new_version}\n\n"
+        "Changes:\n"
         f"{changes_table}"
     )
 
     def on_update() -> None:
         console = Console()
-        console.print("[bold green]✅ Update started![/]")
+        console.success("Update started!")
 
     def on_cancel() -> None:
         console = Console()
-        console.print("[bold yellow]⏸️ Update postponed[/]")
+        console.warning("Update postponed")
 
     dialog.add_button("🔄 Update Now", on_update)
     dialog.add_button("⏳ Remind Later", on_cancel)
 
     console = Console()
-    console.print(dialog.render())
-
-
-async def run_demos() -> None:
-    """Run all demos with transitions"""
-    console = Console()
-
-    demos = [
-        ("Chat View", demo_chat_view),
-        ("Progress Bar", demo_progress_bar),
-        ("Form", demo_form),
-        ("List View", demo_list_view),
-        ("Dialog", demo_dialog),
-    ]
-
-    for i, (name, demo) in enumerate(demos, 1):
-        # Transição animada
-        console.clear()
-        console.print(
-            Panel(
-                f"[bold cyan]Demo {i}/{len(demos)}:[/] [bold blue]{name}[/]",
-                border_style="cyan",
-                box=ROUNDED,
-            )
-        )
-        await asyncio.sleep(1)
-
-        # Executar demo
-        await demo()
-
-        if i < len(demos):
-            # Aguardar input do usuário
-            input("\nPress Enter to continue...")
+    console.print(dialog)
 
 
 if __name__ == "__main__":
-    console = Console()
     try:
-        asyncio.run(run_demos())
+        asyncio.run(demo_chat_view())
+        asyncio.run(demo_progress_bar())
+        asyncio.run(demo_form())
+        asyncio.run(demo_list_view())
+        asyncio.run(demo_dialog())
     except KeyboardInterrupt:
-        console.print("\n[bold yellow]Demo finished![/] 👋")
+        console = Console()
+        console.info("Examples finished! 👋")

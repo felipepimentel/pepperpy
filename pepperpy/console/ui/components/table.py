@@ -1,15 +1,86 @@
 """Table component"""
 
 from dataclasses import dataclass
-from typing import List
+from typing import Any, List, Literal, Optional
 
-from .base import Component
+from rich.style import Style
+from rich.table import Table as RichTable
+from rich.text import Text
+
+from .base import Component, ComponentConfig
+
+JustifyMethod = Literal["left", "center", "right", "full"]
 
 
 @dataclass
-class Table(Component):
-    """Table component"""
+class Column:
+    """Table column configuration"""
 
-    columns: List[str]
-    data: List[List[str]]
-    show_border: bool = True
+    header: str
+    style: Optional[str] = None
+    align: JustifyMethod = "left"
+    show_header: bool = True
+
+
+class Table(Component):
+    """Table component for displaying tabular data"""
+
+    def __init__(
+        self, columns: Optional[List[Column]] = None, data: Optional[List[List[str]]] = None
+    ):
+        config = ComponentConfig(
+            style={
+                "header": Style(bold=True),
+                "cell": Style(),
+                "border": Style(dim=True),
+            }
+        )
+        super().__init__(config)
+        self._columns: List[Column] = columns or []
+        self._data: List[List[str]] = data or []
+
+    async def initialize(self) -> None:
+        """Initialize table"""
+        pass
+
+    async def cleanup(self) -> None:
+        """Cleanup table"""
+        pass
+
+    async def handle_input(self, key: Any) -> bool:
+        """Handle input event"""
+        return False
+
+    def add_column(
+        self,
+        header: str,
+        style: Optional[str] = None,
+        align: JustifyMethod = "left",
+        show_header: bool = True,
+    ) -> None:
+        """Add a column to the table"""
+        self._columns.append(
+            Column(header=header, style=style, align=align, show_header=show_header)
+        )
+
+    def add_row(self, *values: str) -> None:
+        """Add a row to the table"""
+        self._data.append(list(values))
+
+    def render(self) -> Text:
+        """Render table"""
+        table = RichTable(show_header=any(col.show_header for col in self._columns))
+
+        # Add columns
+        for col in self._columns:
+            table.add_column(
+                col.header if col.show_header else "",
+                style=col.style,
+                justify=col.align,
+            )
+
+        # Add rows
+        for row in self._data:
+            table.add_row(*row)
+
+        return Text.from_markup(str(table))

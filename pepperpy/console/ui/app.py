@@ -6,9 +6,9 @@ from typing import Dict, Optional, Set
 from pepperpy.core.logging import get_logger
 
 from .components.base import Component
+from .components.layout import Layout
 from .exceptions import UIError
 from .keyboard import CTRL_C, Key, KeyboardManager
-from .layout import Layout
 from .screen import Screen, ScreenConfig
 
 
