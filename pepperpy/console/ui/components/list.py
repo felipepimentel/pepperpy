@@ -30,7 +30,7 @@ class ListView(Component, Generic[T]):
             style={
                 "default": Style(color="white"),
                 "selected": Style(color="cyan", bold=True),
-                "disabled": Style(color="gray50", dim=True),
+                "disabled": Style(color="grey50"),
             },
             metadata={
                 "show_bullets": True,
@@ -40,6 +40,30 @@ class ListView(Component, Generic[T]):
         super().__init__(config=config)
         self._items: List[ListItem[T]] = []
         self._selected_index = 0
+
+    async def initialize(self) -> None:
+        """Initialize list view"""
+        self._selected_index = 0
+
+    async def cleanup(self) -> None:
+        """Cleanup list view"""
+        self._items.clear()
+        self._selected_index = 0
+
+    async def handle_input(self, key: Any) -> bool:
+        """Handle input event"""
+        from pepperpy.console.ui.keyboard import DOWN, ENTER, UP
+
+        if key == UP:
+            self.select_previous()
+            return True
+        elif key == DOWN:
+            self.select_next()
+            return True
+        elif key == ENTER:
+            if self.selected_item and self.selected_item.enabled:
+                return True
+        return False
 
     def add_item(self, value: T, label: str, enabled: bool = True) -> None:
         """Add item to list

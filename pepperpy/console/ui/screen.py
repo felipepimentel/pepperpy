@@ -1,8 +1,8 @@
 """Screen management for console UI"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from rich.console import Console
 from rich.text import Text
@@ -24,13 +24,13 @@ class ScreenConfig:
     width: int = 80
     height: int = 24
     title: str = ""
-    metadata: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class Screen:
     """Console screen manager"""
 
-    def __init__(self, config: Optional[ScreenConfig] = None):
+    def __init__(self, config: ScreenConfig | None = None):
         self.config = config or ScreenConfig()
         self._console = Console()
 
@@ -55,5 +55,10 @@ class Screen:
         self._console.print(text)
 
     def scroll(self, direction: Direction, lines: int = 1) -> None:
-        """Scroll screen content"""
+        """Scroll screen
+
+        Args:
+            direction: Scroll direction
+            lines: Number of lines to scroll
+        """
         pass
