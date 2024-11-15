@@ -1,6 +1,6 @@
 """Console module for terminal UI"""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from rich.console import Console as RichConsole
 from rich.panel import Panel
@@ -34,16 +34,19 @@ class Console:
         self._console.clear()
 
     def success(
-        self, content: str, title: Optional[str] = None, subtitle: Optional[str] = None
+        self,
+        content: str,
+        title: str | None = None,
+        subtitle: str | None = None,
     ) -> None:
         """Display success message in a green panel"""
         self._print_panel(content, title, subtitle, "green")
 
     def error(self, message: str, error: Any = None) -> None:
         """Display error message in a red panel"""
-        content = f"{message}\n{str(error)}" if error else message
+        content = f"{message}\n{error!s}" if error else message
         if hasattr(error, "cause") and error.cause:
-            content += f"\nCause: {str(error.cause)}"
+            content += f"\nCause: {error.cause!s}"
         self._print_panel(content, "Error", border_style="red")
 
     def info(self, message: str) -> None:
@@ -57,8 +60,8 @@ class Console:
     def _print_panel(
         self,
         content: str,
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        title: str | None = None,
+        subtitle: str | None = None,
         border_style: str = "cyan",
     ) -> None:
         """Internal method to print styled panel"""
@@ -68,7 +71,7 @@ class Console:
                 title=f"[bold]{title}[/]" if title else None,
                 subtitle=subtitle,
                 border_style=border_style,
-            )
+            ),
         )
 
 
@@ -76,7 +79,7 @@ class Console:
 class ConsoleTemplates:
     """Console template manager"""
 
-    _templates: Dict[str, str] = {}
+    _templates: dict[str, str] = {}
 
     @classmethod
     def add(cls, name: str, template: str) -> None:

@@ -3,7 +3,7 @@
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Protocol
+from typing import Any, Protocol
 
 from .exceptions import LoggingError
 from .formatters import JsonFormatter
@@ -17,13 +17,13 @@ class LogRecord:
     level: str
     message: str
     timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class LogHandler(Protocol):
     """Log handler protocol"""
 
-    async def handle(self, record: Dict[str, Any]) -> None: ...
+    async def handle(self, record: dict[str, Any]) -> None: ...
 
 
 class Logger:
@@ -31,7 +31,7 @@ class Logger:
 
     def __init__(self, name: str):
         self.name = name
-        self._handlers: List[LogHandler] = []
+        self._handlers: list[LogHandler] = []
         self._formatter = JsonFormatter()
 
     def add_handler(self, handler: LogHandler) -> None:
@@ -50,7 +50,7 @@ class Logger:
             }
             await asyncio.gather(*(handler.handle(record_dict) for handler in self._handlers))
         except Exception as e:
-            raise LoggingError(f"Failed to log message: {str(e)}", cause=e)
+            raise LoggingError(f"Failed to log message: {e!s}", cause=e)
 
     async def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log debug message"""
@@ -73,7 +73,7 @@ class Logger:
         await self.log("CRITICAL", msg, *args, **kwargs)
 
 
-_loggers: Dict[str, Logger] = {}
+_loggers: dict[str, Logger] = {}
 
 
 def get_logger(name: str) -> Logger:

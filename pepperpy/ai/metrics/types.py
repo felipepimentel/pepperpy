@@ -12,7 +12,7 @@ class MetricType(Enum):
     """Types of metrics"""
 
     LATENCY = "latency"
-    TOKEN_COUNT = "token_count"
+    TOKEN_COUNT = "token_count"  # noqa: S105
     PROMPT_LENGTH = "prompt_length"
     RESPONSE_LENGTH = "response_length"
     CACHE_HIT = "cache_hit"

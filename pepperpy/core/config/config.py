@@ -1,8 +1,9 @@
 """Configuration management"""
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -13,19 +14,19 @@ class ConfigField:
 
     required: bool = False
     default: Any = None
-    validator: Optional[Callable[[str], bool]] = None
-    error: Optional[str] = None
-    description: Optional[str] = None
+    validator: Callable[[str], bool] | None = None
+    error: str | None = None
+    description: str | None = None
 
 
 class Config:
     """Configuration manager"""
 
-    def __init__(self, fields: Dict[str, Dict[str, Any]]):
+    def __init__(self, fields: dict[str, dict[str, Any]]):
         load_dotenv()
         self._fields = {k: ConfigField(**v) for k, v in fields.items()}
-        self._values: Dict[str, Any] = {}
-        self._errors: Dict[str, str] = {}
+        self._values: dict[str, Any] = {}
+        self._errors: dict[str, str] = {}
         self._load_values()
 
     def _load_values(self) -> None:
@@ -45,13 +46,13 @@ class Config:
     def is_valid(self) -> bool:
         return len(self._errors) == 0
 
-    def get_errors(self) -> Dict[str, str]:
+    def get_errors(self) -> dict[str, str]:
         return self._errors
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return self._values.copy()
 
 
-def load_config(fields: Dict[str, Dict[str, Any]]) -> Config:
+def load_config(fields: dict[str, dict[str, Any]]) -> Config:
     """Load configuration from environment variables"""
     return Config(fields)

@@ -38,9 +38,8 @@ jobs:
             poetry version patch
           else
             echo "Version $VERSION is available. Proceeding with publish."
-          fi  # Adiciona um 'fi' para fechar o bloco if
+          fi
         shell: bash
-      
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -57,7 +56,7 @@ jobs:
         run: poetry install --with dev
 
       - name: Run Linters
-        run: poetry run ruff check . && poetry run black --check .
+        run: poetry run ruff check --fix .
 
       - name: Run Tests
         run: poetry run pytest

@@ -2,7 +2,7 @@
 
 from abc import ABC
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 ProviderType = Literal["openai", "openrouter", "stackspot"]
 
@@ -22,7 +22,7 @@ class BaseConfig(ABC):
         if not self.provider:
             raise ValueError("Provider is required")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary"""
         return asdict(self)
 
@@ -36,7 +36,7 @@ class OpenAIConfig(BaseConfig):
     top_p: float = 1.0
     frequency_penalty: float = 0.0
     presence_penalty: float = 0.0
-    api_base: Optional[str] = None
+    api_base: str | None = None
 
     def __init__(
         self,
@@ -47,7 +47,7 @@ class OpenAIConfig(BaseConfig):
         top_p: float = 1.0,
         frequency_penalty: float = 0.0,
         presence_penalty: float = 0.0,
-        api_base: Optional[str] = None,
+        api_base: str | None = None,
     ) -> None:
         super().__init__(provider="openai", api_key=api_key, model=model)
         self.temperature = temperature
@@ -63,16 +63,16 @@ class OpenRouterConfig(BaseConfig):
     """OpenRouter specific configuration"""
 
     base_url: str = "https://openrouter.ai/api/v1"
-    site_url: Optional[str] = None
-    site_name: Optional[str] = None
+    site_url: str | None = None
+    site_name: str | None = None
 
     def __init__(
         self,
         api_key: str,
         model: str = "anthropic/claude-3-sonnet",
         base_url: str = "https://openrouter.ai/api/v1",
-        site_url: Optional[str] = None,
-        site_name: Optional[str] = None,
+        site_url: str | None = None,
+        site_name: str | None = None,
     ) -> None:
         if not api_key:
             raise ValueError("OpenRouter API key is required")

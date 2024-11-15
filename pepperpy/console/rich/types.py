@@ -1,7 +1,6 @@
 """Rich type definitions"""
 
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 from rich.style import Style
 
@@ -10,7 +9,7 @@ from rich.style import Style
 class RichTheme:
     """Rich theme configuration"""
 
-    styles: Dict[str, Style]
+    styles: dict[str, Style]
     inherit: bool = True
 
 
@@ -19,7 +18,7 @@ class RichLayout:
     """Rich layout configuration"""
 
     name: str
-    title: Optional[str] = None
+    title: str | None = None
     minimum_size: int = 1
     ratio: int = 1
     visible: bool = True

@@ -1,7 +1,7 @@
 """State management utilities"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pepperpy.core.exceptions import PepperPyError
 
@@ -18,7 +18,7 @@ class State(Generic[T]):
     """Application state container"""
 
     data: T
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     version: int = 1
 
 
@@ -26,15 +26,17 @@ class StateManager:
     """State manager for handling application state"""
 
     def __init__(self):
-        self._states: Dict[str, State[Any]] = {}
+        self._states: dict[str, State[Any]] = {}
 
-    def set_state(self, name: str, data: Any, metadata: Optional[Dict[str, Any]] = None) -> None:
-        """Set state value
+    def set_state(self, name: str, data: Any, metadata: dict[str, Any] | None = None) -> None:
+        """
+        Set state value
 
         Args:
             name: State name
             data: State data
             metadata: Optional state metadata
+
         """
         if name in self._states:
             current = self._states[name]
@@ -48,22 +50,26 @@ class StateManager:
             version=version,
         )
 
-    def get_state(self, name: str) -> Optional[State[Any]]:
-        """Get state value
+    def get_state(self, name: str) -> State[Any] | None:
+        """
+        Get state value
 
         Args:
             name: State name
 
         Returns:
             Optional[State[Any]]: State value if exists
+
         """
         return self._states.get(name)
 
     def remove_state(self, name: str) -> None:
-        """Remove state value
+        """
+        Remove state value
 
         Args:
             name: State name
+
         """
         if name in self._states:
             del self._states[name]

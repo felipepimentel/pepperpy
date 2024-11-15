@@ -1,7 +1,6 @@
 """Console UI application"""
 
 import asyncio
-from typing import Dict, Optional, Set
 
 from pepperpy.core.logging import get_logger
 
@@ -17,12 +16,12 @@ class ConsoleApp:
 
     def __init__(self):
         self._logger = get_logger(__name__)
-        self._screen: Optional[Screen] = None
-        self._layout: Optional[Layout] = None
+        self._screen: Screen | None = None
+        self._layout: Layout | None = None
         self._keyboard = KeyboardManager()
         self._running = False
-        self._components: Dict[str, Component] = {}
-        self._tasks: Set[asyncio.Task] = set()
+        self._components: dict[str, Component] = {}
+        self._tasks: set[asyncio.Task] = set()
 
     async def initialize(self) -> None:
         """Initialize application"""
@@ -48,7 +47,7 @@ class ConsoleApp:
                 await component.initialize()
 
         except Exception as e:
-            raise UIError(f"Failed to initialize application: {str(e)}", cause=e)
+            raise UIError(f"Failed to initialize application: {e!s}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup application"""
@@ -75,7 +74,7 @@ class ConsoleApp:
             await self._keyboard.cleanup()
 
         except Exception as e:
-            raise UIError(f"Failed to cleanup application: {str(e)}", cause=e)
+            raise UIError(f"Failed to cleanup application: {e!s}", cause=e)
 
     async def run(self) -> None:
         """Run application"""
@@ -104,7 +103,7 @@ class ConsoleApp:
         except asyncio.CancelledError:
             self._running = False
         except Exception as e:
-            raise UIError(f"Application error: {str(e)}", cause=e)
+            raise UIError(f"Application error: {e!s}", cause=e)
         finally:
             await self.cleanup()
 

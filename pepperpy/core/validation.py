@@ -1,7 +1,8 @@
 """Configuration validation utilities"""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Type
+from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
@@ -19,13 +20,13 @@ class ConfigValidator:
     """Configuration validator"""
 
     def __init__(self):
-        self._rules: List[ValidationRule] = []
+        self._rules: list[ValidationRule] = []
 
     def add_rule(self, field: str, validator: Callable[[Any], bool], message: str) -> None:
         """Add custom validation rule"""
         self._rules.append(ValidationRule(field, validator, message))
 
-    def validate(self, config: Dict[str, Any], schema: Type[BaseModel]) -> BaseModel:
+    def validate(self, config: dict[str, Any], schema: type[BaseModel]) -> BaseModel:
         """Validate configuration against schema and rules"""
         try:
             # First validate against Pydantic model
@@ -44,6 +45,6 @@ class ConfigValidator:
             return validated
 
         except ValidationError as e:
-            raise ValueError(f"Invalid configuration: {str(e)}")
+            raise ValueError(f"Invalid configuration: {e!s}")
         except Exception as e:
-            raise ValueError(f"Validation failed: {str(e)}")
+            raise ValueError(f"Validation failed: {e!s}")

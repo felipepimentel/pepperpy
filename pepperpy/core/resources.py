@@ -3,14 +3,15 @@
 import inspect
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Dict, Optional, Type, TypeVar, Union, overload
+from typing import Any, TypeVar, Union, overload
 
 T = TypeVar("T")
-ResourceType = Union[str, Path, Type[Any], Callable[..., Any]]
+ResourceType = Union[str, Path, type[Any], Callable[..., Any]]
 
 
 def get_resource_path(resource: ResourceType) -> Path:
-    """Get path to a resource
+    """
+    Get path to a resource
 
     Args:
         resource: Resource to get path for. Can be:
@@ -21,6 +22,7 @@ def get_resource_path(resource: ResourceType) -> Path:
 
     Returns:
         Path: Path to the resource
+
     """
     if isinstance(resource, (str, Path)):
         return Path(resource)
@@ -40,17 +42,20 @@ def get_resource_path(resource: ResourceType) -> Path:
 class ResourceManager:
     """Resource manager for handling file paths and module locations"""
 
-    def __init__(self, base_path: Optional[Union[str, Path]] = None):
-        """Initialize resource manager
+    def __init__(self, base_path: str | Path | None = None):
+        """
+        Initialize resource manager
 
         Args:
             base_path: Base path for resolving relative paths. Defaults to current directory.
+
         """
         self.base_path = Path(base_path or Path.cwd())
-        self._paths: Dict[str, Path] = {}
+        self._paths: dict[str, Path] = {}
 
     def register(self, name: str, resource: ResourceType) -> None:
-        """Register a resource path
+        """
+        Register a resource path
 
         Args:
             name: Name to register resource as
@@ -59,6 +64,7 @@ class ResourceManager:
                 - A Path object
                 - A class
                 - A function/method
+
         """
         path = get_resource_path(resource)
         if not path.is_absolute():
@@ -69,10 +75,11 @@ class ResourceManager:
     def get(self, name: str) -> Path: ...
 
     @overload
-    def get(self, name: str, as_str: bool) -> Union[str, Path]: ...
+    def get(self, name: str, as_str: bool) -> str | Path: ...
 
-    def get(self, name: str, as_str: bool = False) -> Union[str, Path]:
-        """Get path to a registered resource
+    def get(self, name: str, as_str: bool = False) -> str | Path:
+        """
+        Get path to a registered resource
 
         Args:
             name: Name of registered resource
@@ -83,6 +90,7 @@ class ResourceManager:
 
         Raises:
             KeyError: If resource is not registered
+
         """
         if name not in self._paths:
             raise KeyError(f"Resource not registered: {name}")
@@ -91,12 +99,14 @@ class ResourceManager:
         return str(path) if as_str else path
 
     def __contains__(self, name: str) -> bool:
-        """Check if resource is registered
+        """
+        Check if resource is registered
 
         Args:
             name: Name of resource to check
 
         Returns:
             bool: True if resource is registered
+
         """
         return name in self._paths

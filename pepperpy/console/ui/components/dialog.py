@@ -1,7 +1,8 @@
 """Dialog component for console UI"""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, List
+from typing import Any
 
 from rich.style import Style
 from rich.text import Text
@@ -30,12 +31,12 @@ class Dialog(Component):
                 "button_selected": Style(color="blue", bold=True),
                 "button_disabled": Style(color="grey50"),
                 "border": Style(color="cyan"),
-            }
+            },
         )
         super().__init__(config)
         self.title = ""
         self.content = ""
-        self._buttons: List[DialogButton] = []
+        self._buttons: list[DialogButton] = []
         self._selected_button = 0
 
     async def initialize(self) -> None:
@@ -54,7 +55,7 @@ class Dialog(Component):
         if key == UP or key == DOWN:
             if self._buttons:
                 self._selected_button = (self._selected_button + (1 if key == DOWN else -1)) % len(
-                    self._buttons
+                    self._buttons,
                 )
             return True
 

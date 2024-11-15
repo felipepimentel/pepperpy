@@ -1,7 +1,7 @@
 """Memory cache provider implementation"""
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from ..config import CacheConfig
 from ..exceptions import CacheError
@@ -13,17 +13,16 @@ class MemoryCacheProvider(BaseCacheProvider):
 
     def __init__(self, config: CacheConfig):
         super().__init__(config)
-        self._cache: Dict[str, Tuple[Any, Optional[datetime]]] = {}
+        self._cache: dict[str, tuple[Any, datetime | None]] = {}
 
     async def initialize(self) -> None:
         """Initialize provider"""
-        pass
 
     async def cleanup(self) -> None:
         """Cleanup provider resources"""
         self._cache.clear()
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from cache"""
         if key not in self._cache:
             return None
@@ -35,7 +34,7 @@ class MemoryCacheProvider(BaseCacheProvider):
 
         return value
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache"""
         try:
             expires_at = None
@@ -57,7 +56,7 @@ class MemoryCacheProvider(BaseCacheProvider):
                     del self._cache[old_key]
 
         except Exception as e:
-            raise CacheError(f"Failed to set cache value: {str(e)}", cause=e)
+            raise CacheError(f"Failed to set cache value: {e!s}", cause=e)
 
     async def delete(self, key: str) -> None:
         """Delete value from cache"""

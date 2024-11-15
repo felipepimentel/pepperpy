@@ -2,7 +2,7 @@
 
 import logging
 import sys
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 from .config import LogConfig, LogLevel
 from .logger import Logger
@@ -96,7 +96,7 @@ class LoggerAdapter:
         await self.async_.critical(msg, *args, **kwargs)
 
 
-def get_logger(name: str, config: Optional[LogConfig] = None) -> LoggerAdapter:
+def get_logger(name: str, config: LogConfig | None = None) -> LoggerAdapter:
     """Get configured logger instance"""
     logger = logging.getLogger(name)
 
@@ -122,7 +122,7 @@ def get_logger(name: str, config: Optional[LogConfig] = None) -> LoggerAdapter:
         file_handler = logging.FileHandler(config.file_path)
         file_handler.setLevel(config.level.value)
         file_handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"),
         )
         logger.addHandler(file_handler)
 

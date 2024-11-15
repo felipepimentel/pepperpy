@@ -1,7 +1,7 @@
 """List component for console UI"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from rich.style import Style
 from rich.text import Text
@@ -19,7 +19,7 @@ class ListItem(Generic[T]):
     value: T
     label: str
     enabled: bool = True
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class ListView(Component, Generic[T]):
@@ -38,7 +38,7 @@ class ListView(Component, Generic[T]):
             },
         )
         super().__init__(config=config)
-        self._items: List[ListItem[T]] = []
+        self._items: list[ListItem[T]] = []
         self._selected_index = 0
 
     async def initialize(self) -> None:
@@ -57,21 +57,23 @@ class ListView(Component, Generic[T]):
         if key == UP:
             self.select_previous()
             return True
-        elif key == DOWN:
+        if key == DOWN:
             self.select_next()
             return True
-        elif key == ENTER:
+        if key == ENTER:
             if self.selected_item and self.selected_item.enabled:
                 return True
         return False
 
     def add_item(self, value: T, label: str, enabled: bool = True) -> None:
-        """Add item to list
+        """
+        Add item to list
 
         Args:
             value: Item value
             label: Item label
             enabled: Whether item is enabled
+
         """
         item = ListItem(value=value, label=label, enabled=enabled)
         self._items.append(item)
@@ -82,7 +84,7 @@ class ListView(Component, Generic[T]):
         self._selected_index = 0
 
     @property
-    def selected_item(self) -> Optional[ListItem[T]]:
+    def selected_item(self) -> ListItem[T] | None:
         """Get selected item"""
         if not self._items:
             return None

@@ -1,7 +1,7 @@
 """Text chunking implementation"""
 
 import re
-from typing import List, Optional, Pattern
+from re import Pattern
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -16,7 +16,7 @@ class TextChunker(BaseModule):
     # Common sentence boundary patterns
     SENTENCE_BOUNDARIES: Pattern = re.compile(r"(?<=[.!?])\s+(?=[A-Z])|(?<=[.!?])\s*$")
 
-    def __init__(self, config: Optional[TextConfig] = None):
+    def __init__(self, config: TextConfig | None = None):
         super().__init__()
         self.metadata = ModuleMetadata(
             name="text_chunker",
@@ -34,12 +34,12 @@ class TextChunker(BaseModule):
                 from transformers import AutoTokenizer
 
                 self._tokenizer = AutoTokenizer.from_pretrained(
-                    self.config.get("tokenizer_model", "gpt2")
+                    self.config.get("tokenizer_model", "gpt2"),
                 )
             except ImportError:
                 raise TextProcessingError(
                     "Tokenizer requested but transformers not installed. "
-                    "Install with: pip install transformers"
+                    "Install with: pip install transformers",
                 )
             except Exception as e:
                 raise TextProcessingError("Failed to initialize tokenizer", cause=e)
@@ -48,7 +48,7 @@ class TextChunker(BaseModule):
         """Cleanup resources"""
         self._tokenizer = None
 
-    async def chunk_text(self, text: str) -> List[TextChunk]:
+    async def chunk_text(self, text: str) -> list[TextChunk]:
         """Split text into chunks with metadata"""
         if not text:
             return []
@@ -61,7 +61,7 @@ class TextChunker(BaseModule):
             while current_pos < text_length:
                 # Find next chunk boundary
                 chunk_end = self._find_chunk_boundary(
-                    text, current_pos, self.config.get("max_chunk_size", 1000)
+                    text, current_pos, self.config.get("max_chunk_size", 1000),
                 )
 
                 # Extract chunk content
@@ -91,7 +91,7 @@ class TextChunker(BaseModule):
             return chunks
 
         except Exception as e:
-            raise TextProcessingError(f"Chunking failed: {str(e)}", cause=e)
+            raise TextProcessingError(f"Chunking failed: {e!s}", cause=e)
 
     def _find_chunk_boundary(self, text: str, start: int, max_size: int) -> int:
         """Find appropriate chunk boundary"""
@@ -112,7 +112,7 @@ class TextChunker(BaseModule):
 
         return pos if pos > start else start + max_size
 
-    def _count_tokens(self, text: str) -> Optional[int]:
+    def _count_tokens(self, text: str) -> int | None:
         """Count tokens if tokenizer is available"""
         if self._tokenizer:
             return len(self._tokenizer.encode(text))

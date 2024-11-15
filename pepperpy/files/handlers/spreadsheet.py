@@ -1,7 +1,7 @@
 """Spreadsheet file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -21,14 +21,14 @@ class SpreadsheetHandler(BaseHandler):
 
             return FileContent(content=df, metadata=metadata.metadata, format="spreadsheet")
         except Exception as e:
-            raise FileError(f"Failed to read spreadsheet file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read spreadsheet file: {e!s}", cause=e)
 
     async def write(
-        self, path: Path, content: pd.DataFrame, metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: pd.DataFrame, metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write spreadsheet file"""
         try:
             content.to_excel(path, index=False)
             return await self._get_metadata(path)
         except Exception as e:
-            raise FileError(f"Failed to write spreadsheet file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write spreadsheet file: {e!s}", cause=e)

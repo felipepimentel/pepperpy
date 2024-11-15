@@ -1,7 +1,7 @@
 """Text processing configuration"""
 
 from dataclasses import asdict, dataclass
-from typing import Any, Dict
+from typing import Any
 
 from pepperpy.core.config import ModuleConfig
 
@@ -17,6 +17,6 @@ class TextConfig(ModuleConfig):
     overlap: int = 100
     respect_sentences: bool = True
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         """Convert config to dictionary"""
         return asdict(self)

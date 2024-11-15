@@ -1,6 +1,6 @@
 """Sentence Transformers embedding provider"""
 
-from typing import List, Union, cast
+from typing import cast
 
 import numpy as np
 import torch
@@ -17,10 +17,12 @@ class SentenceTransformersProvider(BaseEmbeddingProvider):
     """Provider for Sentence Transformers embeddings"""
 
     def __init__(self, config: EmbeddingConfig):
-        """Initialize provider with config
+        """
+        Initialize provider with config
 
         Args:
             config: Embedding configuration
+
         """
         super().__init__(config)
         try:
@@ -31,18 +33,16 @@ class SentenceTransformersProvider(BaseEmbeddingProvider):
                 raise AIError(f"Invalid model dimension: {dimension}")
             self.model_dimension = dimension
         except Exception as e:
-            raise AIError(f"Failed to load model {config.model}: {str(e)}", cause=e)
+            raise AIError(f"Failed to load model {config.model}: {e!s}", cause=e)
 
     async def initialize(self) -> None:
         """Initialize provider"""
-        pass
 
     async def cleanup(self) -> None:
         """Cleanup provider resources"""
-        pass
 
     def _normalize_vector(
-        self, vector: Union[torch.Tensor, NDArray[np.float32], List[torch.Tensor]]
+        self, vector: torch.Tensor | NDArray[np.float32] | list[torch.Tensor],
     ) -> NDArray[np.float32]:
         """Normalize vector to numpy array"""
         if isinstance(vector, torch.Tensor):
@@ -63,9 +63,9 @@ class SentenceTransformersProvider(BaseEmbeddingProvider):
             normalized = self._normalize_vector(vector)
             return EmbeddingVector(vector=normalized, text=text)
         except Exception as e:
-            raise AIError(f"Failed to generate embedding: {str(e)}", cause=e)
+            raise AIError(f"Failed to generate embedding: {e!s}", cause=e)
 
-    async def embed_batch(self, texts: List[str]) -> List[EmbeddingVector]:
+    async def embed_batch(self, texts: list[str]) -> list[EmbeddingVector]:
         """Generate embeddings for multiple texts"""
         try:
             vectors = self.model.encode(
@@ -74,6 +74,6 @@ class SentenceTransformersProvider(BaseEmbeddingProvider):
                 normalize_embeddings=True,
             )
             normalized = self._normalize_vector(vectors)
-            return [EmbeddingVector(vector=vec, text=text) for vec, text in zip(normalized, texts)]
+            return [EmbeddingVector(vector=vec, text=text) for vec, text in zip(normalized, texts, strict=False)]
         except Exception as e:
-            raise AIError(f"Failed to generate embeddings: {str(e)}", cause=e)
+            raise AIError(f"Failed to generate embeddings: {e!s}", cause=e)

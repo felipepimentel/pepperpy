@@ -12,28 +12,23 @@ class DatabaseError(Exception):
 class ConnectionError(DatabaseError):
     """Database connection error"""
 
-    pass
 
 
 class QueryError(DatabaseError):
     """Query execution error"""
 
-    pass
 
 
 class TransactionError(DatabaseError):
     """Transaction error"""
 
-    pass
 
 
 class ConfigurationError(DatabaseError):
     """Configuration error"""
 
-    pass
 
 
 class EngineError(DatabaseError):
     """Engine-related error"""
 
-    pass

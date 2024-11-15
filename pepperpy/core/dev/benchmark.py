@@ -2,9 +2,10 @@
 
 import asyncio
 import time
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, AsyncGenerator, Awaitable, Callable, Dict, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from pepperpy.core.logging import get_logger
 
@@ -18,7 +19,7 @@ class BenchmarkResult:
     name: str
     elapsed: float
     iterations: int
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class Benchmark:
@@ -32,10 +33,12 @@ class Benchmark:
 
     @asynccontextmanager
     async def run(self) -> AsyncGenerator[BenchmarkResult, None]:
-        """Run benchmark
+        """
+        Run benchmark
 
         Yields:
             AsyncGenerator[BenchmarkResult, None]: Benchmark result
+
         """
         self._start_time = time.perf_counter()
         try:
@@ -57,13 +60,15 @@ class Benchmark:
 
 
 def benchmark(name: str) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
-    """Decorator for benchmarking functions
+    """
+    Decorator for benchmarking functions
 
     Args:
         name: Benchmark name
 
     Returns:
         Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]: Decorated function
+
     """
 
     def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:

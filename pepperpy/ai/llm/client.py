@@ -1,6 +1,6 @@
 """LLM client implementation"""
 
-from typing import AsyncIterator, List, Optional
+from collections.abc import AsyncIterator
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -12,14 +12,16 @@ from .types import LLMResponse, Message
 class LLMClient(BaseModule):
     """Client for language model operations"""
 
-    def __init__(self, config: Optional[ProviderConfig] = None) -> None:
-        """Initialize LLM client
+    def __init__(self, config: ProviderConfig | None = None) -> None:
+        """
+        Initialize LLM client
 
         Args:
             config: Provider configuration
+
         """
         super().__init__()
-        self._config: Optional[ProviderConfig] = None
+        self._config: ProviderConfig | None = None
         self._provider = None
 
         # Configurar o módulo
@@ -36,7 +38,7 @@ class LLMClient(BaseModule):
             self._config = config
 
     @property
-    def config(self) -> Optional[ProviderConfig]:
+    def config(self) -> ProviderConfig | None:
         """Get provider configuration"""
         return self._config
 
@@ -52,17 +54,18 @@ class LLMClient(BaseModule):
             try:
                 await self._provider.initialize()
             except Exception as e:
-                raise LLMError(f"Provider initialization failed: {str(e)}", cause=e)
+                raise LLMError(f"Provider initialization failed: {e!s}", cause=e)
         except Exception as e:
-            raise LLMError(f"Failed to initialize LLM provider: {str(e)}", cause=e)
+            raise LLMError(f"Failed to initialize LLM provider: {e!s}", cause=e)
 
     async def _cleanup(self) -> None:
         """Cleanup LLM resources"""
         if self._provider:
             await self._provider.cleanup()
 
-    async def complete(self, messages: List[Message]) -> LLMResponse:
-        """Generate completion from messages
+    async def complete(self, messages: list[Message]) -> LLMResponse:
+        """
+        Generate completion from messages
 
         Args:
             messages: List of messages to process
@@ -72,13 +75,15 @@ class LLMClient(BaseModule):
 
         Raises:
             LLMError: If provider is not initialized or completion fails
+
         """
         if not self._provider:
             raise LLMError("LLM provider not initialized")
         return await self._provider.complete(messages)
 
-    async def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
-        """Stream responses from messages
+    async def stream(self, messages: list[Message]) -> AsyncIterator[LLMResponse]:
+        """
+        Stream responses from messages
 
         Args:
             messages: List of messages to process
@@ -88,6 +93,7 @@ class LLMClient(BaseModule):
 
         Raises:
             LLMError: If provider is not initialized or streaming fails
+
         """
         if not self._provider:
             raise LLMError("LLM provider not initialized")
@@ -96,7 +102,7 @@ class LLMClient(BaseModule):
             async for response in self._provider.stream(messages):
                 yield response
         except Exception as e:
-            raise LLMError(f"Failed to stream responses: {str(e)}", cause=e)
+            raise LLMError(f"Failed to stream responses: {e!s}", cause=e)
 
 
 # Global client instance

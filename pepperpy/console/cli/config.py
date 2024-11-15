@@ -1,7 +1,6 @@
 """CLI configuration"""
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -11,5 +10,5 @@ class CLIConfig:
     name: str = "app"
     description: str = ""
     version: str = "1.0.0"
-    author: Optional[str] = None
-    help_text: Optional[str] = None
+    author: str | None = None
+    help_text: str | None = None

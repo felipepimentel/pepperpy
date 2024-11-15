@@ -1,8 +1,14 @@
 """LLM provider factory"""
 
-from typing import Any, Dict, Optional, Type, Union, cast
+from typing import Any, Union, cast
 
-from .config import BaseConfig, OpenAIConfig, OpenRouterConfig, ProviderType, StackSpotConfig
+from .config import (
+    BaseConfig,
+    OpenAIConfig,
+    OpenRouterConfig,
+    ProviderType,
+    StackSpotConfig,
+)
 from .exceptions import ConfigurationError
 from .providers.base import BaseLLMProvider
 from .providers.openai import OpenAIProvider
@@ -15,7 +21,9 @@ ProviderConfig = Union[OpenAIConfig, OpenRouterConfig, StackSpotConfig]
 class ProviderFactory:
     """Factory for LLM providers"""
 
-    _providers: Dict[ProviderType, tuple[Type[BaseLLMProvider[Any]], Type[BaseConfig]]] = {
+    _providers: dict[
+        ProviderType, tuple[type[BaseLLMProvider[Any]], type[BaseConfig]],
+    ] = {
         "openai": (OpenAIProvider, OpenAIConfig),
         "openrouter": (OpenRouterProvider, OpenRouterConfig),
         "stackspot": (StackSpotProvider, StackSpotConfig),
@@ -23,7 +31,7 @@ class ProviderFactory:
 
     @classmethod
     def get_provider(
-        cls, provider_type: ProviderType, config: Optional[ProviderConfig] = None
+        cls, provider_type: ProviderType, config: ProviderConfig | None = None,
     ) -> BaseLLMProvider[Any]:
         """Get LLM provider instance"""
         if provider_type not in cls._providers:
@@ -37,7 +45,7 @@ class ProviderFactory:
         if not isinstance(config, config_class):
             raise ConfigurationError(
                 f"Invalid configuration type for provider {provider_type}. "
-                f"Expected {config_class.__name__}, got {type(config).__name__}"
+                f"Expected {config_class.__name__}, got {type(config).__name__}",
             )
 
         provider = cast(BaseLLMProvider[Any], provider_class(config=config))
@@ -46,7 +54,7 @@ class ProviderFactory:
 
 # Convenience function
 def get_provider(
-    provider_type: ProviderType, config: Optional[ProviderConfig] = None
+    provider_type: ProviderType, config: ProviderConfig | None = None,
 ) -> BaseLLMProvider[Any]:
     """Get LLM provider instance"""
     return ProviderFactory.get_provider(provider_type, config)

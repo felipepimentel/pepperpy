@@ -2,7 +2,6 @@
 
 import io
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 import cv2
 import moviepy.editor as mp
@@ -27,7 +26,7 @@ class MediaHandler(BaseHandler):
         try:
             return Image.open(path)
         except Exception as e:
-            raise FileError(f"Failed to read image: {str(e)}", cause=e)
+            raise FileError(f"Failed to read image: {e!s}", cause=e)
 
     async def read_video(self, path: Path) -> cv2.VideoCapture:
         """Read video file"""
@@ -37,14 +36,14 @@ class MediaHandler(BaseHandler):
                 raise FileError("Failed to open video file")
             return cap
         except Exception as e:
-            raise FileError(f"Failed to read video: {str(e)}", cause=e)
+            raise FileError(f"Failed to read video: {e!s}", cause=e)
 
     async def read_audio(self, path: Path) -> AudioSegment:
         """Read audio file"""
         try:
             return AudioSegment.from_file(path)
         except Exception as e:
-            raise FileError(f"Failed to read audio: {str(e)}", cause=e)
+            raise FileError(f"Failed to read audio: {e!s}", cause=e)
 
     async def get_media_info(self, path: Path) -> MediaInfo:
         """Get media file information"""
@@ -62,7 +61,7 @@ class MediaHandler(BaseHandler):
                     channels=len(img.getbands()),
                 )
 
-            elif suffix in self.SUPPORTED_VIDEO_FORMATS:
+            if suffix in self.SUPPORTED_VIDEO_FORMATS:
                 cap = await self.read_video(path)
                 return MediaInfo(
                     type="video",
@@ -73,7 +72,7 @@ class MediaHandler(BaseHandler):
                     total_frames=int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),
                 )
 
-            elif suffix in self.SUPPORTED_AUDIO_FORMATS:
+            if suffix in self.SUPPORTED_AUDIO_FORMATS:
                 audio = await self.read_audio(path)
                 return MediaInfo(
                     type="audio",
@@ -83,15 +82,14 @@ class MediaHandler(BaseHandler):
                     frame_rate=audio.frame_rate,
                 )
 
-            else:
-                raise FileError(f"Unsupported media format: {suffix}")
+            raise FileError(f"Unsupported media format: {suffix}")
 
         except Exception as e:
-            raise FileError(f"Failed to get media info: {str(e)}", cause=e)
+            raise FileError(f"Failed to get media info: {e!s}", cause=e)
 
     # Image Operations
     async def resize_image(
-        self, image: Image.Image, size: Tuple[int, int], keep_aspect: bool = True
+        self, image: Image.Image, size: tuple[int, int], keep_aspect: bool = True,
     ) -> Image.Image:
         """Resize image"""
         try:
@@ -100,7 +98,7 @@ class MediaHandler(BaseHandler):
                 return image
             return image.resize(size)
         except Exception as e:
-            raise FileError(f"Failed to resize image: {str(e)}", cause=e)
+            raise FileError(f"Failed to resize image: {e!s}", cause=e)
 
     async def convert_image(self, image: Image.Image, format: str, **kwargs) -> bytes:
         """Convert image format"""
@@ -109,30 +107,29 @@ class MediaHandler(BaseHandler):
             image.save(output, format=format, **kwargs)
             return output.getvalue()
         except Exception as e:
-            raise FileError(f"Failed to convert image: {str(e)}", cause=e)
+            raise FileError(f"Failed to convert image: {e!s}", cause=e)
 
     async def apply_filter(self, image: Image.Image, filter_name: str, **params) -> Image.Image:
         """Apply image filter"""
         try:
             if filter_name == "blur":
                 return image.filter(ImageFilter.GaussianBlur(params.get("radius", 2)))
-            elif filter_name == "sharpen":
+            if filter_name == "sharpen":
                 return image.filter(ImageFilter.SHARPEN)
-            elif filter_name == "grayscale":
+            if filter_name == "grayscale":
                 return image.convert("L")
-            else:
-                raise FileError(f"Unknown filter: {filter_name}")
+            raise FileError(f"Unknown filter: {filter_name}")
         except Exception as e:
-            raise FileError(f"Failed to apply filter: {str(e)}", cause=e)
+            raise FileError(f"Failed to apply filter: {e!s}", cause=e)
 
     # Video Operations
     async def extract_frames(
         self,
         video: cv2.VideoCapture,
         start_time: float = 0,
-        end_time: Optional[float] = None,
+        end_time: float | None = None,
         interval: float = 1.0,
-    ) -> List[np.ndarray]:
+    ) -> list[np.ndarray]:
         """Extract frames from video"""
         try:
             frames = []
@@ -155,10 +152,10 @@ class MediaHandler(BaseHandler):
 
             return frames
         except Exception as e:
-            raise FileError(f"Failed to extract frames: {str(e)}", cause=e)
+            raise FileError(f"Failed to extract frames: {e!s}", cause=e)
 
     async def create_video(
-        self, frames: List[np.ndarray], output_path: Path, fps: float = 30.0, codec: str = "mp4v"
+        self, frames: list[np.ndarray], output_path: Path, fps: float = 30.0, codec: str = "mp4v",
     ) -> None:
         """Create video from frames"""
         try:
@@ -176,11 +173,11 @@ class MediaHandler(BaseHandler):
             out.release()
 
         except Exception as e:
-            raise FileError(f"Failed to create video: {str(e)}", cause=e)
+            raise FileError(f"Failed to create video: {e!s}", cause=e)
 
     # Audio Operations
     async def trim_audio(
-        self, audio: AudioSegment, start_ms: int, end_ms: Optional[int] = None
+        self, audio: AudioSegment, start_ms: int, end_ms: int | None = None,
     ) -> AudioSegment:
         """Trim audio segment"""
         try:
@@ -199,10 +196,10 @@ class MediaHandler(BaseHandler):
             return slice_data
 
         except Exception as e:
-            raise FileError(f"Failed to trim audio: {str(e)}", cause=e)
+            raise FileError(f"Failed to trim audio: {e!s}", cause=e)
 
     async def adjust_audio(
-        self, audio: AudioSegment, volume_db: float = 0, speed: float = 1.0, normalize: bool = False
+        self, audio: AudioSegment, volume_db: float = 0, speed: float = 1.0, normalize: bool = False,
     ) -> AudioSegment:
         """Adjust audio properties"""
         try:
@@ -213,13 +210,13 @@ class MediaHandler(BaseHandler):
 
             if speed != 1.0:
                 result = result._spawn(
-                    result.raw_data, overrides={"frame_rate": int(result.frame_rate * speed)}
+                    result.raw_data, overrides={"frame_rate": int(result.frame_rate * speed)},
                 )
 
             if normalize:
                 max_possible = 32767  # Max possible amplitude for 16-bit audio
                 peak_amplitude = max(
-                    abs(min(result.get_array_of_samples())), abs(max(result.get_array_of_samples()))
+                    abs(min(result.get_array_of_samples())), abs(max(result.get_array_of_samples())),
                 )
 
                 if peak_amplitude > 0:
@@ -229,10 +226,10 @@ class MediaHandler(BaseHandler):
             return result
 
         except Exception as e:
-            raise FileError(f"Failed to adjust audio: {str(e)}", cause=e)
+            raise FileError(f"Failed to adjust audio: {e!s}", cause=e)
 
     async def mix_audio(
-        self, segments: List[AudioSegment], crossfade_ms: int = 100
+        self, segments: list[AudioSegment], crossfade_ms: int = 100,
     ) -> AudioSegment:
         """Mix multiple audio segments"""
         try:
@@ -246,7 +243,7 @@ class MediaHandler(BaseHandler):
             return result
 
         except Exception as e:
-            raise FileError(f"Failed to mix audio: {str(e)}", cause=e)
+            raise FileError(f"Failed to mix audio: {e!s}", cause=e)
 
     async def extract_audio(self, video_path: Path, output_path: Path) -> None:
         """Extract audio from video"""
@@ -259,10 +256,10 @@ class MediaHandler(BaseHandler):
             video.close()
 
         except Exception as e:
-            raise FileError(f"Failed to extract audio: {str(e)}", cause=e)
+            raise FileError(f"Failed to extract audio: {e!s}", cause=e)
 
     async def add_audio_to_video(
-        self, video_path: Path, audio_path: Path, output_path: Path
+        self, video_path: Path, audio_path: Path, output_path: Path,
     ) -> None:
         """Add audio track to video"""
         try:
@@ -276,4 +273,4 @@ class MediaHandler(BaseHandler):
             audio.close()
 
         except Exception as e:
-            raise FileError(f"Failed to add audio to video: {str(e)}", cause=e)
+            raise FileError(f"Failed to add audio to video: {e!s}", cause=e)

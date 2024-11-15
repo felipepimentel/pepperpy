@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pepperpy.core.types import JsonDict
 
@@ -13,7 +13,7 @@ class CacheEntry:
 
     key: str
     value: Any
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
     metadata: JsonDict = field(default_factory=dict)
 

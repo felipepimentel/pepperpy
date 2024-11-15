@@ -1,6 +1,6 @@
 """Cache manager implementation"""
 
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -16,10 +16,10 @@ VT = TypeVar("VT")
 class CacheManager(BaseModule):
     """Manager for cache operations"""
 
-    _config: Optional[CacheConfig]
-    _provider: Optional[BaseCacheProvider]
+    _config: CacheConfig | None
+    _provider: BaseCacheProvider | None
 
-    def __init__(self, config: Optional[CacheConfig] = None):
+    def __init__(self, config: CacheConfig | None = None):
         super().__init__()
         self._config = config or CacheConfig()
         self.metadata = ModuleMetadata(
@@ -46,13 +46,13 @@ class CacheManager(BaseModule):
         if self._provider:
             await self._provider.cleanup()
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from cache"""
         if not self._provider:
             raise CacheError("Cache provider not initialized")
         return await self._provider.get(key)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache"""
         if not self._provider:
             raise CacheError("Cache provider not initialized")

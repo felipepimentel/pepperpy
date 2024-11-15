@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 import psutil
 
@@ -19,10 +19,10 @@ class ResourceUsage:
 
     cpu_percent: float
     memory_percent: float
-    disk_usage: Dict[str, float]
-    network_io: Dict[str, int]
+    disk_usage: dict[str, float]
+    network_io: dict[str, int]
     timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class PerformanceMonitor:
@@ -30,13 +30,15 @@ class PerformanceMonitor:
 
     def __init__(self):
         self._process = psutil.Process()
-        self._last_usage: Optional[ResourceUsage] = None
+        self._last_usage: ResourceUsage | None = None
 
     def get_resource_usage(self) -> ResourceUsage:
-        """Get current resource usage
+        """
+        Get current resource usage
 
         Returns:
             ResourceUsage: Current resource usage information
+
         """
         try:
             # Get CPU and memory usage
@@ -70,13 +72,15 @@ class PerformanceMonitor:
             return usage
 
         except Exception as e:
-            raise PerformanceError(f"Failed to get resource usage: {str(e)}", cause=e)
+            raise PerformanceError(f"Failed to get resource usage: {e!s}", cause=e)
 
-    def get_process_info(self) -> Dict[str, Any]:
-        """Get current process information
+    def get_process_info(self) -> dict[str, Any]:
+        """
+        Get current process information
 
         Returns:
             Dict[str, Any]: Process information
+
         """
         try:
             return {
@@ -88,10 +92,10 @@ class PerformanceMonitor:
                 "connections": len(self._process.connections()),
             }
         except Exception as e:
-            raise PerformanceError(f"Failed to get process info: {str(e)}", cause=e)
+            raise PerformanceError(f"Failed to get process info: {e!s}", cause=e)
 
     @property
-    def last_usage(self) -> Optional[ResourceUsage]:
+    def last_usage(self) -> ResourceUsage | None:
         """Get last recorded resource usage"""
         return self._last_usage
 

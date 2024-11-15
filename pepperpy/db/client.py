@@ -11,12 +11,12 @@ class DatabaseClient:
 
     async def connect(self) -> None:
         """Establish database connection"""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     async def disconnect(self) -> None:
         """Close database connection"""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     async def execute_query(self, query: str) -> QueryResult:
         """Execute a database query"""
-        raise NotImplementedError()
+        raise NotImplementedError

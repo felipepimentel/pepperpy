@@ -1,7 +1,6 @@
 """Security configuration"""
 
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 @dataclass
@@ -16,7 +15,7 @@ class SecurityConfig:
     password_require_special: bool = True
     password_require_uppercase: bool = True
     password_require_lowercase: bool = True
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -29,4 +28,4 @@ class AuthConfig:
     max_login_attempts: int = 3
     lockout_duration: int = 300  # 5 minutes
     session_duration: int = 86400  # 24 hours
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)

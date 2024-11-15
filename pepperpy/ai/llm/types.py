@@ -1,7 +1,7 @@
 """LLM types and configurations"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Literal, TypedDict
+from typing import Any, Literal, TypedDict
 
 
 class Message(TypedDict):
@@ -17,8 +17,8 @@ class LLMResponse:
 
     content: str
     model: str
-    usage: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    usage: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

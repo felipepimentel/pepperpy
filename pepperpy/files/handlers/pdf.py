@@ -1,7 +1,7 @@
 """PDF file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import aiofiles
 
@@ -26,10 +26,10 @@ class PDFHandler(BaseHandler):
 
             return FileContent(content=pdf_content, metadata=metadata.metadata, format="pdf")
         except Exception as e:
-            raise FileError(f"Failed to read PDF file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read PDF file: {e!s}", cause=e)
 
     async def write(
-        self, path: Path, content: PDFDocument, metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: PDFDocument, metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write PDF file"""
         try:
@@ -37,10 +37,11 @@ class PDFHandler(BaseHandler):
             content.save(str(path))
             return await self._get_metadata(path)
         except Exception as e:
-            raise FileError(f"Failed to write PDF file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write PDF file: {e!s}", cause=e)
 
     def _parse_pdf(self, content: bytes) -> PDFDocument:
-        """Parse PDF content
+        """
+        Parse PDF content
 
         Args:
             content: Raw PDF content in bytes
@@ -50,6 +51,7 @@ class PDFHandler(BaseHandler):
 
         Raises:
             NotImplementedError: PDF parsing not implemented
+
         """
         # Implementar a lógica de parsing do PDF
         raise NotImplementedError("PDF parsing not implemented")

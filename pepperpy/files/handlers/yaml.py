@@ -1,7 +1,7 @@
 """YAML file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 
@@ -24,10 +24,10 @@ class YAMLHandler(BaseHandler):
 
             return FileContent(content=data, metadata=metadata.metadata, format="yaml")
         except Exception as e:
-            raise FileError(f"Failed to read YAML file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read YAML file: {e!s}", cause=e)
 
     async def write(
-        self, path: Path, content: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: dict[str, Any], metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write YAML file"""
         try:
@@ -36,4 +36,4 @@ class YAMLHandler(BaseHandler):
 
             return await self._write_file(path, yaml_content)
         except Exception as e:
-            raise FileError(f"Failed to write YAML file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write YAML file: {e!s}", cause=e)

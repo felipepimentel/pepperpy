@@ -5,8 +5,9 @@ import functools
 import inspect
 import sys
 import traceback
+from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
-from typing import Any, Awaitable, Callable, Dict, Iterator, Optional, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from pepperpy.core.logging import get_logger
 
@@ -19,14 +20,16 @@ class Debugger:
     def __init__(self, name: str):
         self.name = name
         self._logger = get_logger(__name__)
-        self._locals: Dict[str, Any] = {}
+        self._locals: dict[str, Any] = {}
 
     @contextmanager
     def debug(self) -> Iterator[None]:
-        """Debug context
+        """
+        Debug context
 
         Yields:
             Iterator[None]: Debug context
+
         """
         try:
             frame = inspect.currentframe()
@@ -55,7 +58,7 @@ class Debugger:
         finally:
             self._locals.clear()
 
-    def _log_error(self, message: str, error_info: Dict[str, Any]) -> None:
+    def _log_error(self, message: str, error_info: dict[str, Any]) -> None:
         """Log error synchronously"""
         # Criar uma string formatada com todas as informações
         error_msg = (
@@ -67,14 +70,16 @@ class Debugger:
         print(error_msg, file=sys.stderr)
 
 
-def debug(name: Optional[str] = None) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    """Decorator for debugging functions
+def debug(name: str | None = None) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """
+    Decorator for debugging functions
 
     Args:
         name: Debug context name
 
     Returns:
         Callable[[Callable[..., T]], Callable[..., T]]: Decorated function
+
     """
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
@@ -92,15 +97,17 @@ def debug(name: Optional[str] = None) -> Callable[[Callable[..., T]], Callable[.
 
 
 def debug_async(
-    name: Optional[str] = None,
+    name: str | None = None,
 ) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
-    """Decorator for debugging async functions
+    """
+    Decorator for debugging async functions
 
     Args:
         name: Debug context name
 
     Returns:
         Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]: Decorated function
+
     """
 
     def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:

@@ -2,9 +2,10 @@
 
 import asyncio
 import ssl
+from collections.abc import AsyncIterator
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, List, Optional, Protocol, Tuple, Union
+from typing import Any, Protocol
 
 import aiohttp
 from aiohttp import ClientTimeout
@@ -23,7 +24,7 @@ class ProgressCallback(Protocol):
 class NetworkClient(BaseModule):
     """Client for network operations"""
 
-    def __init__(self, config: Optional[NetworkConfig] = None) -> None:
+    def __init__(self, config: NetworkConfig | None = None) -> None:
         super().__init__()
         self.metadata = ModuleMetadata(
             name="network",
@@ -32,8 +33,8 @@ class NetworkClient(BaseModule):
             dependencies=["aiohttp>=3.9.0"],
             config=asdict(config) if config else {},
         )
-        self._session: Optional[aiohttp.ClientSession] = None
-        self._ws_connections: Dict[str, WebSocket] = {}
+        self._session: aiohttp.ClientSession | None = None
+        self._ws_connections: dict[str, WebSocket] = {}
 
     async def _setup(self) -> None:
         """Initialize network client"""
@@ -47,7 +48,8 @@ class NetworkClient(BaseModule):
 
             # Create session with custom settings
             timeout = aiohttp.ClientTimeout(
-                total=self.config.get("timeout", 30), connect=self.config.get("connect_timeout", 10)
+                total=self.config.get("timeout", 30),
+                connect=self.config.get("connect_timeout", 10),
             )
 
             self._session = aiohttp.ClientSession(
@@ -107,14 +109,14 @@ class NetworkClient(BaseModule):
             raise NetworkError("Max retries exceeded")
 
         except Exception as e:
-            raise NetworkError(f"Request failed: {str(e)}", cause=e)
+            raise NetworkError(f"Request failed: {e!s}", cause=e)
 
     async def download_file(
         self,
         url: str,
-        path: Union[str, Path],
+        path: str | Path,
         chunk_size: int = 8192,
-        progress_callback: Optional[ProgressCallback] = None,
+        progress_callback: ProgressCallback | None = None,
     ) -> Path:
         """Download file with progress tracking"""
         if not self._session:
@@ -138,10 +140,13 @@ class NetworkClient(BaseModule):
             return path
 
         except Exception as e:
-            raise NetworkError(f"Download failed: {str(e)}", cause=e)
+            raise NetworkError(f"Download failed: {e!s}", cause=e)
 
     async def websocket_connect(
-        self, url: str, protocols: Optional[List[str]] = None, **kwargs
+        self,
+        url: str,
+        protocols: list[str] | None = None,
+        **kwargs,
     ) -> WebSocket:
         """Create WebSocket connection"""
         if not self._session:
@@ -156,10 +161,14 @@ class NetworkClient(BaseModule):
             return connection
 
         except Exception as e:
-            raise NetworkError(f"WebSocket connection failed: {str(e)}", cause=e)
+            raise NetworkError(f"WebSocket connection failed: {e!s}", cause=e)
 
     async def stream_request(
-        self, method: str, url: str, chunk_size: int = 8192, **kwargs
+        self,
+        method: str,
+        url: str,
+        chunk_size: int = 8192,
+        **kwargs,
     ) -> AsyncIterator[bytes]:
         """Stream response data"""
         if not self._session:
@@ -171,15 +180,22 @@ class NetworkClient(BaseModule):
                     yield chunk
 
         except Exception as e:
-            raise NetworkError(f"Stream request failed: {str(e)}", cause=e)
+            raise NetworkError(f"Stream request failed: {e!s}", cause=e)
 
     async def graphql_query(
-        self, url: str, query: str, variables: Optional[Dict[str, Any]] = None, **kwargs
-    ) -> Dict[str, Any]:
+        self,
+        url: str,
+        query: str,
+        variables: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> dict[str, Any]:
         """Execute GraphQL query"""
         try:
             response = await self.request(
-                "POST", url, json={"query": query, "variables": variables}, **kwargs
+                "POST",
+                url,
+                json={"query": query, "variables": variables},
+                **kwargs,
             )
 
             if response.status != 200:
@@ -198,16 +214,16 @@ class NetworkClient(BaseModule):
             return result["data"]
 
         except Exception as e:
-            raise NetworkError(f"GraphQL request failed: {str(e)}", cause=e)
+            raise NetworkError(f"GraphQL request failed: {e!s}", cause=e)
 
-    async def health_check(self, urls: List[str], timeout: float = 5.0) -> Dict[str, bool]:
+    async def health_check(self, urls: list[str], timeout: float = 5.0) -> dict[str, bool]:
         """Check health of multiple endpoints"""
         if not self._session:
             raise NetworkError("Session not initialized")
 
         try:
 
-            async def check_url(url: str) -> Tuple[str, bool]:
+            async def check_url(url: str) -> tuple[str, bool]:
                 try:
                     timeout_obj = ClientTimeout(total=timeout)
                     response = await self.request("GET", url, timeout=timeout_obj)
@@ -220,7 +236,7 @@ class NetworkClient(BaseModule):
             return dict(results)
 
         except Exception as e:
-            raise NetworkError(f"Health check failed: {str(e)}", cause=e)
+            raise NetworkError(f"Health check failed: {e!s}", cause=e)
 
     async def rate_limit(self, requests_per_second: float) -> None:
         """Apply rate limiting"""

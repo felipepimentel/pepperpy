@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 from rich.text import Text
 
@@ -11,8 +11,8 @@ from rich.text import Text
 class ComponentConfig:
     """Component configuration"""
 
-    style: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    style: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     x: int = 0
     y: int = 0
     width: int = 0
@@ -33,31 +33,32 @@ class Component(ABC):
 
     @abstractmethod
     def render(self) -> Text:
-        """Render component
+        """
+        Render component
 
         Returns:
             Text: Rendered component
+
         """
-        pass
 
     @abstractmethod
     async def initialize(self) -> None:
         """Initialize component"""
-        pass
 
     @abstractmethod
     async def cleanup(self) -> None:
         """Cleanup component"""
-        pass
 
     @abstractmethod
     async def handle_input(self, key: Any) -> bool:
-        """Handle input event
+        """
+        Handle input event
 
         Args:
             key: Input key
 
         Returns:
             bool: True if input was handled
+
         """
         return False

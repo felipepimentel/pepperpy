@@ -12,7 +12,6 @@ class LLMError(Exception):
 class ProviderError(LLMError):
     """Exception raised by LLM providers"""
 
-    pass
 
 
 class ConfigurationError(LLMError):

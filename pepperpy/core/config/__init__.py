@@ -1,7 +1,7 @@
 """Core configuration module"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .config import Config, load_config
 
@@ -13,9 +13,9 @@ class ModuleConfig:
     name: str
     version: str
     debug: bool = False
-    description: Optional[str] = None
-    dependencies: Optional[List[str]] = None
-    config: Dict[str, Any] = field(default_factory=dict)
+    description: str | None = None
+    dependencies: list[str] | None = None
+    config: dict[str, Any] = field(default_factory=dict)
 
 
 __all__ = ["ModuleConfig", "Config", "load_config"]

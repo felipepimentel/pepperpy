@@ -1,7 +1,7 @@
 """Text processing implementation"""
 
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -12,7 +12,7 @@ from .exceptions import TextProcessingError
 class TextProcessor(BaseModule):
     """Text processing and manipulation"""
 
-    def __init__(self, config: Optional[TextConfig] = None):
+    def __init__(self, config: TextConfig | None = None):
         super().__init__()
         self.metadata = ModuleMetadata(
             name="text_processor",
@@ -24,11 +24,9 @@ class TextProcessor(BaseModule):
 
     async def _setup(self) -> None:
         """Initialize processor"""
-        pass
 
     async def _cleanup(self) -> None:
         """Cleanup resources"""
-        pass
 
     async def clean_text(self, text: str) -> str:
         """Clean and normalize text"""
@@ -50,9 +48,9 @@ class TextProcessor(BaseModule):
             return text.strip()
 
         except Exception as e:
-            raise TextProcessingError(f"Text cleaning failed: {str(e)}", cause=e)
+            raise TextProcessingError(f"Text cleaning failed: {e!s}", cause=e)
 
-    async def extract_metadata(self, text: str) -> Dict[str, Any]:
+    async def extract_metadata(self, text: str) -> dict[str, Any]:
         """Extract metadata from text"""
         metadata = {}
 
@@ -92,9 +90,9 @@ class TextProcessor(BaseModule):
             return metadata
 
         except Exception as e:
-            raise TextProcessingError(f"Metadata extraction failed: {str(e)}", cause=e)
+            raise TextProcessingError(f"Metadata extraction failed: {e!s}", cause=e)
 
-    async def format_text(self, text: str, width: Optional[int] = None, indent: int = 0) -> str:
+    async def format_text(self, text: str, width: int | None = None, indent: int = 0) -> str:
         """Format text with wrapping and indentation"""
         try:
             if not width:
@@ -122,4 +120,4 @@ class TextProcessor(BaseModule):
             return "\n".join(lines)
 
         except Exception as e:
-            raise TextProcessingError(f"Text formatting failed: {str(e)}", cause=e)
+            raise TextProcessingError(f"Text formatting failed: {e!s}", cause=e)

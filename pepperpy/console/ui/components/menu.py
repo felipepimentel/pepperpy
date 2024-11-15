@@ -1,7 +1,7 @@
 """Menu component"""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, List, Tuple
 
 from .base import Component
 
@@ -10,4 +10,4 @@ from .base import Component
 class Menu(Component):
     """Menu component"""
 
-    items: List[Tuple[str, Callable[[], None]]]
+    items: list[tuple[str, Callable[[], None]]]

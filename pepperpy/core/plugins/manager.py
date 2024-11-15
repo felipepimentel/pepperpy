@@ -3,7 +3,7 @@
 import importlib
 import inspect
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -22,12 +22,11 @@ class PluginManager(BaseModule):
             dependencies=[],
             config={},
         )
-        self._plugins: Dict[str, Any] = {}
-        self._paths: List[str] = []
+        self._plugins: dict[str, Any] = {}
+        self._paths: list[str] = []
 
     async def _setup(self) -> None:
         """Initialize plugin manager"""
-        pass
 
     async def _cleanup(self) -> None:
         """Cleanup plugin manager"""
@@ -38,7 +37,7 @@ class PluginManager(BaseModule):
         """Register plugin"""
         self._plugins[name] = plugin
 
-    def get_plugin(self, name: str) -> Optional[Any]:
+    def get_plugin(self, name: str) -> Any | None:
         """Get registered plugin"""
         return self._plugins.get(name)
 
@@ -77,13 +76,13 @@ class PluginManager(BaseModule):
 
                     except Exception as e:
                         raise PluginLoadError(
-                            f"Failed to load plugin module {module_name}: {str(e)}", cause=e
+                            f"Failed to load plugin module {module_name}: {e!s}", cause=e,
                         )
 
             except Exception as e:
-                raise PluginError(f"Plugin discovery failed: {str(e)}", cause=e)
+                raise PluginError(f"Plugin discovery failed: {e!s}", cause=e)
 
-    def get_plugins_by_type(self, plugin_type: Type) -> List[Any]:
+    def get_plugins_by_type(self, plugin_type: type) -> list[Any]:
         """Get all plugins of specific type"""
         return [
             plugin

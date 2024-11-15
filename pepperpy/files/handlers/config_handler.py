@@ -1,7 +1,7 @@
 """Configuration file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import tomli
 import tomli_w
@@ -17,7 +17,7 @@ class ConfigHandler(BaseHandler):
 
     def __init__(self):
         super().__init__()
-        self._schema: Optional[Dict[str, Any]] = None
+        self._schema: dict[str, Any] | None = None
 
     async def read(self, path: Path) -> FileContent:
         """Read configuration file"""
@@ -36,17 +36,17 @@ class ConfigHandler(BaseHandler):
                 try:
                     validate(instance=data, schema=self._schema)
                 except ValidationError as e:
-                    raise FileError(f"Config validation failed: {str(e)}")
+                    raise FileError(f"Config validation failed: {e!s}")
 
             return FileContent(content=data, metadata=metadata.metadata, format="config")
         except Exception as e:
-            raise FileError(f"Failed to read config file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read config file: {e!s}", cause=e)
 
     async def write(
         self,
         path: Path,
-        content: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None,
+        content: dict[str, Any],
+        metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write configuration file"""
         try:
@@ -55,7 +55,7 @@ class ConfigHandler(BaseHandler):
                 try:
                     validate(instance=content, schema=self._schema)
                 except ValidationError as e:
-                    raise FileError(f"Config validation failed: {str(e)}")
+                    raise FileError(f"Config validation failed: {e!s}")
 
             # Convert to string based on format
             if path.suffix == ".toml":
@@ -65,13 +65,15 @@ class ConfigHandler(BaseHandler):
 
             return await self._write_file(path, config_content)
         except Exception as e:
-            raise FileError(f"Failed to write config file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write config file: {e!s}", cause=e)
 
-    def set_schema(self, schema: Dict[str, Any]) -> None:
-        """Set JSON schema for validation
+    def set_schema(self, schema: dict[str, Any]) -> None:
+        """
+        Set JSON schema for validation
 
         Args:
             schema: JSON schema
+
         """
         self._schema = schema
 

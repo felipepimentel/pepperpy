@@ -1,8 +1,9 @@
 """Testing utilities"""
 
 import asyncio
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Callable, Optional, Type, TypeVar
+from typing import Any, TypeVar
 
 from pepperpy.core.logging import get_logger
 
@@ -30,7 +31,7 @@ class TestHelper:
             try:
                 await cleanup()
             except Exception as e:
-                await self._logger.async_.error(f"Cleanup error: {str(e)}")
+                await self._logger.async_.error(f"Cleanup error: {e!s}")
 
         self._mocks.clear()
         self._cleanup_funcs.clear()
@@ -43,13 +44,14 @@ class TestHelper:
         """Register mock object"""
         self._mocks[target] = mock_obj
 
-    def get_mock(self, target: str) -> Optional[Any]:
+    def get_mock(self, target: str) -> Any | None:
         """Get registered mock"""
         return self._mocks.get(target)
 
     @asynccontextmanager
-    async def assert_raises(self, expected: Type[E]) -> AsyncIterator[None]:
-        """Assert that code raises expected exception
+    async def assert_raises(self, expected: type[E]) -> AsyncIterator[None]:
+        """
+        Assert that code raises expected exception
 
         Args:
             expected: Expected exception type
@@ -59,6 +61,7 @@ class TestHelper:
 
         Raises:
             AssertionError: If expected exception is not raised
+
         """
         try:
             yield
@@ -66,28 +69,31 @@ class TestHelper:
         except Exception as e:
             if not isinstance(e, expected):
                 raise AssertionError(
-                    f"Expected {expected.__name__}, but {type(e).__name__} was raised"
+                    f"Expected {expected.__name__}, but {type(e).__name__} was raised",
                 ) from e
 
     @asynccontextmanager
     async def assert_not_raises(self) -> AsyncIterator[None]:
-        """Assert that code does not raise any exceptions
+        """
+        Assert that code does not raise any exceptions
 
         Returns:
             AsyncIterator[None]: Context manager
 
         Raises:
             AssertionError: If any exception is raised
+
         """
         try:
             yield
         except Exception as e:
             raise AssertionError(
-                f"Expected no exceptions, but {type(e).__name__} was raised"
+                f"Expected no exceptions, but {type(e).__name__} was raised",
             ) from e
 
     async def assert_completes(self, coro: Callable, timeout: float = 1.0) -> None:
-        """Assert that coroutine completes within timeout
+        """
+        Assert that coroutine completes within timeout
 
         Args:
             coro: Coroutine to test
@@ -95,8 +101,9 @@ class TestHelper:
 
         Raises:
             AssertionError: If coroutine does not complete in time
+
         """
         try:
             await asyncio.wait_for(coro(), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise AssertionError(f"Operation did not complete within {timeout} seconds")

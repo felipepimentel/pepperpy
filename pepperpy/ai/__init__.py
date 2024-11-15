@@ -1,10 +1,9 @@
 """AI module for PepperPy"""
 
 from .chat import Conversation
-
-# Convenience functions
-from .client import AIClient, AIConfig, AIResponse, ask, complete, stream
+from .client import AIClient, AIConfig, AIResponse
 from .exceptions import AIError
+from .functions import ask, complete, stream
 
 __all__ = [
     "AIClient",

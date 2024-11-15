@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
@@ -27,7 +27,7 @@ class Section:
 class TableOfContents:
     """Markdown document table of contents"""
 
-    sections: List[Section]
+    sections: list[Section]
     max_depth: int = 3
 
 
@@ -38,7 +38,7 @@ class MarkdownOptions:
     max_depth: int = 3
     include_titles: bool = True
     include_sections: bool = True
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class MarkdownEnhancedHandler(BaseHandler):
@@ -68,25 +68,25 @@ class MarkdownEnhancedHandler(BaseHandler):
             }
 
             return FileContent(
-                content=content, metadata=enhanced_metadata, format="markdown_enhanced"
+                content=content, metadata=enhanced_metadata, format="markdown_enhanced",
             )
         except Exception as e:
-            raise FileError(f"Failed to read enhanced Markdown file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read enhanced Markdown file: {e!s}", cause=e)
 
     async def write(
-        self, path: Path, content: str, metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: str, metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write Markdown file"""
         try:
             return await self._write_file(path, content)
         except Exception as e:
-            raise FileError(f"Failed to write enhanced Markdown file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write enhanced Markdown file: {e!s}", cause=e)
 
-    def _extract_sections(self, tokens: List[Token]) -> List[Section]:
+    def _extract_sections(self, tokens: list[Token]) -> list[Section]:
         """Extract sections from Markdown tokens"""
-        sections: List[Section] = []
-        current_section: Optional[Section] = None
-        content_buffer: List[str] = []
+        sections: list[Section] = []
+        current_section: Section | None = None
+        content_buffer: list[str] = []
 
         for token in tokens:
             if token.type == "heading_open":
@@ -113,7 +113,7 @@ class MarkdownEnhancedHandler(BaseHandler):
 
         return sections
 
-    def _generate_toc(self, sections: List[Section]) -> TableOfContents:
+    def _generate_toc(self, sections: list[Section]) -> TableOfContents:
         """Generate table of contents from sections"""
         max_depth = self._options.max_depth
         filtered_sections = [section for section in sections if section.level <= max_depth]

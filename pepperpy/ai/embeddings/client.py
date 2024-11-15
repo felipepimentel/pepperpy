@@ -1,6 +1,5 @@
 """Embedding client implementation"""
 
-from typing import List, Optional
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -14,10 +13,10 @@ from .types import EmbeddingVector
 class EmbeddingClient(BaseModule):
     """Client for embedding operations"""
 
-    _config: Optional[EmbeddingConfig]
-    _provider: Optional[BaseEmbeddingProvider]
+    _config: EmbeddingConfig | None
+    _provider: BaseEmbeddingProvider | None
 
-    def __init__(self, config: Optional[EmbeddingConfig] = None):
+    def __init__(self, config: EmbeddingConfig | None = None):
         super().__init__()
         self._config = config or EmbeddingConfig(
             model="all-MiniLM-L6-v2",
@@ -54,7 +53,7 @@ class EmbeddingClient(BaseModule):
             raise EmbeddingError("Embedding provider not initialized")
         return await self._provider.embed_text(text)
 
-    async def embed_batch(self, texts: List[str]) -> List[EmbeddingVector]:
+    async def embed_batch(self, texts: list[str]) -> list[EmbeddingVector]:
         """Generate embeddings for multiple texts"""
         if not self._provider:
             raise EmbeddingError("Embedding provider not initialized")

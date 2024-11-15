@@ -1,7 +1,7 @@
 """Button component"""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 from .base import Component
 
@@ -11,4 +11,4 @@ class Button(Component):
     """Button component"""
 
     text: str
-    on_click: Optional[Callable[[], None]] = None
+    on_click: Callable[[], None] | None = None

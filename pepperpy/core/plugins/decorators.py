@@ -1,28 +1,33 @@
 """Plugin system decorators"""
 
-from typing import Any, Callable, Type, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
 
-def plugin(name: str) -> Callable[[Type[T]], Type[T]]:
-    """Register class as plugin
+def plugin(name: str) -> Callable[[type[T]], type[T]]:
+    """
+    Register class as plugin
 
     Args:
         name: Plugin identifier
 
     Returns:
         Callable[[Type[T]], Type[T]]: Decorator function
+
     """
 
-    def decorator(cls: Type[T]) -> Type[T]:
-        """Plugin registration decorator
+    def decorator(cls: type[T]) -> type[T]:
+        """
+        Plugin registration decorator
 
         Args:
             cls: Class to register
 
         Returns:
             Type[T]: Registered class
+
         """
         from . import registry
 
@@ -33,23 +38,27 @@ def plugin(name: str) -> Callable[[Type[T]], Type[T]]:
 
 
 def hook(name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-    """Register function as plugin hook
+    """
+    Register function as plugin hook
 
     Args:
         name: Hook identifier
 
     Returns:
         Callable[[Callable[..., Any]], Callable[..., Any]]: Decorator function
+
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
-        """Hook registration decorator
+        """
+        Hook registration decorator
 
         Args:
             func: Function to register
 
         Returns:
             Callable[..., Any]: Registered function
+
         """
         from . import registry
 

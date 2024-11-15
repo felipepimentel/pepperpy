@@ -1,7 +1,6 @@
 """Console module examples demonstrating UI, CLI, and Rich console features"""
 
 import asyncio
-from typing import List
 
 from pepperpy.console import Console
 from pepperpy.console.ui import (
@@ -27,7 +26,7 @@ async def demo_chat_view() -> None:
     # Sistema iniciando com estilo
     chat.add_message("🚀 System v1.0 initialized", "system")
     chat.add_message(
-        "Welcome to PepperPy Console Demo! How can I assist you today? 🤖", "assistant"
+        "Welcome to PepperPy Console Demo! How can I assist you today? 🤖", "assistant",
     )
     chat.add_message("I'd like to see what this console can do! 👀", "user")
     chat.add_message(
@@ -98,7 +97,7 @@ async def demo_form() -> None:
                 lambda x: len(x) >= 3,
                 lambda x: x.isalnum(),
             ],
-        )
+        ),
     )
 
     form.add_field(
@@ -110,7 +109,7 @@ async def demo_form() -> None:
                 lambda x: "@" in x,
                 lambda x: "." in x.split("@")[1],
             ],
-        )
+        ),
     )
 
     form.add_field(
@@ -124,7 +123,7 @@ async def demo_form() -> None:
             metadata={
                 "hint": "Enter one of: Developer, Designer, Manager",
             },
-        )
+        ),
     )
 
     def submit() -> None:
@@ -166,7 +165,7 @@ async def demo_list_view() -> None:
     list_view = ListView[str]()
 
     # Items com ícones e status
-    items: List[tuple] = [
+    items: list[tuple] = [
         ("task1", "🟢 Deploy application", True),
         ("task2", "🟡 Review pull requests", True),
         ("task3", "🔴 Fix critical bug (Blocked)", False),

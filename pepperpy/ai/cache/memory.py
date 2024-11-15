@@ -3,7 +3,7 @@
 import asyncio
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .exceptions import CacheError
 
@@ -12,11 +12,11 @@ class MemoryCache:
     """Thread-safe memory cache with TTL"""
 
     def __init__(self, default_ttl: int = 3600):
-        self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
+        self._cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
         self._default_ttl = default_ttl
         self._lock = asyncio.Lock()
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from cache"""
         try:
             async with self._lock:
@@ -32,9 +32,9 @@ class MemoryCache:
                 self._cache.move_to_end(key)
                 return entry["value"]
         except Exception as e:
-            raise CacheError(f"Failed to get from cache: {str(e)}", cause=e)
+            raise CacheError(f"Failed to get from cache: {e!s}", cause=e)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache"""
         try:
             async with self._lock:
@@ -46,7 +46,7 @@ class MemoryCache:
                 }
                 self._cache.move_to_end(key)
         except Exception as e:
-            raise CacheError(f"Failed to set in cache: {str(e)}", cause=e)
+            raise CacheError(f"Failed to set in cache: {e!s}", cause=e)
 
     async def cleanup(self) -> None:
         """Remove expired entries"""
@@ -61,4 +61,4 @@ class MemoryCache:
                 for key in expired:
                     del self._cache[key]
         except Exception as e:
-            raise CacheError(f"Cache cleanup failed: {str(e)}", cause=e)
+            raise CacheError(f"Cache cleanup failed: {e!s}", cause=e)

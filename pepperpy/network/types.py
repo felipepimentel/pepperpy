@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from aiohttp import ClientWebSocketResponse
 
@@ -13,8 +13,8 @@ class Request:
 
     method: str
     url: str
-    headers: Dict[str, str]
-    params: Dict[str, str]
+    headers: dict[str, str]
+    params: dict[str, str]
     data: Any
     timeout: float
 
@@ -24,10 +24,10 @@ class Response:
     """HTTP response information"""
 
     status: int
-    headers: Dict[str, str]
+    headers: dict[str, str]
     content: bytes
     text: str
-    json: Optional[Dict[str, Any]]
+    json: dict[str, Any] | None
     elapsed: float
 
 
@@ -37,7 +37,7 @@ class WebSocket:
 
     url: str
     connection: ClientWebSocketResponse
-    protocols: List[str]
+    protocols: list[str]
 
     async def send(self, data: Any) -> None:
         """Send data through WebSocket"""

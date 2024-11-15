@@ -1,6 +1,6 @@
 """Schema validation utilities"""
 
-from typing import Any, Dict
+from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
@@ -17,8 +17,9 @@ class SchemaValidator:
     def __init__(self, schema: type[BaseModel]):
         self.schema = schema
 
-    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate data against schema
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """
+        Validate data against schema
 
         Args:
             data: Data to validate
@@ -28,9 +29,10 @@ class SchemaValidator:
 
         Raises:
             SchemaError: If validation fails
+
         """
         try:
             model = self.schema(**data)
             return model.model_dump()
         except ValidationError as e:
-            raise SchemaError(f"Schema validation failed: {str(e)}")
+            raise SchemaError(f"Schema validation failed: {e!s}")

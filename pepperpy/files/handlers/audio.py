@@ -1,7 +1,7 @@
 """Audio file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 import soundfile as sf
@@ -32,13 +32,13 @@ class AudioHandler(BaseHandler):
 
             return FileContent(content=data, metadata={"info": info}, format="audio")
         except Exception as e:
-            raise FileError(f"Failed to read audio file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read audio file: {e!s}", cause=e)
 
     async def write(
         self,
         path: Path,
         content: np.ndarray,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         sample_rate: int = 44100,
     ) -> FileMetadata:
         """Write audio file"""
@@ -46,10 +46,11 @@ class AudioHandler(BaseHandler):
             sf.write(str(path), content, sample_rate)
             return await self._get_metadata(path)
         except Exception as e:
-            raise FileError(f"Failed to write audio file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write audio file: {e!s}", cause=e)
 
-    def concatenate(self, segments: List[np.ndarray], crossfade: int = 100) -> np.ndarray:
-        """Concatenate audio segments with optional crossfade
+    def concatenate(self, segments: list[np.ndarray], crossfade: int = 100) -> np.ndarray:
+        """
+        Concatenate audio segments with optional crossfade
 
         Args:
             segments: List of audio segments
@@ -57,6 +58,7 @@ class AudioHandler(BaseHandler):
 
         Returns:
             np.ndarray: Concatenated audio
+
         """
         if not segments:
             return np.array([])
@@ -75,7 +77,7 @@ class AudioHandler(BaseHandler):
                         result[-xf_samples:] * np.linspace(1, 0, xf_samples)
                         + segment[:xf_samples] * np.linspace(0, 1, xf_samples),
                         segment[xf_samples:],
-                    )
+                    ),
                 )
             else:
                 result = np.concatenate((result, segment))
@@ -83,9 +85,10 @@ class AudioHandler(BaseHandler):
         return result
 
     def apply_effects(
-        self, audio: Union[np.ndarray, AudioSegment], effects: Dict[str, Any]
-    ) -> Union[np.ndarray, AudioSegment]:
-        """Apply audio effects
+        self, audio: np.ndarray | AudioSegment, effects: dict[str, Any],
+    ) -> np.ndarray | AudioSegment:
+        """
+        Apply audio effects
 
         Args:
             audio: Audio data
@@ -93,6 +96,7 @@ class AudioHandler(BaseHandler):
 
         Returns:
             Union[np.ndarray, AudioSegment]: Processed audio
+
         """
         result = audio
 
@@ -147,7 +151,7 @@ class AudioHandler(BaseHandler):
                 speed = float(effects["speed"])
                 if speed != 1.0:
                     segment = segment._spawn(
-                        segment.raw_data, overrides={"frame_rate": int(segment.frame_rate * speed)}
+                        segment.raw_data, overrides={"frame_rate": int(segment.frame_rate * speed)},
                     )
 
             if effects.get("reverse", False):

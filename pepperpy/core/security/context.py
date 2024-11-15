@@ -1,6 +1,5 @@
 """Security context management"""
 
-from typing import Dict, List, Optional
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -19,14 +18,13 @@ class SecurityContext(BaseModule):
             dependencies=[],
             config={},
         )
-        self._user_id: Optional[str] = None
-        self._roles: List[str] = []
-        self._permissions: List[str] = []
-        self._metadata: Dict[str, str] = {}
+        self._user_id: str | None = None
+        self._roles: list[str] = []
+        self._permissions: list[str] = []
+        self._metadata: dict[str, str] = {}
 
     async def _setup(self) -> None:
         """Initialize security context"""
-        pass
 
     async def _cleanup(self) -> None:
         """Cleanup security context"""
@@ -39,15 +37,15 @@ class SecurityContext(BaseModule):
         """Set current user"""
         self._user_id = user_id
 
-    async def set_roles(self, roles: List[str]) -> None:
+    async def set_roles(self, roles: list[str]) -> None:
         """Set user roles"""
         self._roles = roles
 
-    async def set_permissions(self, permissions: List[str]) -> None:
+    async def set_permissions(self, permissions: list[str]) -> None:
         """Set user permissions"""
         self._permissions = permissions
 
-    async def set_metadata(self, metadata: Dict[str, str]) -> None:
+    async def set_metadata(self, metadata: dict[str, str]) -> None:
         """Set security metadata"""
         self._metadata = metadata
 
@@ -67,7 +65,7 @@ class SecurityContext(BaseModule):
             raise AuthError("No user in context")
         return permission in self._permissions
 
-    async def get_metadata(self, key: str) -> Optional[str]:
+    async def get_metadata(self, key: str) -> str | None:
         """Get security metadata"""
         return self._metadata.get(key)
 

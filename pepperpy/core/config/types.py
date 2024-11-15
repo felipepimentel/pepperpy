@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pepperpy.core.types import JsonDict
 
@@ -23,9 +23,9 @@ class ConfigSource:
     """Configuration source information"""
 
     name: str
-    path: Optional[Path] = None
-    format: Optional[ConfigFormat] = None
-    last_modified: Optional[datetime] = None
+    path: Path | None = None
+    format: ConfigFormat | None = None
+    last_modified: datetime | None = None
     metadata: JsonDict = field(default_factory=dict)
 
 
@@ -43,6 +43,6 @@ class ConfigValue:
 class ConfigSnapshot:
     """Configuration state snapshot"""
 
-    values: Dict[str, ConfigValue]
+    values: dict[str, ConfigValue]
     created_at: datetime = field(default_factory=datetime.utcnow)
     metadata: JsonDict = field(default_factory=dict)

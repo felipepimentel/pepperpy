@@ -1,6 +1,6 @@
 """Panel component"""
 
-from typing import Any, Optional, Union
+from typing import Any
 
 from rich.box import ROUNDED, Box
 from rich.panel import Panel as RichPanel
@@ -15,11 +15,11 @@ class Panel(Component):
 
     def __init__(
         self,
-        content: Union[str, Component],
-        title: Optional[str] = None,
-        subtitle: Optional[str] = None,
+        content: str | Component,
+        title: str | None = None,
+        subtitle: str | None = None,
         style: str = "default",
-        border_style: Union[str, Box] = ROUNDED,
+        border_style: str | Box = ROUNDED,
         padding: tuple = (0, 1),
     ):
         config = ComponentConfig(
@@ -27,7 +27,7 @@ class Panel(Component):
                 "title": Style(bold=True),
                 "subtitle": Style(dim=True),
                 "border": Style(),
-            }
+            },
         )
         super().__init__(config)
         self.content = content

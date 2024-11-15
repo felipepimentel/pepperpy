@@ -5,7 +5,7 @@ import hmac
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 import jwt
 from jwt.exceptions import PyJWTError
@@ -22,7 +22,7 @@ class AuthToken:
     token: str
     expires_at: datetime
     user_id: str
-    metadata: Dict[str, str]
+    metadata: dict[str, str]
 
 
 class JWTHandler:
@@ -31,7 +31,7 @@ class JWTHandler:
         self.algorithm = algorithm
 
     def create_access_token(
-        self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+        self, data: dict[str, Any], expires_delta: timedelta | None = None,
     ) -> str:
         to_encode = data.copy()
         if expires_delta:
@@ -41,11 +41,11 @@ class JWTHandler:
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
 
-    def decode(self, token: str) -> Dict[str, Any]:
+    def decode(self, token: str) -> dict[str, Any]:
         try:
             return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
         except PyJWTError as e:
-            raise SecurityError(f"Invalid token: {str(e)}")
+            raise SecurityError(f"Invalid token: {e!s}")
 
 
 class AuthManager(BaseModule):
@@ -66,7 +66,6 @@ class AuthManager(BaseModule):
 
     async def _setup(self) -> None:
         """Initialize auth manager"""
-        pass
 
     async def _cleanup(self) -> None:
         """Cleanup auth resources"""
@@ -80,7 +79,7 @@ class AuthManager(BaseModule):
     def _hash_password(self, password: str, salt: str) -> str:
         """Hash password with salt"""
         return hashlib.pbkdf2_hmac(
-            "sha256", password.encode(), salt.encode(), 100000, dklen=32
+            "sha256", password.encode(), salt.encode(), 100000, dklen=32,
         ).hex()
 
     async def register(self, user_id: str, password: str) -> None:
@@ -93,7 +92,7 @@ class AuthManager(BaseModule):
             self._tokens[user_id] = {"salt": salt, "password_hash": password_hash}
 
         except Exception as e:
-            raise AuthError(f"Registration failed: {str(e)}", cause=e)
+            raise AuthError(f"Registration failed: {e!s}", cause=e)
 
     async def authenticate(self, user_id: str, password: str) -> AuthToken:
         """Authenticate user and generate token"""
@@ -119,17 +118,17 @@ class AuthManager(BaseModule):
         except AuthError:
             raise
         except Exception as e:
-            raise AuthError(f"Authentication failed: {str(e)}", cause=e)
+            raise AuthError(f"Authentication failed: {e!s}", cause=e)
 
-    async def verify_token(self, token: str) -> Optional[str]:
+    async def verify_token(self, token: str) -> str | None:
         """Verify authentication token"""
         try:
             payload = self.jwt_handler.decode(token)
             return payload.get("user_id")
         except PyJWTError as e:
-            raise SecurityError(f"Invalid token: {str(e)}")
+            raise SecurityError(f"Invalid token: {e!s}")
         except Exception as e:
-            raise SecurityError(f"Token verification failed: {str(e)}", cause=e)
+            raise SecurityError(f"Token verification failed: {e!s}", cause=e)
 
 
 # Global auth manager instance

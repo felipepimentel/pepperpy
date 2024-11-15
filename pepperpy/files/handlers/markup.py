@@ -1,7 +1,7 @@
 """Markup file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, cast
 
 from bs4 import BeautifulSoup
 from lxml import etree, html
@@ -19,7 +19,11 @@ class MarkupHandler(BaseHandler):
         super().__init__()
         self._parsers = {
             "html": html.HTMLParser(),
-            "xml": etree.XMLParser(resolve_entities=False),
+            "xml": etree.XMLParser(
+                resolve_entities=False,
+                no_network=True,
+                huge_tree=False,
+            ),
         }
 
     async def read(self, path: Path) -> FileContent:
@@ -28,7 +32,6 @@ class MarkupHandler(BaseHandler):
             metadata = await self._get_metadata(path)
             content = await self._read_file(path)
 
-            # Detect format and parse content
             format = self._detect_format(content)
             if format == "html":
                 doc = self._parse_html(content)
@@ -37,26 +40,22 @@ class MarkupHandler(BaseHandler):
 
             return FileContent(content=doc, metadata=metadata.metadata, format=format)
         except Exception as e:
-            raise FileError(f"Failed to read markup file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read markup file: {e!s}", cause=e)
 
     async def write(
         self,
         path: Path,
-        content: Union[str, BeautifulSoup, etree._Element],
-        metadata: Optional[Dict[str, Any]] = None,
+        content: str | BeautifulSoup | etree._Element,
+        metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write markup file"""
         try:
-            # Convert to string if needed
             if isinstance(content, BeautifulSoup):
                 markup = str(content)
             elif isinstance(content, etree._Element):
-                # Usando o método correto para serializar XML/HTML
                 if self._detect_format(content) == "xml":
-                    # Para XML, usamos a serialização básica
                     markup = cast(bytes, etree.tostring(content)).decode("utf-8")
                 else:
-                    # Para HTML, usamos o serializador específico
                     markup = cast(
                         bytes,
                         html.tostring(
@@ -69,9 +68,9 @@ class MarkupHandler(BaseHandler):
 
             return await self._write_file(path, markup)
         except Exception as e:
-            raise FileError(f"Failed to write markup file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write markup file: {e!s}", cause=e)
 
-    def _detect_format(self, content: Union[str, etree._Element]) -> str:
+    def _detect_format(self, content: str | etree._Element) -> str:
         """Detect markup format"""
         if isinstance(content, etree._Element):
             return "xml" if content.getroottree().docinfo.doctype else "html"
@@ -86,21 +85,35 @@ class MarkupHandler(BaseHandler):
         return BeautifulSoup(content, "lxml", parser=self._parsers["html"])
 
     def _parse_xml(self, content: str) -> etree._Element:
-        """Parse XML content"""
-        return etree.fromstring(content.encode(), parser=self._parsers["xml"])
+        """Parse XML content securely"""
+        parser = etree.XMLParser(
+            resolve_entities=False,
+            no_network=True,
+            huge_tree=False,
+            collect_ids=False,
+            load_dtd=False,
+            remove_comments=True,
+            remove_pis=True,
+        )
+
+        try:
+            return etree.fromstring(content.encode("utf-8"), parser=parser)  # noqa: S320
+        except etree.XMLSyntaxError as e:
+            raise FileError(f"Invalid XML content: {e!s}") from e
 
     def _create_selector(self, selector: str, format: str = "html") -> CSSSelector:
         """Create CSS selector"""
-        # CSSSelector não aceita parser diretamente, então usamos o namespace correto
-        namespaces = {"html": "http://www.w3.org/1999/xhtml"} if format == "html" else None
+        namespaces = (
+            {"html": "http://www.w3.org/1999/xhtml"} if format == "html" else None
+        )
         return CSSSelector(selector, namespaces=namespaces)
 
-    def _query(self, doc: Union[BeautifulSoup, etree._Element], selector: str) -> Any:
+    def _query(self, doc: BeautifulSoup | etree._Element, selector: str) -> Any:
         """Query document using CSS selector"""
         if isinstance(doc, BeautifulSoup):
             return doc.select(selector)
 
         css = self._create_selector(
-            selector, format="xml" if doc.getroottree().docinfo.doctype else "html"
+            selector, format="xml" if doc.getroottree().docinfo.doctype else "html",
         )
         return css(doc)

@@ -1,14 +1,23 @@
 """Form components for console UI"""
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 from rich.style import Style
 from rich.text import Text
 
 from pepperpy.console.ui.components.base import Component, ComponentConfig
-from pepperpy.console.ui.keyboard import BACKSPACE, ENTER, LEFT, RIGHT, TAB, Key, KeyCode
+from pepperpy.console.ui.keyboard import (
+    BACKSPACE,
+    ENTER,
+    LEFT,
+    RIGHT,
+    TAB,
+    Key,
+    KeyCode,
+)
 from pepperpy.console.ui.styles import styles
 
 
@@ -20,8 +29,8 @@ class FormField:
     label: str
     value: str = ""
     required: bool = True
-    validators: List[Callable[[str], bool]] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    validators: list[Callable[[str], bool]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class FormComponent(Component, ABC):
@@ -34,41 +43,41 @@ class FormComponent(Component, ABC):
                     "default": Style(color="white"),
                     "focused": Style(color="cyan", bold=True),
                     "disabled": Style(color="gray50", dim=True),
-                }
-            )
+                },
+            ),
         )
         self.focused: bool = False
 
     @abstractmethod
     async def initialize(self) -> None:
         """Initialize component"""
-        pass
 
     @abstractmethod
     async def cleanup(self) -> None:
         """Cleanup component"""
-        pass
 
     @abstractmethod
     async def handle_input(self, key: Key) -> bool:
-        """Handle input event
+        """
+        Handle input event
 
         Args:
             key: Input key
 
         Returns:
             bool: True if input was handled
+
         """
-        pass
 
     @abstractmethod
     def render(self) -> Text:
-        """Render component
+        """
+        Render component
 
         Returns:
             Text: Rendered component
+
         """
-        pass
 
 
 class Form(Component):
@@ -81,10 +90,10 @@ class Form(Component):
                     "default": Style(color="white"),
                     "focused": Style(color="cyan", bold=True),
                     "disabled": Style(color="gray50", dim=True),
-                }
-            )
+                },
+            ),
         )
-        self.components: List[FormComponent] = []
+        self.components: list[FormComponent] = []
         self.focused_index = 0
 
     def add_field(self, field: FormField) -> None:
@@ -146,11 +155,9 @@ class TextInput(FormComponent):
 
     async def initialize(self) -> None:
         """Initialize component"""
-        pass
 
     async def cleanup(self) -> None:
         """Cleanup component"""
-        pass
 
     async def handle_input(self, key: Key) -> bool:
         """Handle input event"""
@@ -158,7 +165,9 @@ class TextInput(FormComponent):
             return False
 
         if key == BACKSPACE and self.cursor_pos > 0:
-            self.value = self.value[: self.cursor_pos - 1] + self.value[self.cursor_pos :]
+            self.value = (
+                self.value[: self.cursor_pos - 1] + self.value[self.cursor_pos :]
+            )
             self.cursor_pos -= 1
             return True
 
@@ -171,9 +180,13 @@ class TextInput(FormComponent):
             return True
 
         # Verificar se é uma tecla de caractere
-        if isinstance(key.code, str) or (isinstance(key.code, KeyCode) and len(str(key.code)) == 1):
+        if isinstance(key.code, str) or (
+            isinstance(key.code, KeyCode) and len(str(key.code)) == 1
+        ):
             char = str(key.code)
-            self.value = self.value[: self.cursor_pos] + char + self.value[self.cursor_pos :]
+            self.value = (
+                self.value[: self.cursor_pos] + char + self.value[self.cursor_pos :]
+            )
             self.cursor_pos += 1
             return True
 
@@ -210,11 +223,9 @@ class Button(FormComponent):
 
     async def initialize(self) -> None:
         """Initialize component"""
-        pass
 
     async def cleanup(self) -> None:
         """Cleanup component"""
-        pass
 
     async def handle_input(self, key: Key) -> bool:
         """Handle input event"""

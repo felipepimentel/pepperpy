@@ -1,7 +1,7 @@
 """Wizard component for console UI"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from rich.style import Style
 from rich.text import Text
@@ -16,7 +16,7 @@ class WizardStep:
 
     title: str
     content: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class Wizard(Component):
@@ -35,10 +35,10 @@ class Wizard(Component):
             },
         )
         super().__init__(config=config)
-        self.steps: List[WizardStep] = []
+        self.steps: list[WizardStep] = []
         self.current_step = 0
 
-    def add_step(self, title: str, content: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def add_step(self, title: str, content: str, metadata: dict[str, Any] | None = None) -> None:
         """Add step to wizard"""
         self.steps.append(WizardStep(title=title, content=content, metadata=metadata or {}))
 
@@ -101,7 +101,7 @@ class Wizard(Component):
 
         if key == Key.LEFT and self.current_step > 0:
             return self.previous_step()
-        elif key == Key.RIGHT and self.current_step < len(self.steps) - 1:
+        if key == Key.RIGHT and self.current_step < len(self.steps) - 1:
             return self.next_step()
 
         return False

@@ -1,9 +1,10 @@
 """Task scheduling and management"""
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Awaitable, Callable, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 from pepperpy.core.exceptions import PepperPyError
 
@@ -21,19 +22,19 @@ class Task:
     name: str
     func: Callable[..., Awaitable[Any]]
     interval: timedelta
-    last_run: Optional[datetime] = None
-    next_run: Optional[datetime] = None
+    last_run: datetime | None = None
+    next_run: datetime | None = None
     running: bool = False
     args: tuple = ()
-    kwargs: Dict[str, Any] = field(default_factory=dict)
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
 
 class TaskScheduler:
     """Task scheduler for managing periodic tasks"""
 
     def __init__(self):
-        self._tasks: Dict[str, Task] = {}
-        self._running: Dict[str, Task] = {}
+        self._tasks: dict[str, Task] = {}
+        self._running: dict[str, Task] = {}
         self._stop = False
 
     def add_task(
@@ -44,7 +45,8 @@ class TaskScheduler:
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        """Add task to scheduler
+        """
+        Add task to scheduler
 
         Args:
             name: Task name
@@ -52,6 +54,7 @@ class TaskScheduler:
             interval: Task interval
             args: Task arguments
             kwargs: Task keyword arguments
+
         """
         if name in self._tasks:
             raise TaskError(f"Task {name} already exists")
@@ -67,10 +70,12 @@ class TaskScheduler:
         self._tasks[name] = task
 
     def remove_task(self, name: str) -> None:
-        """Remove task from scheduler
+        """
+        Remove task from scheduler
 
         Args:
             name: Task name
+
         """
         if name not in self._tasks:
             raise TaskError(f"Task {name} not found")
@@ -96,10 +101,12 @@ class TaskScheduler:
         self._running.clear()
 
     async def _run_task(self, task: Task) -> None:
-        """Run task
+        """
+        Run task
 
         Args:
             task: Task to run
+
         """
         try:
             task.running = True
@@ -108,7 +115,7 @@ class TaskScheduler:
             task.last_run = datetime.now()
             task.next_run = task.last_run + task.interval
         except Exception as e:
-            raise TaskError(f"Task {task.name} failed: {str(e)}", cause=e)
+            raise TaskError(f"Task {task.name} failed: {e!s}", cause=e)
         finally:
             task.running = False
             if task.name in self._running:

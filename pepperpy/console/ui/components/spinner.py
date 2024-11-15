@@ -2,7 +2,7 @@
 
 import asyncio
 import itertools
-from typing import Any, Optional
+from typing import Any
 
 from rich.style import Style
 from rich.text import Text
@@ -19,20 +19,22 @@ class Spinner(Component):
             style={
                 "spinner": Style(color="cyan", bold=True),
                 "text": Style(color="white"),
-            }
+            },
         )
         super().__init__(config=config)
         self._frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
         self._frame_iter = itertools.cycle(self._frames)
         self._running = False
         self._text = ""
-        self._task: Optional[asyncio.Task[None]] = None
+        self._task: asyncio.Task[None] | None = None
 
     def start(self, text: str = "") -> None:
-        """Start spinner animation
+        """
+        Start spinner animation
 
         Args:
             text: Text to display next to spinner
+
         """
         self._text = text
         self._running = True
@@ -56,10 +58,12 @@ class Spinner(Component):
             pass
 
     def render(self) -> Text:
-        """Render spinner
+        """
+        Render spinner
 
         Returns:
             Text: Rendered spinner
+
         """
         text = Text()
         frame = next(self._frame_iter) if self._running else "●"

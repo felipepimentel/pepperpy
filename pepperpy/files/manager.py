@@ -1,6 +1,5 @@
 """File manager implementation"""
 
-from typing import Dict
 
 from .base import FileHandler
 from .exceptions import FileError
@@ -21,7 +20,7 @@ class FileManager:
     """File manager for handling different file types"""
 
     def __init__(self):
-        self._handlers: Dict[str, FileHandler] = {}
+        self._handlers: dict[str, FileHandler] = {}
         self._register_default_handlers()
 
     def _register_default_handlers(self) -> None:
@@ -39,16 +38,19 @@ class FileManager:
         self.register_handler("yaml", YAMLHandler())
 
     def register_handler(self, name: str, handler: FileHandler) -> None:
-        """Register file handler
+        """
+        Register file handler
 
         Args:
             name: Handler name
             handler: File handler instance
+
         """
         self._handlers[name] = handler
 
     def get_handler(self, name: str) -> FileHandler:
-        """Get file handler by name
+        """
+        Get file handler by name
 
         Args:
             name: Handler name
@@ -58,6 +60,7 @@ class FileManager:
 
         Raises:
             FileError: If handler not found
+
         """
         if name not in self._handlers:
             raise FileError(f"Handler not found: {name}")

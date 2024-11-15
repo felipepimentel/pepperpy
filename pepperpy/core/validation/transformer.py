@@ -1,6 +1,7 @@
 """Data transformation utilities"""
 
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from collections.abc import Callable
+from typing import Any, TypeVar, Union
 
 from pepperpy.core.exceptions import PepperPyError
 
@@ -10,8 +11,8 @@ class TransformError(PepperPyError):
 
 
 T = TypeVar("T")
-TransformValue = Union[str, List[Any], Any]
-TransformOptions = Dict[str, Any]
+TransformValue = Union[str, list[Any], Any]
+TransformOptions = dict[str, Any]
 TransformFunc = Callable[[TransformValue, TransformOptions], TransformValue]
 
 
@@ -19,7 +20,7 @@ class Transformer:
     """Data transformer"""
 
     def __init__(self) -> None:
-        self._transforms: Dict[str, TransformFunc] = {}
+        self._transforms: dict[str, TransformFunc] = {}
         self._register_default_transforms()
 
     def _register_default_transforms(self) -> None:
@@ -30,13 +31,14 @@ class Transformer:
                 "replace": self._replace_transform,
                 "filter": self._filter_transform,
                 "map": self._map_transform,
-            }
+            },
         )
 
     def transform(
-        self, value: TransformValue, transform: str, options: Optional[Dict[str, Any]] = None
+        self, value: TransformValue, transform: str, options: dict[str, Any] | None = None,
     ) -> TransformValue:
-        """Transform value using specified transform
+        """
+        Transform value using specified transform
 
         Args:
             value: Value to transform
@@ -48,6 +50,7 @@ class Transformer:
 
         Raises:
             TransformError: If transform fails
+
         """
         try:
             if transform not in self._transforms:
@@ -56,7 +59,7 @@ class Transformer:
             transform_func = self._transforms[transform]
             return transform_func(value, options or {})
         except Exception as e:
-            raise TransformError(f"Transform failed: {str(e)}", cause=e)
+            raise TransformError(f"Transform failed: {e!s}", cause=e)
 
     def _format_transform(self, value: TransformValue, options: TransformOptions) -> str:
         """Format value using template"""
@@ -73,14 +76,14 @@ class Transformer:
         new = options.get("new", "")
         return value.replace(old, new)
 
-    def _filter_transform(self, value: TransformValue, options: TransformOptions) -> List[Any]:
+    def _filter_transform(self, value: TransformValue, options: TransformOptions) -> list[Any]:
         """Filter list using predicate"""
         if not isinstance(value, list):
             raise TransformError("Value must be a list")
         predicate = options.get("predicate", lambda x: bool(x))
         return list(filter(predicate, value))
 
-    def _map_transform(self, value: TransformValue, options: TransformOptions) -> List[Any]:
+    def _map_transform(self, value: TransformValue, options: TransformOptions) -> list[Any]:
         """Map function over list"""
         if not isinstance(value, list):
             raise TransformError("Value must be a list")

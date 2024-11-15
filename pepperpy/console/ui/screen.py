@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict
+from typing import Any
 
 from rich.console import Console
 from rich.text import Text
@@ -24,7 +24,7 @@ class ScreenConfig:
     width: int = 80
     height: int = 24
     title: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class Screen:
@@ -48,17 +48,17 @@ class Screen:
 
     def refresh(self) -> None:
         """Refresh screen"""
-        pass
 
     def print(self, text: Text) -> None:
         """Print text to screen"""
         self._console.print(text)
 
     def scroll(self, direction: Direction, lines: int = 1) -> None:
-        """Scroll screen
+        """
+        Scroll screen
 
         Args:
             direction: Scroll direction
             lines: Number of lines to scroll
+
         """
-        pass

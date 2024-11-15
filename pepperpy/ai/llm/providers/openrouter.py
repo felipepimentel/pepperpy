@@ -1,7 +1,8 @@
 """OpenRouter LLM provider"""
 
 import json
-from typing import AsyncIterator, List, Optional, cast
+from collections.abc import AsyncIterator
+from typing import cast
 
 import httpx
 
@@ -15,10 +16,10 @@ from .base import BaseLLMProvider
 class OpenRouterProvider(BaseLLMProvider[OpenRouterConfig]):
     """OpenRouter LLM provider implementation"""
 
-    def __init__(self, config: Optional[OpenRouterConfig] = None) -> None:
+    def __init__(self, config: OpenRouterConfig | None = None) -> None:
         """Initialize provider with configuration"""
         super().__init__(config)
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def initialize(self) -> None:
         """Initialize provider"""
@@ -45,10 +46,10 @@ class OpenRouterProvider(BaseLLMProvider[OpenRouterConfig]):
                 raise ProviderError("Invalid API key or authentication failed", cause=e)
             if e.response.status_code == 404:
                 raise ProviderError("Model not found or unavailable", cause=e)
-            raise ProviderError(f"Failed to initialize OpenRouter provider: {str(e)}", cause=e)
+            raise ProviderError(f"Failed to initialize OpenRouter provider: {e!s}", cause=e)
         except Exception as e:
             await self.cleanup()
-            raise ProviderError(f"Unexpected error during initialization: {str(e)}", cause=e)
+            raise ProviderError(f"Unexpected error during initialization: {e!s}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup provider resources"""
@@ -56,7 +57,7 @@ class OpenRouterProvider(BaseLLMProvider[OpenRouterConfig]):
             await self._client.aclose()
             self._client = None
 
-    async def complete(self, messages: List[Message]) -> LLMResponse:
+    async def complete(self, messages: list[Message]) -> LLMResponse:
         """Complete chat messages"""
         if not self._client:
             raise ProviderError("Provider not initialized")
@@ -89,11 +90,11 @@ class OpenRouterProvider(BaseLLMProvider[OpenRouterConfig]):
                 },
             )
         except httpx.HTTPError as e:
-            raise ProviderError(f"HTTP error: {str(e)}", cause=e)
+            raise ProviderError(f"HTTP error: {e!s}", cause=e)
         except Exception as e:
-            raise ProviderError(f"Failed to complete chat: {str(e)}", cause=e)
+            raise ProviderError(f"Failed to complete chat: {e!s}", cause=e)
 
-    def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
+    def stream(self, messages: list[Message]) -> AsyncIterator[LLMResponse]:
         """Stream chat completion"""
         if not self._client:
             raise ProviderError("Provider not initialized")
@@ -128,10 +129,10 @@ class OpenRouterProvider(BaseLLMProvider[OpenRouterConfig]):
                                     metadata=data,
                                 )
                         except json.JSONDecodeError as e:
-                            raise ProviderError(f"Invalid JSON response: {str(e)}", cause=e)
+                            raise ProviderError(f"Invalid JSON response: {e!s}", cause=e)
             except httpx.HTTPError as e:
-                raise ProviderError(f"HTTP error: {str(e)}", cause=e)
+                raise ProviderError(f"HTTP error: {e!s}", cause=e)
             except Exception as e:
-                raise ProviderError(f"Failed to stream chat: {str(e)}", cause=e)
+                raise ProviderError(f"Failed to stream chat: {e!s}", cause=e)
 
         return stream_generator()

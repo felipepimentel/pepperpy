@@ -1,9 +1,13 @@
 """Rich configuration"""
 
 from dataclasses import dataclass, field
-from typing import Dict, List
 
-from rich.progress import BarColumn, TaskProgressColumn, TimeElapsedColumn, TimeRemainingColumn
+from rich.progress import (
+    BarColumn,
+    TaskProgressColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 
 
 @dataclass
@@ -11,7 +15,7 @@ class RichConfig:
     """Configuration for rich applications"""
 
     # Theme configuration
-    theme: Dict[str, str] = field(
+    theme: dict[str, str] = field(
         default_factory=lambda: {
             "info": "cyan",
             "warning": "yellow",
@@ -22,7 +26,7 @@ class RichConfig:
             "progress.remaining": "cyan",
             "table.header": "bold cyan",
             "panel.border": "cyan",
-        }
+        },
     )
 
     # Style configuration
@@ -32,13 +36,13 @@ class RichConfig:
     code_theme: str = "monokai"
 
     # Progress configuration
-    progress_columns: List = field(
+    progress_columns: list = field(
         default_factory=lambda: [
             BarColumn(),
             TaskProgressColumn(),
             TimeRemainingColumn(),
             TimeElapsedColumn(),
-        ]
+        ],
     )
 
     # Display configuration

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pepperpy.core.exceptions import PepperPyError
 
@@ -18,26 +18,28 @@ class TraceEvent:
     name: str
     category: str
     timestamp: datetime = field(default_factory=datetime.now)
-    duration: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    duration: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class Tracer:
     """Execution tracer"""
 
     def __init__(self):
-        self._events: List[TraceEvent] = []
-        self._active_spans: Dict[str, TraceEvent] = {}
+        self._events: list[TraceEvent] = []
+        self._active_spans: dict[str, TraceEvent] = {}
 
     def start_span(
-        self, name: str, category: str, metadata: Optional[Dict[str, Any]] = None
+        self, name: str, category: str, metadata: dict[str, Any] | None = None,
     ) -> None:
-        """Start a new trace span
+        """
+        Start a new trace span
 
         Args:
             name: Span name
             category: Span category
             metadata: Additional span metadata
+
         """
         if name in self._active_spans:
             raise TracingError(f"Span already active: {name}")
@@ -49,12 +51,14 @@ class Tracer:
         )
         self._active_spans[name] = event
 
-    def end_span(self, name: str, metadata: Optional[Dict[str, Any]] = None) -> None:
-        """End an active trace span
+    def end_span(self, name: str, metadata: dict[str, Any] | None = None) -> None:
+        """
+        End an active trace span
 
         Args:
             name: Span name
             metadata: Additional span metadata
+
         """
         if name not in self._active_spans:
             raise TracingError(f"Span not active: {name}")
@@ -71,16 +75,18 @@ class Tracer:
         self,
         name: str,
         category: str,
-        duration: Optional[float] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        duration: float | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
-        """Add a trace event
+        """
+        Add a trace event
 
         Args:
             name: Event name
             category: Event category
             duration: Event duration in seconds
             metadata: Additional event metadata
+
         """
         event = TraceEvent(
             name=name,
@@ -90,14 +96,16 @@ class Tracer:
         )
         self._events.append(event)
 
-    def get_events(self, category: Optional[str] = None) -> List[TraceEvent]:
-        """Get recorded trace events
+    def get_events(self, category: str | None = None) -> list[TraceEvent]:
+        """
+        Get recorded trace events
 
         Args:
             category: Filter events by category
 
         Returns:
             List[TraceEvent]: List of trace events
+
         """
         if category is None:
             return self._events.copy()

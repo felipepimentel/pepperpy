@@ -1,14 +1,14 @@
 """Plugin system for extending functionality"""
 
 from importlib import import_module
-from typing import Any, Dict
+from typing import Any
 
 
 class PluginRegistry:
     """Registry for plugin management"""
 
     def __init__(self):
-        self._plugins: Dict[str, Any] = {}
+        self._plugins: dict[str, Any] = {}
 
     def register(self, name: str, plugin: Any) -> None:
         """Register plugin"""

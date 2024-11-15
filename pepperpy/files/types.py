@@ -3,23 +3,28 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Protocol, runtime_checkable
+from typing import (
+    Any,
+    Literal,
+    Protocol,
+    runtime_checkable,
+)
 
 
 @runtime_checkable
 class PDFDocument(Protocol):
     """Protocol for PDF document"""
 
-    metadata: Dict[str, str]
+    metadata: dict[str, str]
 
-    def get_toc(self) -> List[Any]: ...
-    def get_form_text_fields(self) -> Dict[str, str]: ...
+    def get_toc(self) -> list[Any]: ...
+    def get_form_text_fields(self) -> dict[str, str]: ...
     def new_page(self) -> "PDFPage": ...
-    def set_metadata(self, metadata: Dict[str, Any]) -> None: ...
+    def set_metadata(self, metadata: dict[str, Any]) -> None: ...
     def save(self, path: str, **kwargs: Any) -> None: ...
     def close(self) -> None: ...
-    def extract_image(self, xref: int) -> Dict[str, Any]: ...
-    def __iter__(self) -> Any: ...  # Para suportar iteração sobre páginas
+    def extract_image(self, xref: int) -> dict[str, Any]: ...
+    def __iter__(self) -> Any: ...
 
 
 @runtime_checkable
@@ -29,8 +34,8 @@ class PDFPage(Protocol):
     parent: PDFDocument
 
     def get_text(self) -> str: ...
-    def get_links(self) -> List[Dict[str, Any]]: ...
-    def get_images(self) -> List[Any]: ...
+    def get_links(self) -> list[dict[str, Any]]: ...
+    def get_images(self) -> list[Any]: ...
     def insert_text(self, point: tuple[float, float], text: str) -> None: ...
     def insert_image(self, rect: Any, stream: bytes) -> None: ...
 
@@ -38,22 +43,22 @@ class PDFPage(Protocol):
 @dataclass
 class MediaInfo:
     type: Literal["image", "video", "audio"]
-    width: Optional[int] = None
-    height: Optional[int] = None
-    format: Optional[str] = None
-    mode: Optional[str] = None
-    channels: Optional[int] = None
-    duration: Optional[float] = None
-    fps: Optional[float] = None
-    total_frames: Optional[int] = None
-    sample_width: Optional[int] = None
-    frame_rate: Optional[int] = None
+    width: int | None = None
+    height: int | None = None
+    format: str | None = None
+    mode: str | None = None
+    channels: int | None = None
+    duration: float | None = None
+    fps: float | None = None
+    total_frames: int | None = None
+    sample_width: int | None = None
+    frame_rate: int | None = None
 
 
 @dataclass
 class FileContent:
     content: Any
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     format: str
 
 
@@ -61,9 +66,9 @@ class FileContent:
 class SpreadsheetStats:
     row_count: int
     column_count: int
-    missing_values: Dict[str, int]
-    column_types: Dict[str, Any]
-    numeric_stats: Dict[str, Dict[str, float]]
+    missing_values: dict[str, int]
+    column_types: dict[str, Any]
+    numeric_stats: dict[str, dict[str, float]]
     memory_usage: int
     duplicates: int
 
@@ -76,9 +81,9 @@ class FileMetadata:
     size: int
     created_at: datetime
     modified_at: datetime
-    mime_type: Optional[str] = None
-    encoding: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    mime_type: str | None = None
+    encoding: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -89,15 +94,15 @@ class Chapter:
     content: str
     order: int
     level: int = 1
-    identifier: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    identifier: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class EpubTOC:
     """E-book table of contents"""
 
-    items: List[Chapter]
+    items: list[Chapter]
     max_depth: int = 3
 
 
@@ -109,10 +114,10 @@ class ImageInfo:
     height: int
     mode: str
     format: str
-    channels: Optional[int] = None
-    bits: Optional[int] = None
-    dpi: Optional[tuple[float, float]] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    channels: int | None = None
+    bits: int | None = None
+    dpi: tuple[float, float] | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -123,10 +128,10 @@ class AudioInfo:
     sample_rate: int
     channels: int
     format: str
-    bit_depth: Optional[int] = None
-    bitrate: Optional[int] = None
-    codec: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    bit_depth: int | None = None
+    bitrate: int | None = None
+    codec: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -139,4 +144,69 @@ class FileStats:
     created_at: datetime
     modified_at: datetime
     hash: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EpubAsset:
+    """Base class for EPUB assets (images, audio, etc)"""
+
+    identifier: str
+    media_type: str
+    content: bytes
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EpubImage(EpubAsset):
+    """Image asset in EPUB"""
+
+    width: int | None = None
+    height: int | None = None
+    format: str | None = None
+
+
+@dataclass
+class EpubLink:
+    """Link in EPUB content"""
+
+    text: str
+    href: str
+    type: Literal["internal", "external", "resource"]
+    target: str | None = None
+
+
+@dataclass
+class EpubChapterContent:
+    """Structured content of an EPUB chapter"""
+
+    html: str
+    text: str
+    images: list[EpubImage]
+    links: list[EpubLink]
+    tables: list[str]
+    headers: list[tuple[int, str]]  # level, text
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EpubChapter:
+    """Enhanced EPUB chapter with structured content"""
+
+    title: str
+    content: EpubChapterContent
+    order: int
+    level: int = 1
+    identifier: str | None = None
+    file_name: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EpubStructure:
+    """Complete EPUB book structure"""
+
+    metadata: dict[str, Any]
+    chapters: list[EpubChapter]
+    assets: list[EpubAsset]
+    toc: EpubTOC

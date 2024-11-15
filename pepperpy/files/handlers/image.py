@@ -1,7 +1,7 @@
 """Image file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from PIL import Image, ImageOps
 from PIL.Image import Resampling
@@ -40,30 +40,30 @@ class ImageHandler(BaseHandler):
 
                 return FileContent(content=img.copy(), metadata=enhanced_metadata, format="image")
         except Exception as e:
-            raise FileError(f"Failed to read image file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read image file: {e!s}", cause=e)
 
     async def write(
         self,
         path: Path,
         content: Image.Image,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write image file"""
         try:
             content.save(path)
             return await self._get_metadata(path)
         except Exception as e:
-            raise FileError(f"Failed to write image file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write image file: {e!s}", cause=e)
 
     def resize(
-        self, image: Image.Image, size: Tuple[int, int], keep_aspect: bool = True
+        self, image: Image.Image, size: tuple[int, int], keep_aspect: bool = True,
     ) -> Image.Image:
         """Resize image"""
         if keep_aspect:
             return ImageOps.contain(image, size, Resampling.LANCZOS)
         return image.resize(size, Resampling.LANCZOS)
 
-    def create_thumbnail(self, image: Image.Image, size: Tuple[int, int]) -> Image.Image:
+    def create_thumbnail(self, image: Image.Image, size: tuple[int, int]) -> Image.Image:
         """Create image thumbnail"""
         thumb = image.copy()
         thumb.thumbnail(size, Resampling.LANCZOS)

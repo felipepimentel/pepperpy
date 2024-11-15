@@ -1,7 +1,8 @@
 """Security decorators implementation"""
 
 import functools
-from typing import Any, Callable, List, TypeVar, cast
+from collections.abc import Callable
+from typing import Any, TypeVar, cast
 
 from .exceptions import AuthError
 
@@ -9,13 +10,15 @@ T = TypeVar("T", bound=Callable[..., Any])
 
 
 def require_permission(permission: str) -> Callable[[T], T]:
-    """Require specific permission to access function
+    """
+    Require specific permission to access function
 
     Args:
         permission: Required permission name
 
     Returns:
         Callable[[T], T]: Decorated function
+
     """
 
     def decorator(func: T) -> T:
@@ -33,13 +36,15 @@ def require_permission(permission: str) -> Callable[[T], T]:
 
 
 def require_role(role: str) -> Callable[[T], T]:
-    """Require specific role to access function
+    """
+    Require specific role to access function
 
     Args:
         role: Required role name
 
     Returns:
         Callable[[T], T]: Decorated function
+
     """
 
     def decorator(func: T) -> T:
@@ -57,10 +62,12 @@ def require_role(role: str) -> Callable[[T], T]:
 
 
 def authenticated() -> Callable[[T], T]:
-    """Require authentication to access function
+    """
+    Require authentication to access function
 
     Returns:
         Callable[[T], T]: Decorated function
+
     """
 
     def decorator(func: T) -> T:
@@ -77,14 +84,16 @@ def authenticated() -> Callable[[T], T]:
     return decorator
 
 
-def require_any_role(roles: List[str]) -> Callable[[T], T]:
-    """Require any of the specified roles to access function
+def require_any_role(roles: list[str]) -> Callable[[T], T]:
+    """
+    Require any of the specified roles to access function
 
     Args:
         roles: List of acceptable roles
 
     Returns:
         Callable[[T], T]: Decorated function
+
     """
 
     def decorator(func: T) -> T:

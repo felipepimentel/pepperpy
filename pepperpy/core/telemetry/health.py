@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from pepperpy.core.exceptions import PepperPyError
 
@@ -36,43 +36,49 @@ class HealthResult:
 
     status: Status
     timestamp: datetime = field(default_factory=datetime.now)
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 class HealthMonitor:
     """System health monitor"""
 
     def __init__(self):
-        self._checks: Dict[str, HealthCheck] = {}
-        self._results: Dict[str, HealthResult] = {}
+        self._checks: dict[str, HealthCheck] = {}
+        self._results: dict[str, HealthResult] = {}
 
     def register_check(self, check: HealthCheck) -> None:
-        """Register health check
+        """
+        Register health check
 
         Args:
             check: Health check to register
+
         """
         self._checks[check.name] = check
 
     def remove_check(self, name: str) -> None:
-        """Remove health check
+        """
+        Remove health check
 
         Args:
             name: Name of check to remove
+
         """
         if name in self._checks:
             del self._checks[name]
             if name in self._results:
                 del self._results[name]
 
-    def check_health(self, name: Optional[str] = None) -> Dict[str, HealthResult]:
-        """Run health checks
+    def check_health(self, name: str | None = None) -> dict[str, HealthResult]:
+        """
+        Run health checks
 
         Args:
             name: Optional name of specific check to run
 
         Returns:
             Dict[str, HealthResult]: Health check results
+
         """
         try:
             if name:
@@ -99,16 +105,18 @@ class HealthMonitor:
             return results
 
         except Exception as e:
-            raise HealthError(f"Health check failed: {str(e)}", cause=e)
+            raise HealthError(f"Health check failed: {e!s}", cause=e)
 
-    def get_results(self, name: Optional[str] = None) -> Dict[str, HealthResult]:
-        """Get health check results
+    def get_results(self, name: str | None = None) -> dict[str, HealthResult]:
+        """
+        Get health check results
 
         Args:
             name: Optional name of specific check result to get
 
         Returns:
             Dict[str, HealthResult]: Health check results
+
         """
         if name:
             if name not in self._results:

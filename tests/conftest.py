@@ -2,7 +2,7 @@
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ load_dotenv()
 
 
 @pytest.fixture
-def sample_config() -> Dict[str, Any]:
+def sample_config() -> dict[str, Any]:
     """Provide sample configuration for testing"""
     return {
         "provider": "openrouter",
@@ -46,4 +46,3 @@ def temp_files(tmp_path: Path) -> Path:
 def setup_test_env(mock_env: None) -> None:
     """Setup test environment"""
     # Configurar ambiente de teste aqui se necessário
-    pass

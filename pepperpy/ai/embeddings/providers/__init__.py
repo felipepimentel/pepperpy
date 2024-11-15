@@ -1,14 +1,12 @@
 """Embedding providers package"""
 
-from typing import Optional
-
 from ..config import EmbeddingConfig
 from ..exceptions import ConfigurationError
 from .base import BaseEmbeddingProvider
 from .sentence_transformers import SentenceTransformersProvider
 
 
-def get_provider(config: Optional[EmbeddingConfig] = None) -> BaseEmbeddingProvider:
+def get_provider(config: EmbeddingConfig | None = None) -> BaseEmbeddingProvider:
     """Get embedding provider based on configuration"""
     if not config:
         raise ConfigurationError("Embedding configuration is required")

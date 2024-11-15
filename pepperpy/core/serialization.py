@@ -1,10 +1,9 @@
 """Serialization utilities"""
 
 import json
-import pickle
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Union
+from typing import Any
 
 import msgpack
 
@@ -13,14 +12,14 @@ class DateTimeHandler:
     """Handler for datetime serialization"""
 
     @staticmethod
-    def serialize(obj: Any) -> Union[str, Any]:
+    def serialize(obj: Any) -> str | Any:
         """Serialize datetime objects"""
         if isinstance(obj, datetime):
             return {"__datetime__": obj.isoformat()}
         return obj
 
     @staticmethod
-    def deserialize(obj: Dict[str, Any]) -> Union[datetime, Dict[str, Any]]:
+    def deserialize(obj: dict[str, Any]) -> datetime | dict[str, Any]:
         """Deserialize datetime objects"""
         if "__datetime__" in obj:
             return datetime.fromisoformat(obj["__datetime__"])
@@ -37,12 +36,10 @@ class BaseSerializer(ABC):
     @abstractmethod
     def serialize(self, data: Any) -> bytes:
         """Serialize data to bytes"""
-        pass
 
     @abstractmethod
     def deserialize(self, data: bytes) -> Any:
         """Deserialize data from bytes"""
-        pass
 
 
 class JsonSerializer(BaseSerializer):
@@ -50,7 +47,7 @@ class JsonSerializer(BaseSerializer):
 
     def serialize(self, data: Any) -> bytes:
         """Serialize to JSON"""
-        json_kwargs: Dict[str, Any] = {
+        json_kwargs: dict[str, Any] = {
             "default": DateTimeHandler.serialize,
             "ensure_ascii": False,
             "check_circular": True,
@@ -68,19 +65,23 @@ class JsonSerializer(BaseSerializer):
 
     def deserialize(self, data: bytes) -> Any:
         """Deserialize from JSON"""
-        return json.loads(data.decode(self.encoding), object_hook=DateTimeHandler.deserialize)
+        return json.loads(
+            data.decode(self.encoding), object_hook=DateTimeHandler.deserialize,
+        )
 
 
-class PickleSerializer(BaseSerializer):
-    """Pickle serializer implementation"""
+class JsonOnlySerializer(BaseSerializer):
+    """Safe JSON-only serializer implementation"""
+
+    def __init__(self, encoding: str = "utf-8", pretty: bool = False):
+        super().__init__(encoding, pretty)
+        self.json_serializer = JsonSerializer(encoding, pretty)
 
     def serialize(self, data: Any) -> bytes:
-        """Serialize to Pickle"""
-        return pickle.dumps(data, protocol=pickle.HIGHEST_PROTOCOL)
+        return self.json_serializer.serialize(data)
 
     def deserialize(self, data: bytes) -> Any:
-        """Deserialize from Pickle"""
-        return pickle.loads(data)
+        return self.json_serializer.deserialize(data)
 
 
 class MsgPackSerializer(BaseSerializer):
@@ -89,7 +90,10 @@ class MsgPackSerializer(BaseSerializer):
     def serialize(self, data: Any) -> bytes:
         """Serialize to MessagePack"""
         packed = msgpack.packb(
-            data, default=DateTimeHandler.serialize, use_bin_type=True, strict_types=True
+            data,
+            default=DateTimeHandler.serialize,
+            use_bin_type=True,
+            strict_types=True,
         )
         if packed is None:
             raise ValueError("MessagePack serialization failed")
@@ -104,7 +108,7 @@ def get_serializer(format: str = "json", **kwargs: Any) -> BaseSerializer:
     """Get serializer instance"""
     serializers = {
         "json": JsonSerializer,
-        "pickle": PickleSerializer,
+        "json-only": JsonOnlySerializer,
         "msgpack": MsgPackSerializer,
     }
 

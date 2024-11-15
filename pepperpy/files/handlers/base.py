@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import aiofiles
 import magic
@@ -29,15 +29,15 @@ class BaseHandler(ABC):
                 mime_type=mime.from_file(str(path)),
             )
         except Exception as e:
-            raise FileError(f"Failed to get file metadata: {str(e)}", cause=e)
+            raise FileError(f"Failed to get file metadata: {e!s}", cause=e)
 
     async def _read_file(self, path: Path) -> str:
         """Read file content"""
         try:
-            async with aiofiles.open(path, "r") as file:
+            async with aiofiles.open(path) as file:
                 return await file.read()
         except Exception as e:
-            raise FileError(f"Failed to read file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read file: {e!s}", cause=e)
 
     async def _write_file(self, path: Path, content: str) -> FileMetadata:
         """Write file content"""
@@ -50,16 +50,14 @@ class BaseHandler(ABC):
 
             return await self._get_metadata(path)
         except Exception as e:
-            raise FileError(f"Failed to write file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write file: {e!s}", cause=e)
 
     @abstractmethod
     async def read(self, path: Path) -> FileContent:
         """Read file content"""
-        pass
 
     @abstractmethod
     async def write(
-        self, path: Path, content: Any, metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: Any, metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write file content"""
-        pass

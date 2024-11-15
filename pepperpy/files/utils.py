@@ -6,7 +6,6 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Set
 
 from .exceptions import FileError
 
@@ -21,10 +20,10 @@ async def safe_move(src: Path, dst: Path, backup: bool = True) -> None:
         shutil.move(src, dst)
 
     except Exception as e:
-        raise FileError(f"Failed to move file: {str(e)}", cause=e)
+        raise FileError(f"Failed to move file: {e!s}", cause=e)
 
 
-async def find_duplicates(directory: Path, recursive: bool = True) -> List[Set[Path]]:
+async def find_duplicates(directory: Path, recursive: bool = True) -> list[set[Path]]:
     """Find duplicate files"""
     try:
         # First pass: Group by size
@@ -59,14 +58,16 @@ async def find_duplicates(directory: Path, recursive: bool = True) -> List[Set[P
         return duplicates
 
     except Exception as e:
-        raise FileError(f"Failed to find duplicates: {str(e)}", cause=e)
+        raise FileError(f"Failed to find duplicates: {e!s}", cause=e)
 
 
 async def atomic_write(path: Path, content: bytes, mode: int = 0o644) -> None:
     """Write file atomically"""
     try:
         # Create temporary file
-        tmp_fd, tmp_path = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
+        tmp_fd, tmp_path = tempfile.mkstemp(
+            prefix=f".{path.name}.", dir=str(path.parent),
+        )
 
         try:
             # Write content
@@ -87,11 +88,11 @@ async def atomic_write(path: Path, content: bytes, mode: int = 0o644) -> None:
                 pass
 
     except Exception as e:
-        raise FileError(f"Atomic write failed: {str(e)}", cause=e)
+        raise FileError(f"Atomic write failed: {e!s}", cause=e)
 
 
 async def verify_checksum(
-    path: Path, expected: str, algorithm: str = "sha256", chunk_size: int = 8192
+    path: Path, expected: str, algorithm: str = "sha256", chunk_size: int = 8192,
 ) -> bool:
     """Verify file checksum"""
     try:
@@ -104,4 +105,4 @@ async def verify_checksum(
         return hasher.hexdigest() == expected
 
     except Exception as e:
-        raise FileError(f"Checksum verification failed: {str(e)}", cause=e)
+        raise FileError(f"Checksum verification failed: {e!s}", cause=e)

@@ -1,7 +1,7 @@
 """Chat types and models"""
 
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal
 
 ChatRole = Literal["system", "user", "assistant"]
 
@@ -12,4 +12,4 @@ class ChatMessage:
 
     role: ChatRole
     content: str
-    name: Optional[str] = None
+    name: str | None = None

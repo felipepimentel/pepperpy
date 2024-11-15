@@ -36,7 +36,6 @@ class ProgressBar(Component):
 
     async def cleanup(self) -> None:
         """Cleanup progress bar"""
-        pass
 
     async def handle_input(self, key: Any) -> bool:
         """Handle input event"""

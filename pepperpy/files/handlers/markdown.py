@@ -1,7 +1,7 @@
 """Markdown file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from markdown_it import MarkdownIt
 
@@ -28,13 +28,13 @@ class MarkdownHandler(BaseHandler):
 
             return FileContent(content=html, metadata=metadata.metadata, format="markdown")
         except Exception as e:
-            raise FileError(f"Failed to read Markdown file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read Markdown file: {e!s}", cause=e)
 
     async def write(
-        self, path: Path, content: str, metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: str, metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write Markdown file"""
         try:
             return await self._write_file(path, content)
         except Exception as e:
-            raise FileError(f"Failed to write Markdown file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write Markdown file: {e!s}", cause=e)

@@ -1,6 +1,5 @@
 """Rich console implementation"""
 
-from typing import Optional
 
 from rich.console import Console as RichConsole
 from rich.layout import Layout
@@ -13,11 +12,11 @@ from ..core.config import ConsoleConfig
 class RichConsoleApp(ConsoleApp):
     """Rich-based console implementation"""
 
-    def __init__(self, config: Optional[ConsoleConfig] = None):
+    def __init__(self, config: ConsoleConfig | None = None):
         super().__init__(config or ConsoleConfig())
         self.console = RichConsole()
         self._layout = Layout()
-        self._live: Optional[Live] = None
+        self._live: Live | None = None
 
     async def start(self) -> None:
         """Start rich console"""

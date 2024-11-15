@@ -1,9 +1,10 @@
 """Event system for inter-module communication"""
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 
 class Priority(IntEnum):
@@ -27,10 +28,10 @@ class EventBus:
     """Event bus for pub/sub communication"""
 
     def __init__(self):
-        self._handlers: Dict[str, List[Handler]] = {}
+        self._handlers: dict[str, list[Handler]] = {}
 
     async def publish(
-        self, event: str, data: Any = None, priority: Optional[Priority] = None
+        self, event: str, data: Any = None, priority: Priority | None = None,
     ) -> None:
         """Publish event"""
         if event in self._handlers:
@@ -48,7 +49,7 @@ class EventBus:
             await asyncio.gather(*tasks)
 
     def subscribe(
-        self, event: str, handler: Callable, priority: Priority = Priority.NORMAL
+        self, event: str, handler: Callable, priority: Priority = Priority.NORMAL,
     ) -> None:
         """Subscribe to event with priority"""
         if event not in self._handlers:

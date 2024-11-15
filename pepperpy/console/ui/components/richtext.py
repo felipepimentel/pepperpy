@@ -1,7 +1,6 @@
 """Rich text component for console UI"""
 
 from dataclasses import dataclass
-from typing import Optional, Tuple, Union
 
 from rich.color import Color
 from rich.style import Style
@@ -15,8 +14,8 @@ from pepperpy.console.ui.styles import StyleConfig, styles
 class TextStyle:
     """Text style configuration"""
 
-    color: Optional[Union[str, Color, Tuple[int, int, int]]] = None
-    background: Optional[Union[str, Color, Tuple[int, int, int]]] = None
+    color: str | Color | tuple[int, int, int] | None = None
+    background: str | Color | tuple[int, int, int] | None = None
     bold: bool = False
     italic: bool = False
     underline: bool = False
@@ -30,7 +29,7 @@ class TextSegment:
     """Text segment with style"""
 
     text: str
-    style: Optional[TextStyle] = None
+    style: TextStyle | None = None
 
 
 class RichText(Component):
@@ -47,17 +46,19 @@ class RichText(Component):
                 "success": StyleConfig(color="green"),
                 "warning": StyleConfig(color="yellow"),
                 "error": StyleConfig(color="red", bold=True),
-            }
+            },
         )
         super().__init__(config=config)
         self._segments: list[TextSegment] = []
 
-    def append(self, text: str, style_name: Optional[str] = None) -> None:
-        """Append text with style
+    def append(self, text: str, style_name: str | None = None) -> None:
+        """
+        Append text with style
 
         Args:
             text: Text to append
             style_name: Style name to apply
+
         """
         style = None
         if style_name:
@@ -78,22 +79,24 @@ class RichText(Component):
         self._segments.clear()
 
     def render(self) -> Text:
-        """Render text
+        """
+        Render text
 
         Returns:
             Text: Rendered text
+
         """
         text = Text()
         for segment in self._segments:
             if segment.style:
                 color = segment.style.color
                 if isinstance(color, tuple) and len(color) == 3:
-                    r, g, b = [float(x) / 255.0 for x in color if isinstance(x, (int, float))]
+                    r, g, b = (float(x) / 255.0 for x in color if isinstance(x, (int, float)))
                     color = Color.from_rgb(r, g, b)
 
                 bgcolor = segment.style.background
                 if isinstance(bgcolor, tuple) and len(bgcolor) == 3:
-                    r, g, b = [float(x) / 255.0 for x in bgcolor if isinstance(x, (int, float))]
+                    r, g, b = (float(x) / 255.0 for x in bgcolor if isinstance(x, (int, float)))
                     bgcolor = Color.from_rgb(r, g, b)
 
                 style = Style(

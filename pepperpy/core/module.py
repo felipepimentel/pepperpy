@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -13,8 +13,8 @@ class ModuleMetadata:
     name: str
     version: str
     description: str
-    dependencies: List[str]
-    config: Dict[str, Any]
+    dependencies: list[str]
+    config: dict[str, Any]
 
 
 class ModuleStatus(Enum):
@@ -29,19 +29,19 @@ class BaseModule(ABC):
     """Base class for all modules"""
 
     def __init__(self) -> None:
-        self._config: Optional[Dict[str, Any]] = None
+        self._config: dict[str, Any] | None = None
         self._status: ModuleStatus = ModuleStatus.INACTIVE
-        self.metadata: Optional[ModuleMetadata] = None
+        self.metadata: ModuleMetadata | None = None
 
     @property
-    def config(self) -> Dict[str, Any]:
+    def config(self) -> dict[str, Any]:
         """Get module configuration"""
         if not self._config:
             raise ValueError("Module configuration not set")
         return self._config
 
     @config.setter
-    def config(self, value: Dict[str, Any]) -> None:
+    def config(self, value: dict[str, Any]) -> None:
         """Set module configuration"""
         self._config = value
 
@@ -61,9 +61,7 @@ class BaseModule(ABC):
     @abstractmethod
     async def _setup(self) -> None:
         """Module-specific initialization"""
-        pass
 
     @abstractmethod
     async def _cleanup(self) -> None:
         """Module-specific cleanup"""
-        pass

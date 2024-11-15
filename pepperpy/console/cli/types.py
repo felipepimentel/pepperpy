@@ -1,7 +1,8 @@
 """CLI type definitions"""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, List
+from typing import Any
 
 from pepperpy.core.types import JsonDict
 
@@ -13,8 +14,8 @@ class Command:
     name: str
     callback: Callable
     help: str
-    arguments: List[str] = field(default_factory=list)
-    options: List[str] = field(default_factory=list)
+    arguments: list[str] = field(default_factory=list)
+    options: list[str] = field(default_factory=list)
     metadata: JsonDict = field(default_factory=dict)
 
 

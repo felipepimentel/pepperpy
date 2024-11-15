@@ -3,7 +3,7 @@
 import asyncio
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, Union
+from typing import Any
 
 from .exceptions import InputError
 
@@ -33,12 +33,12 @@ class KeyCode(Enum):
 class Key:
     """Keyboard key"""
 
-    code: Union[KeyCode, str]
+    code: KeyCode | str
     alt: bool = False
     ctrl: bool = False
     shift: bool = False
     meta: bool = False
-    modifiers: Dict[str, Any] = field(default_factory=dict)
+    modifiers: dict[str, Any] = field(default_factory=dict)
 
 
 class KeyboardManager:
@@ -59,21 +59,25 @@ class KeyboardManager:
             await self._queue.get()
 
     async def get_key(self) -> Key:
-        """Get next key press
+        """
+        Get next key press
 
         Returns:
             Key: Next key press
+
         """
         try:
             return await self._queue.get()
         except Exception as e:
-            raise InputError(f"Failed to get key: {str(e)}", cause=e)
+            raise InputError(f"Failed to get key: {e!s}", cause=e)
 
     def put_key(self, key: Key) -> None:
-        """Put key in queue
+        """
+        Put key in queue
 
         Args:
             key: Key to put in queue
+
         """
         if self._running:
             self._queue.put_nowait(key)

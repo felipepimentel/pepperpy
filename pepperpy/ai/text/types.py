@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
 from pepperpy.core.types import JsonDict
 
@@ -13,7 +12,7 @@ class ChunkMetadata:
 
     start_index: int
     end_index: int
-    tokens: Optional[int] = None
+    tokens: int | None = None
     metadata: JsonDict = field(default_factory=dict)
 
 

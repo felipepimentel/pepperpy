@@ -1,7 +1,7 @@
 """JSON file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import orjson
 
@@ -24,13 +24,13 @@ class JSONHandler(BaseHandler):
 
             return FileContent(content=data, metadata=metadata.metadata, format="json")
         except Exception as e:
-            raise FileError(f"Failed to read JSON file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read JSON file: {e!s}", cause=e)
 
     async def write(
         self,
         path: Path,
-        content: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None,
+        content: dict[str, Any],
+        metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write JSON file"""
         try:
@@ -42,4 +42,4 @@ class JSONHandler(BaseHandler):
 
             return await self._write_file(path, json_content)
         except Exception as e:
-            raise FileError(f"Failed to write JSON file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write JSON file: {e!s}", cause=e)

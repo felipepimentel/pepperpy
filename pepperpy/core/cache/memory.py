@@ -1,7 +1,7 @@
 """In-memory cache implementation"""
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from .exceptions import CacheError
 
@@ -13,16 +13,18 @@ class MemoryCache(Generic[KT, VT]):
     """Simple in-memory cache implementation"""
 
     def __init__(self):
-        self._cache: Dict[KT, Dict[str, Any]] = {}
+        self._cache: dict[KT, dict[str, Any]] = {}
 
-    def get(self, key: KT) -> Optional[VT]:
-        """Get value from cache
+    def get(self, key: KT) -> VT | None:
+        """
+        Get value from cache
 
         Args:
             key: Cache key
 
         Returns:
             Optional[VT]: Cached value if exists
+
         """
         try:
             if key not in self._cache:
@@ -35,42 +37,46 @@ class MemoryCache(Generic[KT, VT]):
 
             return entry["value"]
         except Exception as e:
-            raise CacheError(f"Failed to get value: {str(e)}", cause=e)
+            raise CacheError(f"Failed to get value: {e!s}", cause=e)
 
-    def set(self, key: KT, value: VT, ttl: Optional[int] = None) -> None:
-        """Set value in cache
+    def set(self, key: KT, value: VT, ttl: int | None = None) -> None:
+        """
+        Set value in cache
 
         Args:
             key: Cache key
             value: Value to cache
             ttl: Time to live in seconds
+
         """
         try:
-            entry: Dict[str, Any] = {"value": value}
+            entry: dict[str, Any] = {"value": value}
             if ttl is not None:
                 entry["expires_at"] = datetime.now() + timedelta(seconds=ttl)
             self._cache[key] = entry
         except Exception as e:
-            raise CacheError(f"Failed to set value: {str(e)}", cause=e)
+            raise CacheError(f"Failed to set value: {e!s}", cause=e)
 
     def delete(self, key: KT) -> None:
-        """Delete value from cache
+        """
+        Delete value from cache
 
         Args:
             key: Cache key
+
         """
         try:
             if key in self._cache:
                 del self._cache[key]
         except Exception as e:
-            raise CacheError(f"Failed to delete value: {str(e)}", cause=e)
+            raise CacheError(f"Failed to delete value: {e!s}", cause=e)
 
     def clear(self) -> None:
         """Clear all values from cache"""
         try:
             self._cache.clear()
         except Exception as e:
-            raise CacheError(f"Failed to clear cache: {str(e)}", cause=e)
+            raise CacheError(f"Failed to clear cache: {e!s}", cause=e)
 
     def __contains__(self, key: KT) -> bool:
         """Check if key exists in cache"""

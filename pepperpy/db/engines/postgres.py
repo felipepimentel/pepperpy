@@ -1,7 +1,7 @@
 """PostgreSQL engine implementation"""
 
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import asyncpg
 
@@ -27,14 +27,14 @@ class PostgresEngine(BaseEngine):
                 **self.config.params,
             )
         except Exception as e:
-            raise DatabaseError(f"Failed to initialize PostgreSQL: {str(e)}", cause=e)
+            raise DatabaseError(f"Failed to initialize PostgreSQL: {e!s}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup PostgreSQL resources"""
         if self._pool:
             await self._pool.close()
 
-    async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> QueryResult:
+    async def execute(self, query: str, params: dict[str, Any] | None = None) -> QueryResult:
         """Execute PostgreSQL query"""
         if not self._pool:
             raise DatabaseError("Database connection not initialized")
@@ -50,11 +50,11 @@ class PostgresEngine(BaseEngine):
                     execution_time=time.time() - start_time,
                 )
             except Exception as e:
-                raise DatabaseError(f"PostgreSQL query failed: {str(e)}", cause=e)
+                raise DatabaseError(f"PostgreSQL query failed: {e!s}", cause=e)
 
     async def execute_many(
-        self, query: str, params_list: List[Dict[str, Any]]
-    ) -> List[QueryResult]:
+        self, query: str, params_list: list[dict[str, Any]],
+    ) -> list[QueryResult]:
         """Execute multiple PostgreSQL queries"""
         if not self._pool:
             raise DatabaseError("Database connection not initialized")
@@ -71,11 +71,11 @@ class PostgresEngine(BaseEngine):
                             rows=[dict(row) for row in result],
                             affected_rows=len(result),
                             execution_time=time.time() - start_time,
-                        )
+                        ),
                     )
                 return results
             except Exception as e:
-                raise DatabaseError(f"PostgreSQL batch query failed: {str(e)}", cause=e)
+                raise DatabaseError(f"PostgreSQL batch query failed: {e!s}", cause=e)
 
     async def transaction(self) -> Any:
         """Get PostgreSQL transaction context manager"""

@@ -1,7 +1,7 @@
 """Table component"""
 
 from dataclasses import dataclass
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal
 
 from rich.style import Style
 from rich.table import Table as RichTable
@@ -17,7 +17,7 @@ class Column:
     """Table column configuration"""
 
     header: str
-    style: Optional[str] = None
+    style: str | None = None
     align: JustifyMethod = "left"
     show_header: bool = True
 
@@ -26,26 +26,24 @@ class Table(Component):
     """Table component for displaying tabular data"""
 
     def __init__(
-        self, columns: Optional[List[Column]] = None, data: Optional[List[List[str]]] = None
+        self, columns: list[Column] | None = None, data: list[list[str]] | None = None,
     ):
         config = ComponentConfig(
             style={
                 "header": Style(bold=True),
                 "cell": Style(),
                 "border": Style(dim=True),
-            }
+            },
         )
         super().__init__(config)
-        self._columns: List[Column] = columns or []
-        self._data: List[List[str]] = data or []
+        self._columns: list[Column] = columns or []
+        self._data: list[list[str]] = data or []
 
     async def initialize(self) -> None:
         """Initialize table"""
-        pass
 
     async def cleanup(self) -> None:
         """Cleanup table"""
-        pass
 
     async def handle_input(self, key: Any) -> bool:
         """Handle input event"""
@@ -54,13 +52,13 @@ class Table(Component):
     def add_column(
         self,
         header: str,
-        style: Optional[str] = None,
+        style: str | None = None,
         align: JustifyMethod = "left",
         show_header: bool = True,
     ) -> None:
         """Add a column to the table"""
         self._columns.append(
-            Column(header=header, style=style, align=align, show_header=show_header)
+            Column(header=header, style=style, align=align, show_header=show_header),
         )
 
     def add_row(self, *values: str) -> None:

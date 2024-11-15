@@ -1,7 +1,8 @@
 """Mock utilities for testing"""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from typing import Any, TypeVar, Union
 
 T = TypeVar("T")
 MockFunction = Callable[..., Any]
@@ -13,9 +14,9 @@ class MockCall:
     """Mock function call record"""
 
     args: tuple
-    kwargs: Dict[str, Any]
+    kwargs: dict[str, Any]
     return_value: Any
-    exception: Optional[Exception] = None
+    exception: Exception | None = None
 
 
 @dataclass
@@ -24,8 +25,8 @@ class Mock:
 
     name: str
     return_value: Any = None
-    side_effect: Optional[Union[Exception, MockFunction]] = None
-    calls: List[MockCall] = field(default_factory=list)
+    side_effect: Exception | MockFunction | None = None
+    calls: list[MockCall] = field(default_factory=list)
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Handle mock function call"""
@@ -48,9 +49,10 @@ class Mock:
 def create_mock(
     name: str,
     return_value: Any = None,
-    side_effect: Optional[Union[Exception, MockFunction]] = None,
+    side_effect: Exception | MockFunction | None = None,
 ) -> Mock:
-    """Create a mock function
+    """
+    Create a mock function
 
     Args:
         name: Mock name
@@ -59,5 +61,6 @@ def create_mock(
 
     Returns:
         Mock: Mock function
+
     """
     return Mock(name=name, return_value=return_value, side_effect=side_effect)

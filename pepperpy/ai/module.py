@@ -1,7 +1,8 @@
 """AI module implementation"""
 
+from collections.abc import AsyncIterator
 from dataclasses import asdict
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -14,7 +15,7 @@ from .types import LLMResponse, Message
 class AIModule(BaseModule):
     """Main AI module implementation"""
 
-    def __init__(self, config: Optional[AIConfig] = None):
+    def __init__(self, config: AIConfig | None = None):
         super().__init__()
         config_dict = asdict(config) if config else {}
         self.metadata = ModuleMetadata(
@@ -24,7 +25,7 @@ class AIModule(BaseModule):
             dependencies=[],
             config=config_dict,
         )
-        self._provider: Optional[BaseLLMProvider] = None
+        self._provider: BaseLLMProvider | None = None
         self._initialized: bool = False
 
     async def _setup(self) -> None:
@@ -46,7 +47,7 @@ class AIModule(BaseModule):
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self.cleanup()
 
-    async def generate(self, messages: List[Message]) -> LLMResponse:
+    async def generate(self, messages: list[Message]) -> LLMResponse:
         """Generate a response using the configured LLM provider"""
         if not self._initialized:
             raise AIError("AI module not initialized")
@@ -56,7 +57,7 @@ class AIModule(BaseModule):
 
         return await self._provider.generate(messages)
 
-    async def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
+    async def stream(self, messages: list[Message]) -> AsyncIterator[LLMResponse]:
         """Stream responses using the configured LLM provider"""
         if not self._initialized:
             raise AIError("AI module not initialized")
@@ -72,7 +73,7 @@ class AIModule(BaseModule):
 
         return stream_wrapper()
 
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         """Get the module configuration"""
         if not self.metadata or not isinstance(self.metadata.config, dict):
             return {}

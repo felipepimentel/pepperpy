@@ -1,7 +1,7 @@
 """Metrics collection implementation"""
 
 import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
@@ -13,7 +13,7 @@ from .types import MetricEvent, MetricType
 class MetricsCollector(BaseModule):
     """Collector for AI operation metrics"""
 
-    def __init__(self, config: Optional[MetricsConfig] = None):
+    def __init__(self, config: MetricsConfig | None = None):
         super().__init__()
         self.metadata = ModuleMetadata(
             name="metrics",
@@ -22,7 +22,7 @@ class MetricsCollector(BaseModule):
             dependencies=[],
             config=config.dict() if config else {},
         )
-        self._events: List[MetricEvent] = []
+        self._events: list[MetricEvent] = []
         self._flush_task = None
 
     async def _setup(self) -> None:
@@ -46,11 +46,11 @@ class MetricsCollector(BaseModule):
         value: Any,
         module: str,
         operation: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """Record a metric event"""
         event = MetricEvent(
-            type=type, value=value, module=module, operation=operation, metadata=metadata or {}
+            type=type, value=value, module=module, operation=operation, metadata=metadata or {},
         )
         self._events.append(event)
 
@@ -119,7 +119,7 @@ class MetricsCollector(BaseModule):
                     f.write(json.dumps(event) + "\n")
 
         except Exception as e:
-            raise MetricsError(f"Failed to write metrics to file: {str(e)}", cause=e)
+            raise MetricsError(f"Failed to write metrics to file: {e!s}", cause=e)
 
     async def _flush_to_custom(self) -> None:
         """Flush metrics to custom handler"""
@@ -132,4 +132,4 @@ class MetricsCollector(BaseModule):
             if asyncio.iscoroutine(result):
                 await result
         except Exception as e:
-            raise MetricsError(f"Custom handler failed: {str(e)}", cause=e)
+            raise MetricsError(f"Custom handler failed: {e!s}", cause=e)

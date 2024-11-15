@@ -1,7 +1,7 @@
 """Document file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict, List, Union, cast
+from typing import Any, cast
 
 import fitz  # PyMuPDF
 import pandas as pd
@@ -23,7 +23,7 @@ class DocumentHandler(FileHandler):
         ".odt": "ODT",
     }
 
-    async def read_pdf(self, path: Path) -> Dict[str, Any]:
+    async def read_pdf(self, path: Path) -> dict[str, Any]:
         """Read PDF document"""
         try:
             doc = cast(PDFDocument, fitz.open(str(path)))
@@ -42,14 +42,14 @@ class DocumentHandler(FileHandler):
                         "images": self._extract_images(pdf_page),
                         "tables": self._extract_tables(pdf_page),
                         "links": pdf_page.get_links(),
-                    }
+                    },
                 )
 
             return content
         except Exception as e:
-            raise FileError(f"Failed to read PDF: {str(e)}", cause=e)
+            raise FileError(f"Failed to read PDF: {e!s}", cause=e)
 
-    async def read_docx(self, path: Path) -> Dict[str, Any]:
+    async def read_docx(self, path: Path) -> dict[str, Any]:
         """Read DOCX document"""
         try:
             doc = Document(str(path))
@@ -71,7 +71,7 @@ class DocumentHandler(FileHandler):
                             }
                             for run in para.runs
                         ],
-                    }
+                    },
                 )
 
             # Extract tables
@@ -80,9 +80,9 @@ class DocumentHandler(FileHandler):
 
             return content
         except Exception as e:
-            raise FileError(f"Failed to read DOCX: {str(e)}", cause=e)
+            raise FileError(f"Failed to read DOCX: {e!s}", cause=e)
 
-    async def write_pdf(self, path: Path, content: Dict[str, Any], **kwargs: Any) -> None:
+    async def write_pdf(self, path: Path, content: dict[str, Any], **kwargs: Any) -> None:
         """Write PDF document"""
         try:
             doc = cast(PDFDocument, fitz.open())
@@ -109,9 +109,9 @@ class DocumentHandler(FileHandler):
             doc.close()
 
         except Exception as e:
-            raise FileError(f"Failed to write PDF: {str(e)}", cause=e)
+            raise FileError(f"Failed to write PDF: {e!s}", cause=e)
 
-    async def write_docx(self, path: Path, content: Dict[str, Any], **kwargs: Any) -> None:
+    async def write_docx(self, path: Path, content: dict[str, Any], **kwargs: Any) -> None:
         """Write DOCX document"""
         try:
             doc = Document()
@@ -136,11 +136,13 @@ class DocumentHandler(FileHandler):
             doc.save(str(path))
 
         except Exception as e:
-            raise FileError(f"Failed to write DOCX: {str(e)}", cause=e)
+            raise FileError(f"Failed to write DOCX: {e!s}", cause=e)
 
     async def extract_text(
-        self, path: Path, structured: bool = False
-    ) -> Union[str, Dict[str, Any]]:
+        self,
+        path: Path,
+        structured: bool = False,
+    ) -> str | dict[str, Any]:
         """Extract text from document"""
         try:
             if path.suffix == ".pdf":
@@ -152,7 +154,7 @@ class DocumentHandler(FileHandler):
                     }
                 return " ".join(cast(PDFPage, page).get_text() for page in doc)
 
-            elif path.suffix == ".docx":
+            if path.suffix == ".docx":
                 doc = Document(str(path))
                 if structured:
                     return {
@@ -168,11 +170,13 @@ class DocumentHandler(FileHandler):
             return "" if not structured else {"text": ""}
 
         except Exception as e:
-            raise FileError(f"Failed to extract text: {str(e)}", cause=e)
+            raise FileError(f"Failed to extract text: {e!s}", cause=e)
 
     async def extract_tables(
-        self, path: Path, as_dataframe: bool = False
-    ) -> Union[List[List[List[str]]], List[pd.DataFrame]]:
+        self,
+        path: Path,
+        as_dataframe: bool = False,
+    ) -> list[list[list[str]]] | list[pd.DataFrame]:
         """Extract tables from document"""
         try:
             tables = []
@@ -193,9 +197,9 @@ class DocumentHandler(FileHandler):
             return tables
 
         except Exception as e:
-            raise FileError(f"Failed to extract tables: {str(e)}", cause=e)
+            raise FileError(f"Failed to extract tables: {e!s}", cause=e)
 
-    def _extract_images(self, page: PDFPage) -> List[Dict[str, Any]]:
+    def _extract_images(self, page: PDFPage) -> list[dict[str, Any]]:
         """Extract images from PDF page"""
         images = []
         for img in page.get_images():
@@ -209,11 +213,11 @@ class DocumentHandler(FileHandler):
                             "size": (base.get("width", 0), base.get("height", 0)),
                             "format": base.get("ext", ""),
                             "colorspace": base.get("colorspace", ""),
-                        }
+                        },
                     )
         return images
 
-    def _extract_tables(self, page: PDFPage) -> List[List[List[str]]]:
+    def _extract_tables(self, page: PDFPage) -> list[list[list[str]]]:
         """Extract tables from PDF page"""
         tables = []
         # TODO: Implement table detection using page layout analysis

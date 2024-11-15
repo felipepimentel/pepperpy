@@ -2,7 +2,7 @@
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -11,8 +11,8 @@ class MockRequest:
 
     method: str
     url: str
-    headers: Dict[str, str] = field(default_factory=dict)
-    params: Dict[str, str] = field(default_factory=dict)
+    headers: dict[str, str] = field(default_factory=dict)
+    params: dict[str, str] = field(default_factory=dict)
     data: Any = None
 
 
@@ -22,16 +22,16 @@ class MockResponse:
 
     status: int
     data: Any
-    headers: Dict[str, str] = field(default_factory=dict)
+    headers: dict[str, str] = field(default_factory=dict)
 
 
 class MockHTTPClient:
     """Mock HTTP client"""
 
     def __init__(self):
-        self._responses: Dict[str, List[MockResponse]] = {}
-        self._requests: List[MockRequest] = []
-        self._delay: Optional[float] = None
+        self._responses: dict[str, list[MockResponse]] = {}
+        self._requests: list[MockRequest] = []
+        self._delay: float | None = None
 
     def add_response(self, url: str, response: MockResponse, method: str = "GET") -> None:
         """Add mock response"""
@@ -48,13 +48,13 @@ class MockHTTPClient:
         self,
         method: str,
         url: str,
-        headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
         data: Any = None,
     ) -> MockResponse:
         """Make mock request"""
         request = MockRequest(
-            method=method, url=url, headers=headers or {}, params=params or {}, data=data
+            method=method, url=url, headers=headers or {}, params=params or {}, data=data,
         )
         self._requests.append(request)
 
@@ -68,7 +68,7 @@ class MockHTTPClient:
         responses = self._responses[key]
         return responses.pop(0) if responses else responses[0]
 
-    def get_requests(self) -> List[MockRequest]:
+    def get_requests(self) -> list[MockRequest]:
         """Get recorded requests"""
         return self._requests
 
@@ -83,25 +83,25 @@ class MockDatabase:
     """Mock database"""
 
     def __init__(self):
-        self._data: Dict[str, Dict[str, Any]] = {}
-        self._queries: List[str] = []
+        self._data: dict[str, dict[str, Any]] = {}
+        self._queries: list[str] = []
 
     async def execute(
-        self, query: str, params: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        self, query: str, params: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Execute mock query"""
         self._queries.append(query)
         return []
 
-    async def insert(self, table: str, data: Dict[str, Any]) -> None:
+    async def insert(self, table: str, data: dict[str, Any]) -> None:
         """Insert mock data"""
         if table not in self._data:
             self._data[table] = {}
         self._data[table][str(len(self._data[table]))] = data
 
     async def select(
-        self, table: str, conditions: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        self, table: str, conditions: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Select mock data"""
         if table not in self._data:
             return []
@@ -112,7 +112,7 @@ class MockDatabase:
                 results.append(record)
         return results
 
-    def get_queries(self) -> List[str]:
+    def get_queries(self) -> list[str]:
         """Get recorded queries"""
         return self._queries
 

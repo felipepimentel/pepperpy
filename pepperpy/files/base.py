@@ -1,9 +1,10 @@
 """Base file handler implementation"""
 
 import hashlib
+from collections.abc import AsyncIterator
 from datetime import datetime
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 import aiofiles
 import magic
@@ -22,7 +23,7 @@ class FileHandler(Protocol):
         ...
 
     async def write(
-        self, path: Path, content: Any, metadata: Optional[Dict[str, Any]] = None
+        self, path: Path, content: Any, metadata: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Write file content"""
         ...
@@ -53,9 +54,9 @@ class BaseHandler:
                 metadata=self._get_file_stats(path),
             )
         except Exception as e:
-            raise FileError(f"Failed to get metadata: {str(e)}", cause=e)
+            raise FileError(f"Failed to get metadata: {e!s}", cause=e)
 
-    def _get_file_stats(self, path: Path) -> Dict[str, Any]:
+    def _get_file_stats(self, path: Path) -> dict[str, Any]:
         """Get detailed file statistics"""
         try:
             stat = path.stat()
@@ -70,7 +71,7 @@ class BaseHandler:
                 "permissions": oct(stat.st_mode)[-3:],
             }
         except Exception as e:
-            raise FileError(f"Failed to get file stats: {str(e)}", cause=e)
+            raise FileError(f"Failed to get file stats: {e!s}", cause=e)
 
     def _is_binary(self, path: Path) -> bool:
         """Check if file is binary"""
@@ -91,10 +92,10 @@ class BaseHandler:
             if self._is_binary(path):
                 raise FileError("Cannot read binary file as text")
 
-            async with aiofiles.open(path, "r") as f:
+            async with aiofiles.open(path) as f:
                 return await f.read()
         except Exception as e:
-            raise FileError(f"Failed to read file: {str(e)}", cause=e)
+            raise FileError(f"Failed to read file: {e!s}", cause=e)
 
     async def _write_file(self, path: Path, content: str) -> FileMetadata:
         """Write file content"""
@@ -103,7 +104,7 @@ class BaseHandler:
                 await f.write(content)
             return await self._get_metadata(path)
         except Exception as e:
-            raise FileError(f"Failed to write file: {str(e)}", cause=e)
+            raise FileError(f"Failed to write file: {e!s}", cause=e)
 
     async def _read_chunks(self, path: Path, chunk_size: int = 8192) -> AsyncIterator[bytes]:
         """Read file in chunks"""
@@ -112,7 +113,7 @@ class BaseHandler:
                 while chunk := await f.read(chunk_size):
                     yield chunk
         except Exception as e:
-            raise FileError(f"Failed to read chunks: {str(e)}", cause=e)
+            raise FileError(f"Failed to read chunks: {e!s}", cause=e)
 
     async def _write_chunks(self, path: Path, chunks: AsyncIterator[bytes]) -> FileMetadata:
         """Write file in chunks"""
@@ -122,4 +123,4 @@ class BaseHandler:
                     await f.write(chunk)
             return await self._get_metadata(path)
         except Exception as e:
-            raise FileError(f"Failed to write chunks: {str(e)}", cause=e)
+            raise FileError(f"Failed to write chunks: {e!s}", cause=e)

@@ -1,6 +1,6 @@
 """Database engines"""
 
-from typing import Any, Dict
+from typing import Any
 
 from ..config import DatabaseConfig
 from .base import BaseEngine
@@ -8,7 +8,7 @@ from .postgres import PostgresEngine
 from .sqlite import SQLiteEngine
 
 
-def get_engine(config: Dict[str, Any]) -> BaseEngine:
+def get_engine(config: dict[str, Any]) -> BaseEngine:
     """Get database engine based on configuration"""
     engine_type = config.get("engine", "sqlite")
 
@@ -17,7 +17,6 @@ def get_engine(config: Dict[str, Any]) -> BaseEngine:
 
     if engine_type == "postgres":
         return PostgresEngine(db_config)
-    elif engine_type == "sqlite":
+    if engine_type == "sqlite":
         return SQLiteEngine(db_config)
-    else:
-        raise ValueError(f"Unsupported database engine: {engine_type}")
+    raise ValueError(f"Unsupported database engine: {engine_type}")

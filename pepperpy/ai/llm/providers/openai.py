@@ -1,6 +1,7 @@
 """OpenAI LLM provider implementation"""
 
-from typing import AsyncIterator, List, Optional, cast
+from collections.abc import AsyncIterator
+from typing import cast
 
 import openai
 from openai.types.chat import (
@@ -30,7 +31,7 @@ class OpenAIConfig(LLMConfig):
         top_p: float = 1.0,
         frequency_penalty: float = 0.0,
         presence_penalty: float = 0.0,
-        api_base: Optional[str] = None,
+        api_base: str | None = None,
     ) -> None:
         if not api_key:
             raise ValueError("OpenAI API key is required")
@@ -47,7 +48,7 @@ class OpenAIConfig(LLMConfig):
 class OpenAIProvider(BaseLLMProvider):
     """OpenAI LLM provider implementation"""
 
-    def __init__(self, config: Optional[OpenAIConfig] = None) -> None:
+    def __init__(self, config: OpenAIConfig | None = None) -> None:
         if not config:
             raise ValueError("OpenAI configuration is required")
 
@@ -67,27 +68,27 @@ class OpenAIProvider(BaseLLMProvider):
             await self._client.close()
             self._client = None
 
-    def _convert_messages(self, messages: List[Message]) -> List[ChatCompletionMessageParam]:
+    def _convert_messages(self, messages: list[Message]) -> list[ChatCompletionMessageParam]:
         """Convert messages to OpenAI format"""
-        converted: List[ChatCompletionMessageParam] = []
+        converted: list[ChatCompletionMessageParam] = []
 
         for msg in messages:
             if msg["role"] == "system":
                 converted.append(
-                    ChatCompletionSystemMessageParam(role="system", content=msg["content"])
+                    ChatCompletionSystemMessageParam(role="system", content=msg["content"]),
                 )
             elif msg["role"] == "user":
                 converted.append(
-                    ChatCompletionUserMessageParam(role="user", content=msg["content"])
+                    ChatCompletionUserMessageParam(role="user", content=msg["content"]),
                 )
             elif msg["role"] == "assistant":
                 converted.append(
-                    ChatCompletionAssistantMessageParam(role="assistant", content=msg["content"])
+                    ChatCompletionAssistantMessageParam(role="assistant", content=msg["content"]),
                 )
 
         return converted
 
-    async def complete(self, messages: List[Message]) -> LLMResponse:
+    async def complete(self, messages: list[Message]) -> LLMResponse:
         """Complete chat messages"""
         if not self._client:
             raise ProviderError("OpenAI client not initialized")
@@ -127,7 +128,7 @@ class OpenAIProvider(BaseLLMProvider):
         except Exception as e:
             raise ProviderError("Failed to complete chat", cause=e)
 
-    async def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
+    async def stream(self, messages: list[Message]) -> AsyncIterator[LLMResponse]:
         """Stream responses from OpenAI"""
         if not self._client:
             raise ProviderError("OpenAI client not initialized")

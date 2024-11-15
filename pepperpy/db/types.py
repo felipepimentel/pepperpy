@@ -1,6 +1,7 @@
 """Database types"""
 
-from typing import Any, Dict, Sequence, TypeVar
+from collections.abc import Sequence
+from typing import Any, TypeVar
 
 # Tipo genérico para chaves de dicionário
 K = TypeVar("K", str, Any)
@@ -11,7 +12,7 @@ class QueryResult:
 
     def __init__(
         self,
-        rows: Sequence[Dict[K, Any]],
+        rows: Sequence[dict[K, Any]],
         affected_rows: int,
         execution_time: float,
         last_insert_id: Any = None,

@@ -5,8 +5,9 @@ import cProfile
 import functools
 import io
 import pstats
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager, redirect_stdout
-from typing import AsyncIterator, Awaitable, Callable, Dict, Optional, TypeVar, cast
+from typing import TypeVar, cast
 
 from typing_extensions import ParamSpec
 
@@ -29,14 +30,16 @@ class AsyncProfiler:
         self.name = name
         self._profiler = cProfile.Profile()
         self._logger = get_logger(__name__)
-        self._stats: Dict[str, ExtendedStats] = {}
+        self._stats: dict[str, ExtendedStats] = {}
 
     @asynccontextmanager
     async def profile(self) -> AsyncIterator["AsyncProfiler"]:
-        """Profile execution with detailed statistics
+        """
+        Profile execution with detailed statistics
 
         Returns:
             AsyncIterator[AsyncProfiler]: Profiler instance
+
         """
         self._profiler.enable()
         try:
@@ -53,13 +56,15 @@ class AsyncProfiler:
             )
 
     def profile_function(self, func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
-        """Decorator for profiling async functions
+        """
+        Decorator for profiling async functions
 
         Args:
             func: Function to profile
 
         Returns:
             Callable[P, Awaitable[T]]: Decorated function
+
         """
         if not asyncio.iscoroutinefunction(func):
             raise ValueError("Can only profile async functions")
@@ -72,7 +77,7 @@ class AsyncProfiler:
 
         return wrapper
 
-    def print_stats(self, limit: Optional[int] = None) -> None:
+    def print_stats(self, limit: int | None = None) -> None:
         """Print profiling statistics"""
         for name, stats in self._stats.items():
             print(f"\nProfile stats for {name}:")
@@ -81,7 +86,7 @@ class AsyncProfiler:
             else:
                 stats.print_stats()
 
-    def get_stats(self) -> Dict[str, ExtendedStats]:
+    def get_stats(self) -> dict[str, ExtendedStats]:
         """Get raw profiling statistics"""
         return self._stats
 
@@ -97,7 +102,7 @@ class ProfileStats:
             self._stats = cast(ExtendedStats, pstats.Stats(self.profiler))
         return self._stats
 
-    def print_stats(self, amount: Optional[int] = None) -> str:
+    def print_stats(self, amount: int | None = None) -> str:
         output = io.StringIO()
         stats = self.stats.sort_stats(pstats.SortKey.TIME)
 

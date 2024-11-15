@@ -1,44 +1,42 @@
-"""AI type definitions"""
+"""AI module types and data structures"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Literal, Optional, TypedDict
+from typing import Any
 
 
-class UsageInfo(TypedDict):
+@dataclass
+class UsageInfo:
+    """Token usage information"""
+
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
 
 
 @dataclass
-class Message:
-    role: Literal["user", "assistant", "system"]
+class AIResponse:
+    """AI response with metadata"""
+
     content: str
+    model: str
     usage: UsageInfo
+    metadata: dict[str, str] | None = None
+
+
+@dataclass
+class Message:
+    """Chat message"""
+
+    content: str
+    sender: str
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class LLMResponse:
-    content: str
-    model: str
-    usage: UsageInfo
-
-
-@dataclass
-class AIConfig:
-    """Configuration for AI modules"""
-
-    model: str
-    api_key: str
-    organization: Optional[str] = None
-    extra_params: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class AIResponse:
-    """Response from AI modules"""
+    """LLM response data"""
 
     content: str
-    raw_response: Dict[str, Any]
     model: str
-    usage: Dict[str, int]
+    usage: dict[str, int] | None = None
+    metadata: dict[str, str] | None = None

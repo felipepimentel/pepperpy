@@ -1,6 +1,7 @@
 """Layout management for console UI"""
 
-from typing import Any, List, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 from rich.layout import Layout as RichLayout
 from rich.style import Style
@@ -16,11 +17,11 @@ class Layout(Component):
         config = ComponentConfig(
             style={
                 "border": Style(dim=True),
-            }
+            },
         )
         super().__init__(config)
         self._layout = RichLayout()
-        self._components: List[Component] = []
+        self._components: list[Component] = []
 
     async def initialize(self) -> None:
         """Initialize layout"""
@@ -40,35 +41,41 @@ class Layout(Component):
         return False
 
     def add(self, component: Component) -> None:
-        """Add component to layout
+        """
+        Add component to layout
 
         Args:
             component: Component to add
+
         """
         if component not in self._components:
             self._components.append(component)
 
     def remove(self, component: Component) -> None:
-        """Remove component from layout
+        """
+        Remove component from layout
 
         Args:
             component: Component to remove
+
         """
         if component in self._components:
             self._components.remove(component)
 
     def split(
         self,
-        *components: Union[str, Component],
+        *components: str | Component,
         direction: str = "vertical",
-        ratios: Optional[Sequence[int]] = None,
+        ratios: Sequence[int] | None = None,
     ) -> None:
-        """Split layout into multiple components
+        """
+        Split layout into multiple components
 
         Args:
             *components: Components to add to the layout
             direction: Split direction ("vertical" or "horizontal")
             ratios: Optional list of ratios for component sizes
+
         """
         self._components.extend(c for c in components if isinstance(c, Component))
 

@@ -1,7 +1,7 @@
 """File handling configuration"""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 from pepperpy.core.config import ModuleConfig
 
@@ -12,10 +12,10 @@ class FileConfig(ModuleConfig):
 
     default_encoding: str = "utf-8"
     chunk_size: int = 8192
-    max_file_size: Optional[int] = None
-    allowed_extensions: Optional[Set[str]] = None
+    max_file_size: int | None = None
+    allowed_extensions: set[str] | None = None
     create_dirs: bool = True
     backup_enabled: bool = False
-    backup_dir: Optional[str] = None
+    backup_dir: str | None = None
     metadata_enabled: bool = True
-    params: Dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)

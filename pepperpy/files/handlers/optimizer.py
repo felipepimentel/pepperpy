@@ -1,7 +1,6 @@
 """File optimizer implementation"""
 
 from pathlib import Path
-from typing import Optional
 
 import cv2
 from PIL import Image
@@ -19,7 +18,7 @@ class FileOptimizer(BaseHandler):
         path: Path,
         output_path: Path,
         quality: int = 85,
-        max_size: Optional[tuple[int, int]] = None,
+        max_size: tuple[int, int] | None = None,
     ) -> None:
         """Optimize image file"""
         try:
@@ -34,15 +33,15 @@ class FileOptimizer(BaseHandler):
             img.save(output_path, quality=quality, optimize=True)
 
         except Exception as e:
-            raise FileError(f"Failed to optimize image: {str(e)}", cause=e)
+            raise FileError(f"Failed to optimize image: {e!s}", cause=e)
 
     async def optimize_video(
         self,
         path: Path,
         output_path: Path,
         target_size_mb: float = 8.0,
-        fps: Optional[float] = None,
-        resolution: Optional[tuple[int, int]] = None,
+        fps: float | None = None,
+        resolution: tuple[int, int] | None = None,
     ) -> None:
         """Optimize video file"""
         try:
@@ -81,10 +80,10 @@ class FileOptimizer(BaseHandler):
             out.release()
 
         except Exception as e:
-            raise FileError(f"Failed to optimize video: {str(e)}", cause=e)
+            raise FileError(f"Failed to optimize video: {e!s}", cause=e)
 
     async def optimize_audio(
-        self, path: Path, output_path: Path, bitrate: str = "128k", normalize_volume: bool = False
+        self, path: Path, output_path: Path, bitrate: str = "128k", normalize_volume: bool = False,
     ) -> None:
         """Optimize audio file"""
         try:
@@ -96,7 +95,7 @@ class FileOptimizer(BaseHandler):
                 # Calculate normalization parameters
                 max_possible = 32767  # Max possible amplitude for 16-bit audio
                 peak_amplitude = max(
-                    abs(min(audio.get_array_of_samples())), abs(max(audio.get_array_of_samples()))
+                    abs(min(audio.get_array_of_samples())), abs(max(audio.get_array_of_samples())),
                 )
 
                 if peak_amplitude > 0:
@@ -105,8 +104,8 @@ class FileOptimizer(BaseHandler):
 
             # Export with specified bitrate
             audio.export(
-                output_path, format=output_path.suffix.lstrip("."), parameters=["-b:a", bitrate]
+                output_path, format=output_path.suffix.lstrip("."), parameters=["-b:a", bitrate],
             )
 
         except Exception as e:
-            raise FileError(f"Failed to optimize audio: {str(e)}", cause=e)
+            raise FileError(f"Failed to optimize audio: {e!s}", cause=e)

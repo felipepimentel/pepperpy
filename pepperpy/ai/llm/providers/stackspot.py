@@ -1,6 +1,6 @@
 """StackSpot AI LLM provider"""
 
-from typing import AsyncIterator, List, Optional
+from collections.abc import AsyncIterator
 
 import httpx
 
@@ -42,13 +42,13 @@ class StackSpotConfig(LLMConfig):
 class StackSpotProvider(BaseLLMProvider):
     """StackSpot AI LLM provider implementation"""
 
-    def __init__(self, config: Optional[StackSpotConfig] = None) -> None:
+    def __init__(self, config: StackSpotConfig | None = None) -> None:
         if not config:
             raise ValueError("StackSpot configuration is required")
 
         self.config = config
-        self._client: Optional[httpx.AsyncClient] = None
-        self._token: Optional[str] = None
+        self._client: httpx.AsyncClient | None = None
+        self._token: str | None = None
 
     async def initialize(self) -> None:
         """Initialize provider"""
@@ -63,13 +63,15 @@ class StackSpotProvider(BaseLLMProvider):
         self._token = None
 
     async def _get_token(self) -> str:
-        """Get access token
+        """
+        Get access token
 
         Returns:
             str: Access token
 
         Raises:
             ProviderError: If token cannot be obtained
+
         """
         try:
             if not self._token:
@@ -97,7 +99,7 @@ class StackSpotProvider(BaseLLMProvider):
         except Exception as e:
             raise ProviderError("Failed to get access token", cause=e)
 
-    async def complete(self, messages: List[Message]) -> LLMResponse:
+    async def complete(self, messages: list[Message]) -> LLMResponse:
         """Complete chat messages using Quick Command"""
         if not self._client:
             raise ProviderError("Provider not initialized")
@@ -138,6 +140,6 @@ class StackSpotProvider(BaseLLMProvider):
         except Exception as e:
             raise ProviderError("Failed to execute Quick Command", cause=e)
 
-    async def stream(self, messages: List[Message]) -> AsyncIterator[LLMResponse]:
+    async def stream(self, messages: list[Message]) -> AsyncIterator[LLMResponse]:
         """Stream is not supported by StackSpot AI"""
         raise ProviderError("Streaming not supported by StackSpot AI")

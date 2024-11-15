@@ -6,7 +6,7 @@ import io
 import lzma
 import zlib
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..exceptions import FileError
 from .base import BaseHandler
@@ -18,7 +18,7 @@ class CompressionHandler(BaseHandler):
     COMPRESSION_LEVELS = {"fast": 1, "balanced": 6, "max": 9}
 
     async def compress_gzip(
-        self, data: bytes, level: str = "balanced", filename: Optional[str] = None
+        self, data: bytes, level: str = "balanced", filename: str | None = None,
     ) -> bytes:
         """Compress data using gzip"""
         try:
@@ -26,14 +26,14 @@ class CompressionHandler(BaseHandler):
             out = io.BytesIO()
 
             with gzip.GzipFile(
-                filename=filename, mode="wb", compresslevel=compression_level, fileobj=out
+                filename=filename, mode="wb", compresslevel=compression_level, fileobj=out,
             ) as gz:
                 gz.write(data)
 
             return out.getvalue()
 
         except Exception as e:
-            raise FileError(f"Gzip compression failed: {str(e)}", cause=e)
+            raise FileError(f"Gzip compression failed: {e!s}", cause=e)
 
     async def decompress_gzip(self, data: bytes) -> bytes:
         """Decompress gzip data"""
@@ -41,7 +41,7 @@ class CompressionHandler(BaseHandler):
             with gzip.GzipFile(fileobj=io.BytesIO(data), mode="rb") as gz:
                 return gz.read()
         except Exception as e:
-            raise FileError(f"Gzip decompression failed: {str(e)}", cause=e)
+            raise FileError(f"Gzip decompression failed: {e!s}", cause=e)
 
     async def compress_bzip2(self, data: bytes, level: str = "balanced") -> bytes:
         """Compress data using bzip2"""
@@ -49,17 +49,17 @@ class CompressionHandler(BaseHandler):
             compression_level = self.COMPRESSION_LEVELS[level]
             return bz2.compress(data, compresslevel=compression_level)
         except Exception as e:
-            raise FileError(f"Bzip2 compression failed: {str(e)}", cause=e)
+            raise FileError(f"Bzip2 compression failed: {e!s}", cause=e)
 
     async def decompress_bzip2(self, data: bytes) -> bytes:
         """Decompress bzip2 data"""
         try:
             return bz2.decompress(data)
         except Exception as e:
-            raise FileError(f"Bzip2 decompression failed: {str(e)}", cause=e)
+            raise FileError(f"Bzip2 decompression failed: {e!s}", cause=e)
 
     async def compress_lzma(
-        self, data: bytes, level: str = "balanced", format: Optional[int] = None
+        self, data: bytes, level: str = "balanced", format: int | None = None,
     ) -> bytes:
         """Compress data using LZMA"""
         try:
@@ -68,14 +68,14 @@ class CompressionHandler(BaseHandler):
 
             return lzma.compress(data, format=format or lzma.FORMAT_XZ, filters=filters)
         except Exception as e:
-            raise FileError(f"LZMA compression failed: {str(e)}", cause=e)
+            raise FileError(f"LZMA compression failed: {e!s}", cause=e)
 
     async def decompress_lzma(self, data: bytes) -> bytes:
         """Decompress LZMA data"""
         try:
             return lzma.decompress(data)
         except Exception as e:
-            raise FileError(f"LZMA decompression failed: {str(e)}", cause=e)
+            raise FileError(f"LZMA decompression failed: {e!s}", cause=e)
 
     async def compress_zlib(self, data: bytes, level: str = "balanced") -> bytes:
         """Compress data using zlib"""
@@ -83,19 +83,19 @@ class CompressionHandler(BaseHandler):
             compression_level = self.COMPRESSION_LEVELS[level]
             return zlib.compress(data, level=compression_level)
         except Exception as e:
-            raise FileError(f"Zlib compression failed: {str(e)}", cause=e)
+            raise FileError(f"Zlib compression failed: {e!s}", cause=e)
 
     async def decompress_zlib(self, data: bytes) -> bytes:
         """Decompress zlib data"""
         try:
             return zlib.decompress(data)
         except Exception as e:
-            raise FileError(f"Zlib decompression failed: {str(e)}", cause=e)
+            raise FileError(f"Zlib decompression failed: {e!s}", cause=e)
 
     async def compress_file(
         self,
         input_path: Path,
-        output_path: Optional[Path] = None,
+        output_path: Path | None = None,
         method: str = "gzip",
         level: str = "balanced",
         chunk_size: int = 8192,
@@ -128,10 +128,10 @@ class CompressionHandler(BaseHandler):
             return output_path
 
         except Exception as e:
-            raise FileError(f"File compression failed: {str(e)}", cause=e)
+            raise FileError(f"File compression failed: {e!s}", cause=e)
 
     async def decompress_file(
-        self, input_path: Path, output_path: Optional[Path] = None, method: str = "auto"
+        self, input_path: Path, output_path: Path | None = None, method: str = "auto",
     ) -> Path:
         """Decompress file using specified or auto-detected method"""
         try:
@@ -146,7 +146,7 @@ class CompressionHandler(BaseHandler):
             if method == "auto":
                 suffix = input_path.suffix.lower()
                 method = {".gz": "gzip", ".bz2": "bzip2", ".xz": "lzma", ".zlib": "zlib"}.get(
-                    suffix, "gzip"
+                    suffix, "gzip",
                 )
 
             decompression_funcs = {
@@ -172,9 +172,9 @@ class CompressionHandler(BaseHandler):
             return output_path
 
         except Exception as e:
-            raise FileError(f"File decompression failed: {str(e)}", cause=e)
+            raise FileError(f"File decompression failed: {e!s}", cause=e)
 
-    async def get_compression_info(self, path: Path) -> Dict[str, Any]:
+    async def get_compression_info(self, path: Path) -> dict[str, Any]:
         """Get compression information about file"""
         try:
             original_size = path.stat().st_size
@@ -208,4 +208,4 @@ class CompressionHandler(BaseHandler):
             return info
 
         except Exception as e:
-            raise FileError(f"Failed to get compression info: {str(e)}", cause=e)
+            raise FileError(f"Failed to get compression info: {e!s}", cause=e)

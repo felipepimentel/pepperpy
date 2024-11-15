@@ -1,6 +1,5 @@
 """Distributed cache implementation"""
 
-from typing import Optional
 
 import redis.asyncio as redis
 
@@ -11,13 +10,15 @@ class DistributedCache:
     """Redis-based distributed cache"""
 
     def __init__(self, url: str):
-        """Initialize distributed cache
+        """
+        Initialize distributed cache
 
         Args:
             url: Redis connection URL
+
         """
         self._url = url
-        self._client: Optional[redis.Redis] = None
+        self._client: redis.Redis | None = None
 
     async def connect(self) -> None:
         """Connect to Redis server"""
@@ -25,7 +26,7 @@ class DistributedCache:
             self._client = await redis.from_url(self._url)
             await self._client.ping()
         except Exception as e:
-            raise CacheConnectionError(f"Failed to connect to Redis: {str(e)}", cause=e)
+            raise CacheConnectionError(f"Failed to connect to Redis: {e!s}", cause=e)
 
     async def disconnect(self) -> None:
         """Disconnect from Redis server"""
@@ -33,14 +34,16 @@ class DistributedCache:
             await self._client.close()
             self._client = None
 
-    async def get(self, key: str) -> Optional[str]:
-        """Get value from cache
+    async def get(self, key: str) -> str | None:
+        """
+        Get value from cache
 
         Args:
             key: Cache key
 
         Returns:
             Optional[str]: Cached value if exists
+
         """
         if self._client is None:
             raise CacheError("Not connected to Redis")
@@ -49,15 +52,17 @@ class DistributedCache:
             value = await self._client.get(key)
             return value.decode("utf-8") if value else None
         except Exception as e:
-            raise CacheError(f"Failed to get value: {str(e)}", cause=e)
+            raise CacheError(f"Failed to get value: {e!s}", cause=e)
 
-    async def set(self, key: str, value: str, ttl: Optional[int] = None) -> None:
-        """Set value in cache
+    async def set(self, key: str, value: str, ttl: int | None = None) -> None:
+        """
+        Set value in cache
 
         Args:
             key: Cache key
             value: Value to cache
             ttl: Time to live in seconds
+
         """
         if self._client is None:
             raise CacheError("Not connected to Redis")
@@ -68,13 +73,15 @@ class DistributedCache:
             else:
                 await self._client.set(key, value)
         except Exception as e:
-            raise CacheError(f"Failed to set value: {str(e)}", cause=e)
+            raise CacheError(f"Failed to set value: {e!s}", cause=e)
 
     async def delete(self, key: str) -> None:
-        """Delete value from cache
+        """
+        Delete value from cache
 
         Args:
             key: Cache key
+
         """
         if self._client is None:
             raise CacheError("Not connected to Redis")
@@ -82,7 +89,7 @@ class DistributedCache:
         try:
             await self._client.delete(key)
         except Exception as e:
-            raise CacheError(f"Failed to delete value: {str(e)}", cause=e)
+            raise CacheError(f"Failed to delete value: {e!s}", cause=e)
 
     async def clear(self) -> None:
         """Clear all values from cache"""
@@ -92,4 +99,4 @@ class DistributedCache:
         try:
             await self._client.flushdb()
         except Exception as e:
-            raise CacheError(f"Failed to clear cache: {str(e)}", cause=e)
+            raise CacheError(f"Failed to clear cache: {e!s}", cause=e)

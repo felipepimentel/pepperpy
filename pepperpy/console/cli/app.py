@@ -1,7 +1,6 @@
 """Console CLI application"""
 
 import asyncio
-from typing import Optional
 
 from pepperpy.core.logging import get_logger
 
@@ -12,7 +11,7 @@ class CLIApp:
     """CLI application"""
 
     def __init__(self):
-        self._app: Optional[ConsoleApp] = None
+        self._app: ConsoleApp | None = None
         self._logger = get_logger(__name__)
 
     async def initialize(self) -> None:
@@ -22,7 +21,7 @@ class CLIApp:
             await self._app.initialize()
             await self._logger.async_.info("CLI application initialized")
         except Exception as e:
-            await self._logger.async_.error(f"Failed to initialize CLI application: {str(e)}")
+            await self._logger.async_.error(f"Failed to initialize CLI application: {e!s}")
             raise
 
     async def run(self) -> None:
@@ -34,7 +33,7 @@ class CLIApp:
         try:
             await self._app.run()
         except Exception as e:
-            await self._logger.async_.error(f"CLI application error: {str(e)}")
+            await self._logger.async_.error(f"CLI application error: {e!s}")
             raise
         finally:
             await self.cleanup()
@@ -46,7 +45,7 @@ class CLIApp:
                 await self._app.cleanup()
                 await self._logger.async_.info("CLI application cleaned up")
             except Exception as e:
-                await self._logger.async_.error(f"Failed to cleanup CLI application: {str(e)}")
+                await self._logger.async_.error(f"Failed to cleanup CLI application: {e!s}")
                 raise
 
 

@@ -1,7 +1,6 @@
 """Plugin type definitions"""
 
 from dataclasses import dataclass
-from typing import List, Type
 
 
 @dataclass
@@ -11,7 +10,7 @@ class PluginMetadata:
     name: str
     version: str
     description: str
-    dependencies: List[str]
+    dependencies: list[str]
 
 
 @dataclass
@@ -19,4 +18,4 @@ class Plugin:
     """Plugin information"""
 
     metadata: PluginMetadata
-    class_: Type
+    class_: type

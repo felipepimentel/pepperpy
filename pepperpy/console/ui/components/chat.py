@@ -18,14 +18,13 @@ class ChatView(Component):
                 "assistant": Style(color="green"),
                 "user": Style(color="blue"),
                 "timestamp": Style(color="grey50"),
-            }
+            },
         )
         super().__init__(config)
         self._messages = []
 
     async def initialize(self) -> None:
         """Initialize chat view"""
-        pass
 
     async def cleanup(self) -> None:
         """Cleanup chat view"""

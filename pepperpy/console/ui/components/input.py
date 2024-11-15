@@ -1,7 +1,7 @@
 """Input components"""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 from .base import Component
 
@@ -12,10 +12,9 @@ class Input(Component):
 
     placeholder: str = ""
     value: str = ""
-    on_change: Optional[Callable[[str], None]] = None
+    on_change: Callable[[str], None] | None = None
 
 
 class TextInput(Input):
     """Text input component"""
 
-    pass

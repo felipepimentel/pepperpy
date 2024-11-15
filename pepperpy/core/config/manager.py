@@ -1,8 +1,9 @@
 """Configuration management implementation"""
 
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any
 
 import yaml
 
@@ -24,13 +25,12 @@ class ConfigManager(BaseModule):
             dependencies=[],
             config={},
         )
-        self._configs: Dict[str, Dict[str, Any]] = {}
-        self._sources: Dict[str, ConfigSource] = {}
-        self._watchers: Dict[str, Callable[[Dict[str, Any]], None]] = {}
+        self._configs: dict[str, dict[str, Any]] = {}
+        self._sources: dict[str, ConfigSource] = {}
+        self._watchers: dict[str, Callable[[dict[str, Any]], None]] = {}
 
     async def _setup(self) -> None:
         """Initialize config manager"""
-        pass
 
     async def _cleanup(self) -> None:
         """Cleanup config resources"""
@@ -39,8 +39,8 @@ class ConfigManager(BaseModule):
         self._watchers.clear()
 
     async def load_config(
-        self, name: str, file_path: Union[str, Path], format: Optional[ConfigFormat] = None
-    ) -> Dict[str, Any]:
+        self, name: str, file_path: str | Path, format: ConfigFormat | None = None,
+    ) -> dict[str, Any]:
         """Load configuration from file"""
         try:
             file_path = Path(file_path)
@@ -64,10 +64,10 @@ class ConfigManager(BaseModule):
             return config
 
         except Exception as e:
-            raise ConfigError(f"Failed to load config: {str(e)}", cause=e)
+            raise ConfigError(f"Failed to load config: {e!s}", cause=e)
 
     async def save_config(
-        self, name: str, config: Dict[str, Any], file_path: Union[str, Path]
+        self, name: str, config: dict[str, Any], file_path: str | Path,
     ) -> None:
         """Save configuration to file"""
         try:
@@ -93,13 +93,13 @@ class ConfigManager(BaseModule):
             )
 
         except Exception as e:
-            raise ConfigError(f"Failed to save config: {str(e)}", cause=e)
+            raise ConfigError(f"Failed to save config: {e!s}", cause=e)
 
-    def get_config(self, name: str) -> Optional[Dict[str, Any]]:
+    def get_config(self, name: str) -> dict[str, Any] | None:
         """Get loaded configuration"""
         return self._configs.get(name)
 
-    async def watch_config(self, name: str, callback: Callable[[Dict[str, Any]], None]) -> None:
+    async def watch_config(self, name: str, callback: Callable[[dict[str, Any]], None]) -> None:
         """Watch configuration for changes"""
         if name not in self._sources:
             raise ConfigError(f"Config not loaded: {name}")
@@ -115,7 +115,7 @@ class ConfigManager(BaseModule):
             callback(config)
             source.last_modified = current_mtime
 
-    def get_config_path(self, name: str) -> Optional[Path]:
+    def get_config_path(self, name: str) -> Path | None:
         """Get configuration file path"""
         source = self._sources.get(name)
         return source.path if source else None
