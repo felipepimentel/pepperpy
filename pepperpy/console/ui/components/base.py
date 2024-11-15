@@ -1,64 +1,30 @@
-"""Base components for console UI"""
+"""Base component functionality"""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from typing import Any
 
-from rich.text import Text
-
-
-@dataclass
-class ComponentConfig:
-    """Component configuration"""
-
-    style: dict[str, Any] = field(default_factory=dict)
-    metadata: dict[str, Any] = field(default_factory=dict)
-    x: int = 0
-    y: int = 0
-    width: int = 0
-    height: int = 0
-    visible: bool = True
-    enabled: bool = True
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get configuration value"""
-        return self.metadata.get(key, default)
+from ..styles import Style
 
 
 class Component(ABC):
-    """Base component class"""
-
-    def __init__(self, config: ComponentConfig) -> None:
-        self.config = config
-
-    @abstractmethod
-    def render(self) -> Text:
-        """
-        Render component
-
-        Returns:
-            Text: Rendered component
-
-        """
-
+    """Base UI component"""
+    
+    def __init__(self):
+        self.style = Style()
+        self._initialized = False
+        
     @abstractmethod
     async def initialize(self) -> None:
         """Initialize component"""
-
+        self._initialized = True
+        
+    @abstractmethod
+    async def render(self) -> Any:
+        """Render component"""
+        if not self._initialized:
+            await self.initialize()
+            
     @abstractmethod
     async def cleanup(self) -> None:
-        """Cleanup component"""
-
-    @abstractmethod
-    async def handle_input(self, key: Any) -> bool:
-        """
-        Handle input event
-
-        Args:
-            key: Input key
-
-        Returns:
-            bool: True if input was handled
-
-        """
-        return False
+        """Cleanup component resources"""
+        self._initialized = False 

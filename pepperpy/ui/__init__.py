@@ -1,4 +1,4 @@
-"""Console UI module for rich terminal interfaces"""
+"""UI module for rich terminal interfaces"""
 
 from .app import UIApp
 from .components import Button, Dialog, Form, Input, Layout, Menu, Panel, ProgressBar, Table, Toast
@@ -16,7 +16,7 @@ __all__ = [
     "Theme",
     # Components
     "Button",
-    "Dialog", 
+    "Dialog",
     "Form",
     "Input",
     "Layout",
@@ -25,4 +25,4 @@ __all__ = [
     "ProgressBar",
     "Table",
     "Toast",
-] 
+]

@@ -1,49 +1,32 @@
-"""Rich console implementation"""
+"""Rich console application"""
 
+from typing import Any
 
-from rich.console import Console as RichConsole
-from rich.layout import Layout
-from rich.live import Live
-
-from ..core.app import ConsoleApp
-from ..core.config import ConsoleConfig
+from ..base import ConsoleApp
+from .config import RichConfig
 
 
 class RichConsoleApp(ConsoleApp):
-    """Rich-based console implementation"""
-
-    def __init__(self, config: ConsoleConfig | None = None):
-        super().__init__(config or ConsoleConfig())
-        self.console = RichConsole()
-        self._layout = Layout()
-        self._live: Live | None = None
-
-    async def start(self) -> None:
-        """Start rich console"""
-        self._setup_layout()
-        self._live = Live(
-            self._layout,
-            console=self.console,
-            refresh_per_second=1,
-        )
-        self._live.start()
-
-    async def stop(self) -> None:
-        """Stop rich console"""
-        if self._live:
-            self._live.stop()
-
-    def _setup_layout(self) -> None:
-        """Setup default layout"""
-        self._layout.split(
-            Layout(name="header", size=3),
-            Layout(name="main"),
-            Layout(name="footer", size=3),
-        )
-
-
-class RichApp:
-    pass
-
-
-__all__ = ["RichApp"]
+    """Rich console application implementation"""
+    
+    def __init__(self, config: RichConfig | None = None):
+        super().__init__(config or RichConfig())
+        self._content: Any = None
+        
+    async def initialize(self) -> None:
+        """Initialize rich console application"""
+        await super().initialize()
+        
+    async def render(self) -> None:
+        """Render content"""
+        await super().render()
+        if self._content is not None:
+            self.console.print(self._content)
+            
+    async def handle_input(self) -> None:
+        """Handle user input"""
+        pass
+        
+    def set_content(self, content: Any) -> None:
+        """Set content to render"""
+        self._content = content

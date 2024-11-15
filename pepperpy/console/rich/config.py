@@ -1,59 +1,21 @@
-"""Rich configuration"""
+"""Rich console configuration"""
 
 from dataclasses import dataclass, field
+from typing import Any
 
-from rich.progress import (
-    BarColumn,
-    TaskProgressColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
+from ..base.config import ConsoleConfig
 
 
 @dataclass
-class RichConfig:
-    """Configuration for rich applications"""
-
-    # Theme configuration
-    theme: dict[str, str] = field(
-        default_factory=lambda: {
-            "info": "cyan",
-            "warning": "yellow",
-            "error": "red bold",
-            "success": "green",
-            "progress.description": "cyan",
-            "progress.percentage": "green",
-            "progress.remaining": "cyan",
-            "table.header": "bold cyan",
-            "panel.border": "cyan",
-        },
-    )
-
-    # Style configuration
-    header_style: str = "bold cyan"
-    border_style: str = "cyan"
-    panel_style: str = "cyan"
-    code_theme: str = "monokai"
-
-    # Progress configuration
-    progress_columns: list = field(
-        default_factory=lambda: [
-            BarColumn(),
-            TaskProgressColumn(),
-            TimeRemainingColumn(),
-            TimeElapsedColumn(),
-        ],
-    )
-
-    # Display configuration
-    refresh_rate: int = 15
-    force_terminal: bool = False
-    force_interactive: bool = False
-    use_alternate_screen: bool = False
-
-
-class ConsoleConfig:
-    pass
-
-
-__all__ = ["RichConfig", "ConsoleConfig"]
+class RichConfig(ConsoleConfig):
+    """Rich console specific configuration"""
+    style: str = "default"
+    highlight: bool = True
+    markup: bool = True
+    emoji: bool = True
+    color_system: str = "auto"
+    width: int | None = None
+    height: int | None = None
+    tab_size: int = 8
+    soft_wrap: bool = False
+    metadata: dict[str, Any] = field(default_factory=dict)

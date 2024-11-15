@@ -1,8 +1,11 @@
-"""Rich console interface module"""
+"""Rich console module"""
 
-from .app import RichApp  # Check if RichApp is defined and exported in app.py
+from .app import RichConsoleApp
 from .config import RichConfig
-from .exceptions import RichError
-from .types import RichLayout, RichTheme
+from .console import RichConsole
 
-__all__ = ["RichApp", "RichConfig", "RichTheme", "RichLayout", "RichError"]
+__all__ = [
+    "RichConsole",
+    "RichConsoleApp", 
+    "RichConfig"
+]

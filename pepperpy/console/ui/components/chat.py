@@ -1,56 +1,52 @@
-"""Chat component for console UI"""
+"""Chat view component"""
 
-from typing import Any
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
-from rich.style import Style
 from rich.text import Text
 
-from .base import Component, ComponentConfig
+from .base import Component
 
+MessageType = Literal["system", "assistant", "user"]
+
+@dataclass
+class Message:
+    """Chat message"""
+    content: str
+    type_: MessageType
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class ChatView(Component):
     """Chat view component"""
-
-    def __init__(self) -> None:
-        config = ComponentConfig(
-            style={
-                "system": Style(color="yellow"),
-                "assistant": Style(color="green"),
-                "user": Style(color="blue"),
-                "timestamp": Style(color="grey50"),
-            },
-        )
-        super().__init__(config)
-        self._messages = []
-
-    async def initialize(self) -> None:
-        """Initialize chat view"""
-
-    async def cleanup(self) -> None:
-        """Cleanup chat view"""
-        self._messages.clear()
-
-    async def handle_input(self, key: Any) -> bool:
-        """Handle input event"""
-        return False
-
-    def add_message(self, content: str, role: str) -> None:
+    
+    def __init__(self):
+        super().__init__()
+        self._messages: list[Message] = []
+        self._styles = {
+            "system": "yellow bold",
+            "assistant": "green",
+            "user": "blue",
+        }
+        
+    def add_message(self, content: str, type_: MessageType) -> None:
         """Add message to chat"""
-        self._messages.append({"content": content, "role": role})
-
-    def render(self) -> Text:
+        self._messages.append(Message(content, type_))
+        
+    def clear_messages(self) -> None:
+        """Clear all messages"""
+        self._messages.clear()
+        
+    def set_style(self, type_: MessageType, style: str) -> None:
+        """Set style for message type"""
+        self._styles[type_] = style
+        
+    async def render(self) -> Any:
         """Render chat view"""
+        await super().render()
+        
         text = Text()
-
-        for i, msg in enumerate(self._messages):
-            if i > 0:
-                text.append("\n")
-
-            # Add role prefix
-            role_style = self.config.style.get(msg["role"], Style())
-            text.append(f"[{msg['role']}] ", style=role_style)
-
-            # Add message content
-            text.append(msg["content"])
-
+        for msg in self._messages:
+            style = self._styles.get(msg.type_, "default")
+            text.append(f"{msg.content}\n", style=style)
+            
         return text

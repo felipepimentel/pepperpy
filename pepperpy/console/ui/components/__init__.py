@@ -1,32 +1,31 @@
-"""UI Components"""
+"""UI Components module"""
 
-from .base import Component, ComponentConfig
+from .base import Component
 from .button import Button
+from .chat import ChatView
 from .dialog import Dialog
-from .form import Form, FormField
-from .input import Input, TextInput
-from .list import ListItem, ListView
+from .form import Form
+from .input import Input
+from .layout import Layout
+from .list import ListView
 from .menu import Menu
+from .panel import Panel
 from .progress import ProgressBar
-from .spinner import Spinner
 from .table import Table
-from .toast import Toast, ToastType
+from .toast import Toast
 
 __all__ = [
     "Component",
-    "ComponentConfig",
     "Button",
-    "Input",
-    "TextInput",
-    "Menu",
-    "Table",
-    "Toast",
-    "ToastType",
+    "ChatView",
     "Dialog",
-    "Form",
-    "FormField",
+    "Form", 
+    "Input",
+    "Layout",
     "ListView",
-    "ListItem",
+    "Menu",
+    "Panel",
     "ProgressBar",
-    "Spinner",
-]
+    "Table",
+    "Toast"
+] 

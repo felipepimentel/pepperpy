@@ -1,24 +1,12 @@
-"""Form components for console UI"""
+"""Form component for data input"""
 
-from abc import ABC, abstractmethod
-from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
-from rich.style import Style
 from rich.text import Text
 
-from pepperpy.console.ui.components.base import Component, ComponentConfig
-from pepperpy.console.ui.keyboard import (
-    BACKSPACE,
-    ENTER,
-    LEFT,
-    RIGHT,
-    TAB,
-    Key,
-    KeyCode,
-)
-from pepperpy.console.ui.styles import styles
+from .base import Component
+from .button import Button, ButtonConfig
 
 
 @dataclass
@@ -27,218 +15,102 @@ class FormField:
 
     name: str
     label: str
-    value: str = ""
     required: bool = True
     validators: list[Callable[[str], bool]] = field(default_factory=list)
+    default: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class FormComponent(Component, ABC):
-    """Base class for form components"""
-
-    def __init__(self) -> None:
-        super().__init__(
-            config=ComponentConfig(
-                style={
-                    "default": Style(color="white"),
-                    "focused": Style(color="cyan", bold=True),
-                    "disabled": Style(color="gray50", dim=True),
-                },
-            ),
-        )
-        self.focused: bool = False
-
-    @abstractmethod
-    async def initialize(self) -> None:
-        """Initialize component"""
-
-    @abstractmethod
-    async def cleanup(self) -> None:
-        """Cleanup component"""
-
-    @abstractmethod
-    async def handle_input(self, key: Key) -> bool:
-        """
-        Handle input event
-
-        Args:
-            key: Input key
-
-        Returns:
-            bool: True if input was handled
-
-        """
-
-    @abstractmethod
-    def render(self) -> Text:
-        """
-        Render component
-
-        Returns:
-            Text: Rendered component
-
-        """
-
-
 class Form(Component):
-    """Form component"""
+    """Form component for data input"""
 
-    def __init__(self) -> None:
-        super().__init__(
-            config=ComponentConfig(
-                style={
-                    "default": Style(color="white"),
-                    "focused": Style(color="cyan", bold=True),
-                    "disabled": Style(color="gray50", dim=True),
-                },
-            ),
-        )
-        self.components: list[FormComponent] = []
-        self.focused_index = 0
-
-    def add_field(self, field: FormField) -> None:
-        """Add field to form"""
-        self.components.append(TextInput(field))
-
-    def add_button(self, label: str, callback: Callable[[], None]) -> None:
-        """Add button to form"""
-        self.components.append(Button(label, callback))
+    def __init__(self):
+        super().__init__()
+        self._fields: list[FormField] = []
+        self._values: dict[str, str] = {}
+        self._buttons: list[Button] = []
+        self._errors: dict[str, list[str]] = {}
 
     async def initialize(self) -> None:
         """Initialize form"""
-        for component in self.components:
-            await component.initialize()
-        if self.components:
-            self.components[0].focused = True
+        await super().initialize()
+        for button in self._buttons:
+            await button.initialize()
 
-    async def cleanup(self) -> None:
-        """Cleanup form"""
-        for component in self.components:
-            await component.cleanup()
+    def add_field(self, field: FormField) -> None:
+        """Add field to form"""
+        self._fields.append(field)
+        if field.default:
+            self._values[field.name] = field.default
 
-    async def handle_input(self, key: Key) -> bool:
-        """Handle input event"""
-        if key == TAB:
-            self._focus_next()
-            return True
+    def add_button(self, label: str, callback: Callable[[], None], style: str = "default") -> None:
+        """Add button to form"""
+        config = ButtonConfig(
+            label=label,
+            callback=callback,
+            style=style
+        )
+        button = Button(config)
+        self._buttons.append(button)
 
-        current = self.components[self.focused_index]
-        return await current.handle_input(key)
+    def get_value(self, field_name: str) -> str:
+        """Get field value"""
+        return self._values.get(field_name, "")
 
-    def _focus_next(self) -> None:
-        """Focus next component"""
-        if not self.components:
-            return
+    def set_value(self, field_name: str, value: str) -> None:
+        """Set field value"""
+        if any(form_field.name == field_name for form_field in self._fields):
+            self._values[field_name] = value
+            self._validate_field(field_name)
 
-        self.components[self.focused_index].focused = False
-        self.focused_index = (self.focused_index + 1) % len(self.components)
-        self.components[self.focused_index].focused = True
+    def _validate_field(self, field_name: str) -> bool:
+        """Validate field value"""
+        field = next(form_field for form_field in self._fields if form_field.name == field_name)
+        value = self._values.get(field_name, "")
 
-    def render(self) -> Text:
+        errors = []
+        if field.required and not value:
+            errors.append("This field is required")
+
+        for validator in field.validators:
+            if not validator(value):
+                errors.append("Validation failed")
+
+        self._errors[field_name] = errors
+        return not errors
+
+    async def render(self) -> Any:
         """Render form"""
+        await super().render()
+
         text = Text()
-        for i, component in enumerate(self.components):
-            if i > 0:
-                text.append("\n")
-            text.append(component.render())
-        return text
+        for form_field in self._fields:
+            # Add field label
+            text.append(f"{form_field.label}: ", style="bold")
 
-
-class TextInput(FormComponent):
-    """Text input component"""
-
-    def __init__(self, field: FormField) -> None:
-        super().__init__()
-        self.field = field
-        self.value = field.value
-        self.cursor_pos = len(self.value)
-
-    async def initialize(self) -> None:
-        """Initialize component"""
-
-    async def cleanup(self) -> None:
-        """Cleanup component"""
-
-    async def handle_input(self, key: Key) -> bool:
-        """Handle input event"""
-        if not self.focused:
-            return False
-
-        if key == BACKSPACE and self.cursor_pos > 0:
-            self.value = (
-                self.value[: self.cursor_pos - 1] + self.value[self.cursor_pos :]
-            )
-            self.cursor_pos -= 1
-            return True
-
-        if key == LEFT and self.cursor_pos > 0:
-            self.cursor_pos -= 1
-            return True
-
-        if key == RIGHT and self.cursor_pos < len(self.value):
-            self.cursor_pos += 1
-            return True
-
-        # Verificar se é uma tecla de caractere
-        if isinstance(key.code, str) or (
-            isinstance(key.code, KeyCode) and len(str(key.code)) == 1
-        ):
-            char = str(key.code)
-            self.value = (
-                self.value[: self.cursor_pos] + char + self.value[self.cursor_pos :]
-            )
-            self.cursor_pos += 1
-            return True
-
-        return False
-
-    def render(self) -> Text:
-        """Render text input"""
-        text = Text()
-        text.append(f"{self.field.label}: ", style=styles.apply("default"))
-
-        # Render input value with cursor
-        if self.focused:
-            style = styles.apply("focused")
-            if self.cursor_pos < len(self.value):
-                text.append(
-                    self.value[: self.cursor_pos] + "█" + self.value[self.cursor_pos :],
-                    style=style,
-                )
+            # Add field value or placeholder
+            value = self._values.get(form_field.name, "")
+            if value:
+                text.append(f"{value}\n")
             else:
-                text.append(self.value + "█", style=style)
-        else:
-            text.append(self.value, style=styles.apply("default"))
+                text.append("[dim]<empty>[/]\n")
+
+            # Add field errors if any
+            if form_field.name in self._errors and self._errors[form_field.name]:
+                for error in self._errors[form_field.name]:
+                    text.append(f"  [red]• {error}[/]\n")
+
+        # Add buttons
+        if self._buttons:
+            text.append("\n")
+            for button in self._buttons:
+                text.append(await button.render())
+                text.append(" ")
 
         return text
 
-
-class Button(FormComponent):
-    """Button component"""
-
-    def __init__(self, label: str, callback: Callable[[], None]) -> None:
-        super().__init__()
-        self.label = label
-        self.callback = callback
-
-    async def initialize(self) -> None:
-        """Initialize component"""
-
     async def cleanup(self) -> None:
-        """Cleanup component"""
-
-    async def handle_input(self, key: Key) -> bool:
-        """Handle input event"""
-        if not self.focused:
-            return False
-
-        if key == ENTER:
-            self.callback()
-            return True
-
-        return False
-
-    def render(self) -> Text:
-        """Render button"""
-        style = styles.apply("focused" if self.focused else "default")
-        return Text(f"[ {self.label} ]", style=style)
+        """Cleanup form resources"""
+        for button in self._buttons:
+            await button.cleanup()
+        await super().cleanup()

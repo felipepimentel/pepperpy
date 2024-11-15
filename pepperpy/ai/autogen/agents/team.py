@@ -1,6 +1,5 @@
 """Agent team management implementation"""
 
-
 from ....console import Console
 from ...types import AIResponse, Message
 from ..config import TeamConfig
