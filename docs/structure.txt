@@ -1,0 +1,27 @@
+docs/
+├── README.md                      # Visão geral da documentação
+├── specification/
+│   ├── architecture.md           # Especificação da arquitetura
+│   ├── design_principles.md      # Princípios de design
+│   └── project_structure.md      # Estrutura detalhada do projeto
+├── core/
+│   ├── overview.md              # Visão geral do core
+│   ├── registry.md             # Sistema de registro
+│   ├── config.md              # Sistema de configuração
+│   └── utils.md               # Utilitários compartilhados
+├── modules/
+│   ├── ui/
+│   │   ├── overview.md        # Visão geral do módulo UI
+│   │   ├── components.md      # Documentação dos componentes
+│   │   └── theming.md        # Sistema de temas
+│   ├── console/
+│   │   ├── overview.md       # Visão geral do console
+│   │   ├── rich.md          # Integração com Rich
+│   │   └── components.md    # Componentes do console
+│   └── ai/
+│       ├── overview.md      # Visão geral do módulo AI
+│       └── agents.md       # Documentação dos agentes
+└── guides/
+    ├── getting_started.md   # Guia inicial
+    ├── best_practices.md    # Melhores práticas
+    └── contributing.md      # Guia de contribuição 

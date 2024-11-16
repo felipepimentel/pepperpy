@@ -1,25 +1,49 @@
-# PepperPy 🌶️
+# PepperPy
 
-A modern, feature-rich Python utility library designed to accelerate development with elegant abstractions and powerful utilities.
+<div align="center">
+
+![PepperPy Logo](docs/assets/logo.png)
 
 [![PyPI version](https://badge.fury.io/py/pepperpy.svg)](https://badge.fury.io/py/pepperpy)
-[![Python Support](https://img.shields.io/pypi/pyversions/pepperpy.svg)](https://pypi.org/project/pepperpy/)
-[![Documentation Status](https://readthedocs.org/projects/pepperpy/badge/?version=latest)](https://pepperpy.readthedocs.io/)
-[![License](https://img.shields.io/github/license/fpimentel-py/pepperpy.svg)](https://github.com/fpimentel-py/pepperpy/blob/main/LICENSE)
+[![Python](https://img.shields.io/pypi/pyversions/pepperpy.svg)](https://pypi.org/project/pepperpy/)
+[![Documentation Status](https://readthedocs.org/projects/pepperpy/badge/?version=latest)](https://pepperpy.readthedocs.io/en/latest/?badge=latest)
+[![License](https://img.shields.io/github/license/pepperpy/pepperpy.svg)](https://github.com/pepperpy/pepperpy/blob/main/LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-## Features 🌟
+A modern, async-first Python framework for building powerful terminal applications with AI capabilities.
 
-- **Modular Architecture**: Each feature is self-contained and independently usable
-- **Type Safety**: Full type hints and runtime type checking
-- **Modern Python**: Leverages Python 3.10+ features
-- **Extensible Design**: Easy to customize and extend
-- **Rich Console Support**: Beautiful terminal outputs and interactive features
-- **AI/ML Ready**: Optional modules for AI and machine learning tasks
-- **Async First**: Built with asyncio for modern async applications
+[Documentation](https://pepperpy.readthedocs.io/) |
+[Examples](examples/) |
+[Contributing](CONTRIBUTING.md) |
+[Discord](https://discord.gg/pepperpy)
 
-## Installation 🚀
+</div>
 
-PepperPy uses Poetry for dependency management. Install the base package:
+## Features
+
+🚀 **Modern Architecture**
+- Async-first design
+- Type-safe implementation
+- Modular and extensible
+
+🎨 **Rich Terminal UI**
+- Component-based interface
+- Theming system
+- Responsive layouts
+
+🤖 **AI Integration**
+- Agent-based automation
+- Team coordination
+- LLM integration
+
+⚡ **High Performance**
+- Efficient resource management
+- Optimized async operations
+- Smart caching
+
+## Quick Start
+
+### Installation
 
 ```bash
 poetry install --only main
