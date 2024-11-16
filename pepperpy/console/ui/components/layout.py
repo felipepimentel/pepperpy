@@ -1,7 +1,8 @@
 """Layout component for UI organization"""
 
 from dataclasses import dataclass
-from typing import Any, Literal
+from fractions import Fraction
+from typing import Any, Literal, Union
 
 from rich.layout import Layout as RichLayout
 
@@ -13,7 +14,7 @@ class LayoutConfig:
     """Layout configuration"""
 
     direction: Literal["horizontal", "vertical"] = "vertical"
-    ratios: list[int] | None = None
+    ratios: list[Union[int, float]] | None = None
     minimum_size: int = 1
 
 
@@ -32,16 +33,19 @@ class Layout(Component):
         for component in self._components:
             await component.initialize()
 
-    def split(
-        self, *components: Component, direction: str | None = None, ratios: list[int] | None = None
+    async def split(
+        self,
+        *components: Component,
+        direction: str | None = None,
+        ratios: list[Union[int, float]] | None = None,
     ) -> None:
         """Split layout into components"""
         self._components.extend(components)
 
-        # Renderizar os componentes
+        # Renderizar os componentes de forma assíncrona
         rendered_components = []
         for comp in components:
-            rendered = comp.render()
+            rendered = await comp.render()
             if rendered is not None:
                 rendered_components.append(rendered)
 
@@ -53,8 +57,9 @@ class Layout(Component):
             sublayouts.append(sublayout)
 
         # Configurar o layout principal
-        self._layout.split_column(*sublayouts) if (direction or self.config.direction) == "vertical" \
-            else self._layout.split_row(*sublayouts)
+        self._layout.split_column(*sublayouts) if (
+            direction or self.config.direction
+        ) == "vertical" else self._layout.split_row(*sublayouts)
 
         # Ajustar proporções se fornecidas
         if ratios or self.config.ratios:
@@ -62,7 +67,10 @@ class Layout(Component):
             if sizes and len(sizes) == len(sublayouts):
                 total = sum(sizes)
                 for layout, size in zip(sublayouts, sizes):
-                    layout.ratio = size / total
+                    # Converter para inteiros antes de criar o Fraction
+                    numerator = int(size * 1000)  # Multiplicar por 1000 para preservar precisão
+                    denominator = int(total * 1000)
+                    layout.ratio = Fraction(numerator, denominator)
 
     async def render(self) -> Any:
         """Render layout"""

@@ -6,9 +6,9 @@ from .components.dialog import Dialog
 from .components.form import Form, FormField
 from .components.layout import Layout
 from .components.list import ListView
-from .components.panel import Panel
+from .components.panel import Panel, PanelConfig
 from .components.progress import ProgressBar
-from .components.table import Table
+from .components.table import Table, TableConfig
 from .config import UIConfig
 
 __all__ = [
@@ -23,6 +23,8 @@ __all__ = [
     "Layout",
     "ListView",
     "Panel",
+    "PanelConfig",
     "ProgressBar",
     "Table",
+    "TableConfig",
 ]

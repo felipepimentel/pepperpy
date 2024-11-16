@@ -2,6 +2,8 @@
 
 import asyncio
 
+from rich.text import Text
+
 from pepperpy.console import Console
 from pepperpy.console.ui import (
     ChatView,
@@ -11,8 +13,10 @@ from pepperpy.console.ui import (
     Layout,
     ListView,
     Panel,
+    PanelConfig,
     ProgressBar,
     Table,
+    TableConfig,
 )
 from pepperpy.core.logging import get_logger
 
@@ -26,7 +30,8 @@ async def demo_chat_view() -> None:
     # Sistema iniciando com estilo
     chat.add_message("🚀 System v1.0 initialized", "system")
     chat.add_message(
-        "Welcome to PepperPy Console Demo! How can I assist you today? 🤖", "assistant",
+        "Welcome to PepperPy Console Demo! How can I assist you today? 🤖",
+        "assistant",
     )
     chat.add_message("I'd like to see what this console can do! 👀", "user")
     chat.add_message(
@@ -43,14 +48,16 @@ async def demo_chat_view() -> None:
     # Criar um painel estilizado para o chat
     panel = Panel(
         content=chat,
-        title="Chat Demo",
-        subtitle="Press Ctrl+C to continue",
-        style="cyan",
-        border_style="rounded",
+        config=PanelConfig(
+            title="Chat Demo",
+            subtitle="Press Ctrl+C to continue",
+            style="cyan",
+            border_style="rounded",
+        ),
     )
 
     console = Console()
-    console.print(panel)
+    await console.print(panel)
 
 
 async def demo_progress_bar() -> None:
@@ -70,16 +77,13 @@ async def demo_progress_bar() -> None:
         end = (stage_num + 1) * 25
 
         panel = Panel(
-            content=progress,
-            title=desc,
-            style=color,
-            border_style="rounded",
+            content=progress, config=PanelConfig(title=desc, style=color, border_style="rounded")
         )
 
         for i in range(start, end + 1, 5):
             progress.set_progress(i, f"{desc} ({i}%)")
             console.clear()
-            console.print(panel)
+            await console.print(panel)
             await asyncio.sleep(0.2)
 
 
@@ -135,12 +139,10 @@ async def demo_form() -> None:
 
     # Criar layout com duas colunas
     layout = Layout()
-    layout.split(
+    await layout.split(
         Panel(
             content=form,
-            title="Registration Form",
-            style="blue",
-            border_style="double",
+            config=PanelConfig(title="Registration Form", style="blue", border_style="double"),
         ),
         Panel(
             content=(
@@ -149,15 +151,13 @@ async def demo_form() -> None:
                 "❓ Press Tab to navigate between fields\n"
                 "↵  Press Enter to submit"
             ),
-            title="Instructions",
-            style="cyan",
-            border_style="rounded",
+            config=PanelConfig(title="Instructions", style="cyan", border_style="rounded"),
         ),
         direction="vertical",
     )
 
     console = Console()
-    console.print(layout)
+    await console.print(layout)
 
 
 async def demo_list_view() -> None:
@@ -176,8 +176,16 @@ async def demo_list_view() -> None:
     for value, label, enabled in items:
         list_view.add_item(value, label, enabled)
 
-    # Criar tabela de estatísticas
-    stats_table = Table()
+    # Criar tabela de estatísticas com configuração adequada
+    stats_table = Table(
+        TableConfig(
+            title="Task Statistics",
+            style="cyan",
+            show_header=True,
+            padding=(0, 1)
+        )
+    )
+    
     stats_table.add_column("Category", style="cyan")
     stats_table.add_column("Count", align="right", style="green")
 
@@ -192,25 +200,29 @@ async def demo_list_view() -> None:
 
     # Layout combinando lista e estatísticas
     layout = Layout()
-    layout.split(
+    await layout.split(
         Panel(
             content=list_view,
-            title="Task List",
-            style="blue",
-            border_style="double",
+            config=PanelConfig(
+                title="Task List",
+                style="blue",
+                border_style="double"
+            )
         ),
         Panel(
             content=stats_table,
-            title="Statistics",
-            style="cyan",
-            border_style="rounded",
+            config=PanelConfig(
+                title="Statistics",
+                style="cyan",
+                border_style="rounded"
+            )
         ),
         direction="horizontal",
         ratios=[2, 1],
     )
 
     console = Console()
-    console.print(layout)
+    await console.print(layout)
 
 
 async def demo_dialog() -> None:
@@ -229,18 +241,31 @@ async def demo_dialog() -> None:
     ]
 
     # Criar tabela de mudanças
-    changes_table = Table()
-    changes_table.add_column("Change", style="cyan", show_header=False)
+    changes_table = Table(
+        TableConfig(
+            style="cyan",
+            show_header=False,
+            padding=(0, 1)
+        )
+    )
+    changes_table.add_column("Change", style="cyan")
 
     for change in changes:
         changes_table.add_row(change)
 
-    dialog.content = (
+    # Criar o conteúdo completo
+    content_text = (
         f"Current version: {current_version}\n"
         f"New version: {new_version}\n\n"
         "Changes:\n"
-        f"{changes_table}"
     )
+
+    # Criar um Text para combinar texto e tabela
+    content = Text(content_text)
+    rendered_table = await changes_table.render()
+    content.append(str(rendered_table))
+
+    dialog.content = content
 
     def on_update() -> None:
         console = Console()
@@ -250,11 +275,11 @@ async def demo_dialog() -> None:
         console = Console()
         console.warning("Update postponed")
 
-    dialog.add_button("🔄 Update Now", on_update)
-    dialog.add_button("⏳ Remind Later", on_cancel)
+    dialog.add_button("🔄 Update Now", on_update, style="green")
+    dialog.add_button("⏳ Remind Later", on_cancel, style="yellow")
 
     console = Console()
-    console.print(dialog)
+    await console.print(dialog)
 
 
 if __name__ == "__main__":
