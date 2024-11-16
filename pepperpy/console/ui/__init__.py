@@ -1,28 +1,28 @@
-"""Console UI module for rich terminal interfaces"""
+"""Console UI components"""
 
 from .app import UIApp
-from .components import Button, Dialog, Form, Input, Layout, Menu, Panel, ProgressBar, Table, Toast
+from .components.chat import ChatView
+from .components.dialog import Dialog
+from .components.form import Form, FormField
+from .components.layout import Layout
+from .components.list import ListView
+from .components.panel import Panel
+from .components.progress import ProgressBar
+from .components.table import Table
 from .config import UIConfig
-from .screen import Screen
-from .styles import Style, Theme
 
 __all__ = [
-    # Core
+    # Core UI
     "UIApp",
     "UIConfig",
-    "Screen",
-    # Styling
-    "Style",
-    "Theme",
     # Components
-    "Button",
-    "Dialog", 
+    "ChatView",
+    "Dialog",
     "Form",
-    "Input",
+    "FormField",
     "Layout",
-    "Menu",
+    "ListView",
     "Panel",
     "ProgressBar",
     "Table",
-    "Toast",
-] 
+]

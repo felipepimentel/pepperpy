@@ -1,52 +1,57 @@
-"""Chat view component"""
+"""Chat view component for console UI"""
 
-from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Literal
 
+from rich.panel import Panel as RichPanel
 from rich.text import Text
 
-from .base import Component
+from pepperpy.console.ui.base import Component
 
-MessageType = Literal["system", "assistant", "user"]
-
-@dataclass
-class Message:
-    """Chat message"""
-    content: str
-    type_: MessageType
-    metadata: dict[str, Any] = field(default_factory=dict)
 
 class ChatView(Component):
-    """Chat view component"""
-    
+    """Chat view component for displaying messages"""
+
     def __init__(self):
         super().__init__()
-        self._messages: list[Message] = []
-        self._styles = {
-            "system": "yellow bold",
-            "assistant": "green",
-            "user": "blue",
-        }
+        self.messages: list[tuple[str, str]] = []
+
+    def add_message(
+        self, 
+        content: str, 
+        role: Literal["system", "assistant", "user"]
+    ) -> None:
+        """Add a message to the chat view.
         
-    def add_message(self, content: str, type_: MessageType) -> None:
-        """Add message to chat"""
-        self._messages.append(Message(content, type_))
-        
-    def clear_messages(self) -> None:
-        """Clear all messages"""
-        self._messages.clear()
-        
-    def set_style(self, type_: MessageType, style: str) -> None:
-        """Set style for message type"""
-        self._styles[type_] = style
-        
-    async def render(self) -> Any:
-        """Render chat view"""
-        await super().render()
-        
+        Args:
+            content: Message content
+            role: Role of the message sender (system/assistant/user)
+        """
+        self.messages.append((content, role))
+
+    def render(self) -> RichPanel:
+        """Render chat messages in a panel"""
+        # Create formatted text for all messages
         text = Text()
-        for msg in self._messages:
-            style = self._styles.get(msg.type_, "default")
-            text.append(f"{msg.content}\n", style=style)
+        
+        for i, (content, role) in enumerate(self.messages):
+            # Add role prefix with appropriate color
+            prefix = {
+                "system": Text("🔧 System: ", style="bold blue"),
+                "assistant": Text("🤖 Assistant: ", style="bold green"),
+                "user": Text("👤 User: ", style="bold yellow")
+            }.get(role, Text(f"{role}: ", style="bold"))
             
-        return text
+            # Add message content
+            text.append(prefix)
+            text.append(content)
+            
+            # Add newline between messages
+            if i < len(self.messages) - 1:
+                text.append("\n\n")
+
+        # Return panel containing messages
+        return RichPanel(
+            text,
+            title="Chat",
+            border_style="blue"
+        )
