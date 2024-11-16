@@ -16,7 +16,11 @@ async def simple_chat_example() -> None:
         response = await ask(
             "What are the key features that make Python popular for AI development?",
         )
-        console.success(title="Quick Ask Response", content=response.content)
+        console.success(
+            "Response received",
+            title="Quick Ask Response",
+            content=response.content
+        )
 
         # Método 2: Usando o cliente completo para mais controle
         client = await AIClient.create()
@@ -30,10 +34,10 @@ async def simple_chat_example() -> None:
                 "What are the key features that make Python popular for AI development?",
             )
 
-            console.success(
+            console.info(
+                response.content,
                 title=f"AI Response using {response.model}",
-                subtitle=f"Usage: {response.usage}",
-                content=response.content,
+                subtitle=f"Usage: {response.usage}"
             )
 
             # Exemplo de conversa mais complexa
@@ -41,21 +45,21 @@ async def simple_chat_example() -> None:
             conversation.add_message("system", "You are a Python expert and mentor.")
 
             response = await conversation.send_message("I want to learn Python for AI development.")
-            console.print("Assistant:", response.content)
+            console.info(response.content, title="Assistant Response")
 
             response = await conversation.send_message("I have some experience with JavaScript.")
-            console.success(
+            console.info(
+                response.content,
                 title="Extended Conversation",
-                subtitle=f"Model: {response.model} | Usage: {response.usage}",
-                content=response.content,
+                subtitle=f"Model: {response.model} | Usage: {response.usage}"
             )
 
     except Exception as e:
-        console.error("❌ Error during chat:", str(e))
+        console.error("Error during chat:", str(e))
 
 
 if __name__ == "__main__":
     try:
         asyncio.run(simple_chat_example())
     except KeyboardInterrupt:
-        console.info("\n👋 Chat finished!")
+        console.info("Chat finished! 👋")
