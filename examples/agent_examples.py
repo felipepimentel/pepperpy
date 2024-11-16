@@ -70,29 +70,37 @@ async def demonstrate_research_agent() -> None:
             steps = await agent.plan(f"Research and analyze the topic: {topic}")
             console.info("🗺️ Research Plan:")
             for i, step in enumerate(steps, 1):
-                console.print(f"  {i}. {step}")
+                await console.print(f"  {i}. {step}")
 
             # Executar análise
             analysis = await agent.execute(
                 topic,
                 context="Focus on practical implications for developers",
             )
-            console.success("🔍 Analysis Results", get_content(analysis))
+            console.success(
+                "Analysis completed",
+                title="🔍 Analysis Results",
+                content=get_content(analysis)
+            )
 
             # Avaliar fontes com critérios específicos
             evaluation = await agent.evaluate(
                 content=get_content(analysis),
                 criteria="Focus on methodology and data quality",
             )
-            console.info("⚖️ Quality Evaluation: " + get_content(evaluation))
+            console.info(f"⚖️ Quality Evaluation: {get_content(evaluation)}")
 
             # Gerar resumo
             content_to_summarize = get_content(analysis)
             summary = await agent.summarize(content_to_summarize)
-            console.success("📝 Executive Summary", get_content(summary))
+            console.success(
+                "Summary generated",
+                title="📝 Executive Summary",
+                content=get_content(summary)
+            )
 
     except Exception as e:
-        console.error("❌ Error during research:", e)
+        console.error("Error during research", str(e))
 
 
 if __name__ == "__main__":
