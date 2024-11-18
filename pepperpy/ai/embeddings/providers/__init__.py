@@ -11,9 +11,8 @@ def get_provider(config: EmbeddingConfig | None = None) -> BaseEmbeddingProvider
     if not config:
         raise ConfigurationError("Embedding configuration is required")
 
-    providers = {
+    providers: dict[str, type[BaseEmbeddingProvider]] = {
         "sentence_transformers": SentenceTransformersProvider,
-        # Add other providers here
     }
 
     provider_class = providers.get(config.provider)

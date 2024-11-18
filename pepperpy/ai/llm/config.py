@@ -65,6 +65,9 @@ class OpenRouterConfig(BaseConfig):
     base_url: str = "https://openrouter.ai/api/v1"
     site_url: str | None = None
     site_name: str | None = None
+    timeout: float = 60.0
+    max_retries: int = 2
+    temperature: float = 0.7
 
     def __init__(
         self,
@@ -73,6 +76,9 @@ class OpenRouterConfig(BaseConfig):
         base_url: str = "https://openrouter.ai/api/v1",
         site_url: str | None = None,
         site_name: str | None = None,
+        timeout: float = 60.0,
+        max_retries: int = 2,
+        temperature: float = 0.7,
     ) -> None:
         if not api_key:
             raise ValueError("OpenRouter API key is required")
@@ -85,6 +91,9 @@ class OpenRouterConfig(BaseConfig):
         self.base_url = base_url.rstrip("/")
         self.site_url = site_url
         self.site_name = site_name
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self.temperature = temperature
 
 
 @dataclass

@@ -1,79 +1,66 @@
 """Sentence Transformers embedding provider"""
 
-from typing import cast
+from typing import List
 
 import numpy as np
 import torch
-from numpy.typing import NDArray
 from sentence_transformers import SentenceTransformer
 
-from ...exceptions import AIError
 from ..config import EmbeddingConfig
-from ..types import EmbeddingVector
+from ..exceptions import EmbeddingError
+from ..types import EmbeddingResult
 from .base import BaseEmbeddingProvider
 
 
 class SentenceTransformersProvider(BaseEmbeddingProvider):
-    """Provider for Sentence Transformers embeddings"""
+    """Sentence Transformers embedding provider implementation"""
 
-    def __init__(self, config: EmbeddingConfig):
-        """
-        Initialize provider with config
-
-        Args:
-            config: Embedding configuration
-
-        """
+    def __init__(self, config: EmbeddingConfig) -> None:
         super().__init__(config)
-        try:
-            self.model = SentenceTransformer(config.model)
-            # Get and validate model dimension
-            dimension = self.model.get_sentence_embedding_dimension()
-            if not isinstance(dimension, int) or dimension <= 0:
-                raise AIError(f"Invalid model dimension: {dimension}")
-            self.model_dimension = dimension
-        except Exception as e:
-            raise AIError(f"Failed to load model {config.model}: {e!s}", cause=e)
+        self._model: SentenceTransformer | None = None
 
     async def initialize(self) -> None:
         """Initialize provider"""
+        try:
+            self._model = SentenceTransformer(self.config.model_name)
+        except Exception as e:
+            raise EmbeddingError(f"Failed to initialize model: {e!s}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup provider resources"""
+        self._model = None
 
-    def _normalize_vector(
-        self, vector: torch.Tensor | NDArray[np.float32] | list[torch.Tensor],
-    ) -> NDArray[np.float32]:
-        """Normalize vector to numpy array"""
-        if isinstance(vector, torch.Tensor):
-            vector = vector.detach().cpu().numpy()
-        elif isinstance(vector, list):
-            vector = torch.stack(vector).detach().cpu().numpy()
+    async def embed(self, text: str) -> EmbeddingResult:
+        """Generate embeddings for text"""
+        if not self._model:
+            raise EmbeddingError("Model not initialized")
 
-        return cast(NDArray[np.float32], vector.astype(np.float32))
-
-    async def embed_text(self, text: str) -> EmbeddingVector:
-        """Generate embedding for text"""
         try:
-            vector = self.model.encode(
+            # Gerar embeddings
+            embeddings = self._model.encode(
                 text,
                 convert_to_tensor=True,
                 normalize_embeddings=True,
             )
-            normalized = self._normalize_vector(vector)
-            return EmbeddingVector(vector=normalized, text=text)
-        except Exception as e:
-            raise AIError(f"Failed to generate embedding: {e!s}", cause=e)
 
-    async def embed_batch(self, texts: list[str]) -> list[EmbeddingVector]:
-        """Generate embeddings for multiple texts"""
-        try:
-            vectors = self.model.encode(
-                texts,
-                convert_to_tensor=True,
-                normalize_embeddings=True,
+            # Converter para numpy e depois para lista
+            if isinstance(embeddings, torch.Tensor):
+                embeddings_np = embeddings.detach().cpu().numpy()
+            else:
+                embeddings_np = np.array(embeddings)
+
+            # Converter para float32 e depois para lista
+            embeddings_list = embeddings_np.astype(np.float32).tolist()
+
+            return EmbeddingResult(
+                embeddings=embeddings_list,
+                model=self.config.model_name,
+                dimensions=len(embeddings_list),
             )
-            normalized = self._normalize_vector(vectors)
-            return [EmbeddingVector(vector=vec, text=text) for vec, text in zip(normalized, texts, strict=False)]
+
         except Exception as e:
-            raise AIError(f"Failed to generate embeddings: {e!s}", cause=e)
+            raise EmbeddingError(f"Failed to generate embeddings: {e!s}", cause=e)
+
+    async def embed_batch(self, texts: List[str]) -> List[EmbeddingResult]:
+        """Generate embeddings for multiple texts"""
+        return [await self.embed(text) for text in texts]

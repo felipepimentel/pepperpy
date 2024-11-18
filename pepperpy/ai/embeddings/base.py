@@ -1,35 +1,31 @@
 """Base embedding provider implementation"""
 
 from abc import ABC, abstractmethod
+from typing import List, Sequence
 
-from .types import EmbeddingVector
+from .config import EmbeddingConfig
+from .types import EmbeddingResult
 
 
 class BaseEmbeddingProvider(ABC):
     """Base class for embedding providers"""
 
-    @abstractmethod
-    def embed(self, text: str) -> EmbeddingVector:
-        """
-        Generate embedding for text
-
-        Args:
-            text: Text to embed
-
-        Returns:
-            EmbeddingVector: Generated embedding
-
-        """
+    def __init__(self, config: EmbeddingConfig) -> None:
+        """Initialize provider with configuration"""
+        self.config = config
 
     @abstractmethod
-    def embed_batch(self, texts: list[str]) -> list[EmbeddingVector]:
-        """
-        Generate embeddings for multiple texts
+    async def initialize(self) -> None:
+        """Initialize provider"""
 
-        Args:
-            texts: List of texts to embed
+    @abstractmethod
+    async def cleanup(self) -> None:
+        """Cleanup provider resources"""
 
-        Returns:
-            List[EmbeddingVector]: Generated embeddings
+    @abstractmethod
+    async def embed(self, text: str) -> EmbeddingResult:
+        """Generate embedding for text"""
 
-        """
+    @abstractmethod
+    async def embed_batch(self, texts: List[str]) -> Sequence[EmbeddingResult]:
+        """Generate embeddings for multiple texts"""

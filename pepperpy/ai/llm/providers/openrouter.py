@@ -1,8 +1,7 @@
 """OpenRouter LLM provider"""
 
 import json
-from collections.abc import AsyncIterator
-from typing import cast
+from typing import AsyncIterator
 
 import httpx
 
@@ -13,43 +12,28 @@ from pepperpy.ai.llm.types import LLMResponse, Message
 from .base import BaseLLMProvider
 
 
-class OpenRouterProvider(BaseLLMProvider[OpenRouterConfig]):
-    """OpenRouter LLM provider implementation"""
+class OpenRouterProvider(BaseLLMProvider):
+    """OpenRouter provider implementation"""
 
-    def __init__(self, config: OpenRouterConfig | None = None) -> None:
-        """Initialize provider with configuration"""
-        super().__init__(config)
+    def __init__(self, config: OpenRouterConfig) -> None:
+        super().__init__()
+        if not isinstance(config, OpenRouterConfig):
+            raise ValueError("OpenRouter provider requires OpenRouterConfig")
+        self.config = config
         self._client: httpx.AsyncClient | None = None
 
     async def initialize(self) -> None:
         """Initialize provider"""
-        try:
-            config = cast(OpenRouterConfig, self.config)
-            self._client = httpx.AsyncClient(
-                base_url=config.base_url,
-                headers={
-                    "Authorization": f"Bearer {config.api_key}",
-                    "HTTP-Referer": config.site_url or "https://github.com/felipepimentel/pepperpy",
-                    "X-Title": config.site_name or "PepperPy",
-                    "Content-Type": "application/json",
-                },
-                timeout=30.0,
-            )
-
-            # Validate connection and available models
-            response = await self._client.get("/models")
-            response.raise_for_status()
-
-        except httpx.HTTPStatusError as e:
-            await self.cleanup()
-            if e.response.status_code == 401:
-                raise ProviderError("Invalid API key or authentication failed", cause=e)
-            if e.response.status_code == 404:
-                raise ProviderError("Model not found or unavailable", cause=e)
-            raise ProviderError(f"Failed to initialize OpenRouter provider: {e!s}", cause=e)
-        except Exception as e:
-            await self.cleanup()
-            raise ProviderError(f"Unexpected error during initialization: {e!s}", cause=e)
+        headers = {
+            "Authorization": f"Bearer {self.config.api_key}",
+            "HTTP-Referer": self.config.site_url or "https://github.com/felipepimentel/pepperpy",
+            "X-Title": self.config.site_name or "PepperPy",
+        }
+        self._client = httpx.AsyncClient(
+            base_url="https://openrouter.ai/api/v1",
+            headers=headers,
+            timeout=self.config.timeout,
+        )
 
     async def cleanup(self) -> None:
         """Cleanup provider resources"""

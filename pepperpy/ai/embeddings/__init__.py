@@ -1,14 +1,13 @@
-"""Embeddings module for vector operations"""
+"""Embeddings module for vector representations"""
 
-from .client import EmbeddingClient
 from .config import EmbeddingConfig
-from .exceptions import EmbeddingError
-from .types import EmbeddingBatch, EmbeddingVector
+from .providers import get_provider
+from .types import EmbeddingBatch, EmbeddingResult, EmbeddingVector
 
 __all__ = [
-    "EmbeddingClient",
     "EmbeddingConfig",
-    "EmbeddingError",
     "EmbeddingVector",
     "EmbeddingBatch",
+    "EmbeddingResult",
+    "get_provider",
 ]

@@ -1,25 +1,24 @@
 """Embedding client implementation"""
 
+from dataclasses import asdict
+from typing import Any, Dict, List, Optional, Sequence, cast
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
 from .config import EmbeddingConfig
 from .exceptions import EmbeddingError
 from .providers import get_provider
-from .providers.base import BaseEmbeddingProvider
-from .types import EmbeddingVector
+from .providers.base import BaseEmbeddingProvider, EmbeddingProvider
+from .types import EmbeddingResult
 
 
 class EmbeddingClient(BaseModule):
     """Client for embedding operations"""
 
-    _config: EmbeddingConfig | None
-    _provider: BaseEmbeddingProvider | None
-
-    def __init__(self, config: EmbeddingConfig | None = None):
+    def __init__(self, config: Optional[EmbeddingConfig] = None) -> None:
         super().__init__()
-        self._config = config or EmbeddingConfig(
-            model="all-MiniLM-L6-v2",
+        self._config: EmbeddingConfig = config or EmbeddingConfig(
+            model_name="all-MiniLM-L6-v2",
             provider="sentence_transformers",
         )
         self.metadata = ModuleMetadata(
@@ -27,37 +26,53 @@ class EmbeddingClient(BaseModule):
             version="1.0.0",
             description="Text embedding operations",
             dependencies=[],
-            config=self._config.dict(),
+            config=self._get_config_dict(),
         )
-        self._provider = None
+        self._provider: Optional[EmbeddingProvider] = None
+
+    def _get_config_dict(self) -> Dict[str, Any]:
+        """Convert config to dictionary safely"""
+        if isinstance(self._config, EmbeddingConfig):
+            return asdict(self._config)
+        return {}
 
     async def _setup(self) -> None:
         """Initialize embedding provider"""
         try:
             if not self._config:
                 raise EmbeddingError("Embedding configuration is required")
-            self._provider = get_provider(self._config)
-            if hasattr(self._provider, "initialize"):
-                await self._provider.initialize()
+            provider = get_provider(self._config)
+            if isinstance(provider, BaseEmbeddingProvider):
+                await provider.initialize()
+                self._provider = provider
+            else:
+                raise EmbeddingError("Invalid provider type")
         except Exception as e:
             raise EmbeddingError("Failed to initialize embedding provider", cause=e)
 
     async def _cleanup(self) -> None:
         """Cleanup embedding resources"""
-        if self._provider and hasattr(self._provider, "cleanup"):
+        if isinstance(self._provider, BaseEmbeddingProvider):
             await self._provider.cleanup()
 
-    async def embed(self, text: str) -> EmbeddingVector:
+    async def embed(self, text: str) -> EmbeddingResult:
         """Generate embedding for text"""
         if not self._provider:
             raise EmbeddingError("Embedding provider not initialized")
-        return await self._provider.embed_text(text)
+        try:
+            return await self._provider.embed(text)
+        except Exception as e:
+            raise EmbeddingError(f"Failed to generate embedding: {e!s}", cause=e)
 
-    async def embed_batch(self, texts: list[str]) -> list[EmbeddingVector]:
+    async def embed_batch(self, texts: List[str]) -> Sequence[EmbeddingResult]:
         """Generate embeddings for multiple texts"""
         if not self._provider:
             raise EmbeddingError("Embedding provider not initialized")
-        return await self._provider.embed_batch(texts)
+        try:
+            results = await self._provider.embed_batch(texts)
+            return cast(Sequence[EmbeddingResult], results)
+        except Exception as e:
+            raise EmbeddingError(f"Failed to generate batch embeddings: {e!s}", cause=e)
 
 
 # Global embedding client instance

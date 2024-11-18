@@ -1,37 +1,24 @@
 """Embedding types and models"""
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
+from typing import List, NewType
 
-import numpy as np
-from numpy.typing import NDArray
-
-
-@dataclass
-class EmbeddingVector:
-    """Vector representation of text"""
-
-    vector: NDArray[np.float32]
-    text: str
-    metadata: dict[str, Any] = field(default_factory=dict)
+# Tipos básicos
+EmbeddingVector = NewType("EmbeddingVector", List[float])
+EmbeddingBatch = NewType("EmbeddingBatch", List[EmbeddingVector])
 
 
 @dataclass
-class EmbeddingBatch:
-    """Batch of embedding vectors"""
-
-    vectors: list[EmbeddingVector]
+class EmbeddingResult:
+    """Result from embedding generation"""
+    embeddings: EmbeddingVector
     model: str
-    metadata: dict[str, Any] = field(default_factory=dict)
+    dimensions: int
 
 
 @dataclass
-class EmbeddingConfig:
-    """Configuration for embedding operations"""
-
+class EmbeddingBatchResult:
+    """Result from batch embedding generation"""
+    embeddings: EmbeddingBatch
     model: str
-    provider: str
-    batch_size: int = 32
-    cache_enabled: bool = False
-    cache_ttl: int = 3600  # 1 hour in seconds
-    metadata: dict[str, Any] = field(default_factory=dict)
+    dimensions: int

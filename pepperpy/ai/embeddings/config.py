@@ -1,20 +1,12 @@
 """Embedding configuration"""
 
-from dataclasses import asdict, dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass
 class EmbeddingConfig:
-    """Configuration for embedding operations"""
-
-    model: str
-    provider: str
+    """Configuration for embedding providers"""
+    model_name: str
+    provider: str = "sentence_transformers"
+    normalize: bool = True
     batch_size: int = 32
-    cache_enabled: bool = False
-    cache_ttl: int = 3600  # 1 hour in seconds
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    def dict(self) -> dict[str, Any]:
-        """Convert config to dictionary"""
-        return asdict(self)

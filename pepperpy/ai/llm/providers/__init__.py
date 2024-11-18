@@ -1,16 +1,20 @@
 """LLM providers"""
 
 from .base import BaseLLMProvider
-from .openai import OpenAIConfig, OpenAIProvider
 from .openrouter import OpenRouterConfig, OpenRouterProvider
-from .stackspot import StackSpotConfig, StackSpotProvider
 
 __all__ = [
     "BaseLLMProvider",
-    "OpenAIConfig",
-    "OpenAIProvider",
     "OpenRouterConfig",
     "OpenRouterProvider",
-    "StackSpotConfig",
-    "StackSpotProvider",
 ]
+
+import importlib.util
+
+if importlib.util.find_spec(".openai", __package__):
+    from .openai import OpenAIConfig, OpenAIProvider  # noqa: F401
+
+    HAS_OPENAI = True
+    __all__.extend(["OpenAIConfig", "OpenAIProvider"])
+else:
+    HAS_OPENAI = False
