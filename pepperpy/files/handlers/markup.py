@@ -17,13 +17,14 @@ class MarkupHandler(BaseHandler):
         """Read markup file"""
         try:
             metadata = await self._get_metadata(path)
-            
+
             # Ler o arquivo como bytes
             with open(path, "rb") as f:
                 content = f.read()
 
             # Parse XML/HTML
-            tree = etree.fromstring(content)
+            parser = etree.XMLParser(recover=True)
+            tree = etree.fromstring(content, parser=parser)
             root = tree.getroottree()
 
             return FileContent(
