@@ -3,6 +3,7 @@
 from typing import Any
 
 from rich.console import Console as RichConsole
+from rich.markup import escape
 from rich.panel import Panel
 from rich.text import Text
 
@@ -32,19 +33,19 @@ class Console:
             if title:
                 text.append(f"{title}\n", style="bold green")
             if content:
-                text.append(content)
+                text.append(escape(str(content)))
             self._console.print(Panel(text, style="green"))
         else:
-            self._console.print(f"✅ {message}", style="green bold")
+            self._console.print(f"✅ {escape(message)}", style="green bold")
 
     def error(self, *messages: str) -> None:
         """Print error message"""
         message = " ".join(str(m) for m in messages)
-        self._console.print(f"❌ {message}", style="red bold")
+        self._console.print(f"❌ {escape(message)}", style="red bold")
 
     def warning(self, message: str) -> None:
         """Print warning message"""
-        self._console.print(f"⚠️ {message}", style="yellow bold")
+        self._console.print(f"⚠️ {escape(message)}", style="yellow bold")
 
     def info(self, message: str, *, title: str | None = None, subtitle: str | None = None) -> None:
         """Print info message with optional title and subtitle"""
@@ -54,7 +55,7 @@ class Console:
                 text.append(f"{title}\n", style="bold blue")
             if subtitle:
                 text.append(f"{subtitle}\n", style="blue")
-            text.append(message)
+            text.append(escape(message))
             self._console.print(Panel(text, style="blue"))
         else:
-            self._console.print(f"ℹ️ {message}", style="blue bold")
+            self._console.print(f"ℹ️ {escape(message)}", style="blue bold")
