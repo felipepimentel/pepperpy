@@ -1,54 +1,34 @@
-"""AutoGen types and data structures"""
+"""Autogen type definitions"""
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TypedDict
 
-from ..types import AIResponse, Message
+from ..types import AIMessage
 
-__all__ = [
-    "Message",
-    "CodeReview",
-    "TaskPlan",
-    "TaskResult",
-    "ReviewResult",
-]
+
+class AutogenMessage(TypedDict):
+    """Autogen message type"""
+
+    role: str
+    content: str
+    metadata: dict[str, Any]
 
 
 @dataclass
-class CodeReview:
-    """Code review result"""
+class AutogenConfig:
+    """Autogen configuration"""
 
-    approved: bool
-    feedback: str
-    suggestions: list[str] = field(default_factory=list)
-    issues: list[str] = field(default_factory=list)
+    model: str
+    temperature: float = 0.7
+    max_tokens: int = 1000
+    stop_sequences: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class TaskPlan:
-    """Task execution plan"""
+class AutogenResponse:
+    """Autogen response"""
 
-    steps: list[str] = field(default_factory=list)
-    dependencies: dict[str, list[str]] = field(default_factory=dict)
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class TaskResult:
-    """Task execution result"""
-
-    success: bool
-    output: str | AIResponse
-    steps: list[dict[str, Any]] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class ReviewResult:
-    """Review result"""
-
-    approved: bool
-    feedback: str
-    changes_required: list[str] = field(default_factory=list)
+    content: str
+    messages: list[AIMessage] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)

@@ -1,85 +1,83 @@
 """Logging utilities"""
 
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Protocol
+from typing import Any
 
-from .exceptions import LoggingError
+from .exceptions import LogError
 from .formatters import JsonFormatter
 from .handlers import AsyncHandler
+from .types import LogLevel, LogRecord
 
 
 @dataclass
-class LogRecord:
-    """Log record data"""
-
-    level: str
-    message: str
-    timestamp: datetime = field(default_factory=datetime.now)
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-class LogHandler(Protocol):
-    """Log handler protocol"""
-
-    async def handle(self, record: dict[str, Any]) -> None: ...
-
-
 class Logger:
-    """Async logger implementation"""
+    """Logger implementation"""
 
-    def __init__(self, name: str):
-        self.name = name
-        self._handlers: list[LogHandler] = []
-        self._formatter = JsonFormatter()
+    name: str
+    handlers: list[AsyncHandler]
+    formatter: JsonFormatter = JsonFormatter()
+    async_: bool = True
 
-    def add_handler(self, handler: LogHandler) -> None:
-        """Add log handler"""
-        self._handlers.append(handler)
-
-    async def log(self, level: str, msg: str, *args: Any, **kwargs: Any) -> None:
-        """Log message with metadata"""
+    async def log(self, level: LogLevel, message: str, **metadata: Any) -> None:
+        """Log a message"""
         try:
-            record = LogRecord(level=level, message=msg, metadata=kwargs)
-            record_dict = {
-                "level": record.level,
-                "message": record.message,
-                "timestamp": record.timestamp.isoformat(),
-                **record.metadata,
-            }
-            await asyncio.gather(*(handler.handle(record_dict) for handler in self._handlers))
+            # Criar record
+            record = LogRecord(
+                level=level,
+                message=message,
+                timestamp=datetime.now(),
+                module=self.name,
+                function="",
+                line=0,
+                metadata=metadata,
+            )
+
+            # Converter para dict antes de passar para os handlers
+            record_dict = asdict(record)
+
+            if self.async_:
+                await asyncio.gather(
+                    *(handler.handle(record_dict) for handler in self.handlers)
+                )
+            else:
+                for handler in self.handlers:
+                    await handler.handle(record_dict)
+
         except Exception as e:
-            raise LoggingError(f"Failed to log message: {e!s}", cause=e)
+            raise LogError(f"Failed to log message: {e!s}", cause=e)
 
-    async def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
+    async def debug(self, message: str, **metadata: Any) -> None:
         """Log debug message"""
-        await self.log("DEBUG", msg, *args, **kwargs)
+        await self.log(LogLevel.DEBUG, message, **metadata)
 
-    async def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
+    async def info(self, message: str, **metadata: Any) -> None:
         """Log info message"""
-        await self.log("INFO", msg, *args, **kwargs)
+        await self.log(LogLevel.INFO, message, **metadata)
 
-    async def warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
+    async def warning(self, message: str, **metadata: Any) -> None:
         """Log warning message"""
-        await self.log("WARNING", msg, *args, **kwargs)
+        await self.log(LogLevel.WARNING, message, **metadata)
 
-    async def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
+    async def error(self, message: str, **metadata: Any) -> None:
         """Log error message"""
-        await self.log("ERROR", msg, *args, **kwargs)
+        await self.log(LogLevel.ERROR, message, **metadata)
 
-    async def critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
+    async def critical(self, message: str, **metadata: Any) -> None:
         """Log critical message"""
-        await self.log("CRITICAL", msg, *args, **kwargs)
+        await self.log(LogLevel.CRITICAL, message, **metadata)
 
 
 _loggers: dict[str, Logger] = {}
 
 
-def get_logger(name: str) -> Logger:
-    """Get or create logger by name"""
+def get_logger(name: str, async_: bool = True) -> Logger:
+    """Get or create logger"""
     if name not in _loggers:
-        logger = Logger(name)
-        logger.add_handler(AsyncHandler())
-        _loggers[name] = logger
+        _loggers[name] = Logger(
+            name=name,
+            handlers=[AsyncHandler()],
+            async_=async_,
+        )
     return _loggers[name]

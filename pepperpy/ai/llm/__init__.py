@@ -1,14 +1,22 @@
 """LLM module"""
 
 from .client import LLMClient
-from .config import OpenAIConfig, OpenRouterConfig, StackSpotConfig
+from .config import (
+    BaseConfig,
+    OpenAIConfig,
+    OpenRouterConfig,
+    StackSpotConfig,
+)
+from .factory import ProviderType
 from .types import LLMResponse, Message
 
 __all__ = [
     "LLMClient",
-    "LLMResponse",
-    "Message",
+    "BaseConfig",
     "OpenAIConfig",
     "OpenRouterConfig",
     "StackSpotConfig",
+    "ProviderType",
+    "LLMResponse",
+    "Message",
 ]

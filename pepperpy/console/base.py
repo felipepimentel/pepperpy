@@ -1,30 +1,26 @@
-"""Base console functionality"""
+"""Console interface implementation"""
 
+from dataclasses import dataclass
 from typing import Any
 
-from .config import ConsoleConfig
+from rich.console import Console as RichConsole
+
+
+@dataclass
+class ConsoleConfig:
+    """Console configuration"""
+
+    # Add config options as needed
+    pass
 
 
 class Console:
     """Console interface for terminal interactions"""
 
-    def __init__(self, config: ConsoleConfig | None = None):
+    def __init__(self, config: ConsoleConfig | None = None) -> None:
         self.config = config or ConsoleConfig()
-        self._setup_console()
-
-    def _setup_console(self) -> None:
-        """Setup internal console implementation"""
-        # Implementation will use rich internally but keeps it encapsulated
-        from rich.console import Console as RichConsole
-
         self._console = RichConsole()
 
-    def print(self, *args: Any, **kwargs: Any) -> None:
-        """Print to console"""
-        self._console.print(*args, **kwargs)
-
-    def clear(self) -> None:
-        """Clear console"""
-        self._console.clear()
-
-    # ... outros métodos do Console original
+    async def print(self, content: Any, **kwargs: Any) -> None:
+        """Print content to console"""
+        self._console.print(content, **kwargs)

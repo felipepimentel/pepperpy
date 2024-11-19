@@ -1,68 +1,56 @@
 """Base agent implementation"""
 
-from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import Any
 
+from pepperpy.core.module import BaseModule, ModuleMetadata
+
 from ..client import AIClient
-from ..templates import PromptTemplate
-from ..types import AIResponse, Message, UsageInfo
+from ..exceptions import AIError
+from ..types import AIConfig, AIResponse
 
 
-class BaseAgent(ABC):
-    """Base class for AI agents"""
+def create_default_client() -> AIClient:
+    """Create default AI client"""
+    config = AIConfig(
+        model="default",
+        temperature=0.7,
+        max_tokens=1000,
+    )
+    return AIClient(config=config)
 
-    def __init__(
-        self,
-        client: AIClient,
-        name: str,
-        description: str,
-        system_prompt: str | None = None,
-        templates: dict[str, PromptTemplate] | None = None,
-    ):
-        self.client = client
-        self.name = name
-        self.description = description
-        self.system_prompt = system_prompt
-        self.templates = templates or {}
-        self.conversation: list[Message] = []
 
-        if system_prompt:
-            tokens = len(system_prompt.split())
-            usage = UsageInfo(prompt_tokens=tokens, completion_tokens=0, total_tokens=tokens)
+@dataclass
+class BaseAgent(BaseModule):
+    """Base agent implementation"""
 
-            self.conversation.append(
-                Message(content=system_prompt, sender="system", metadata={"usage": usage}),
-            )
+    metadata: ModuleMetadata = field(init=False)
+    client: AIClient = field(default_factory=create_default_client)
 
-    @abstractmethod
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute agent's primary task"""
-
-    async def think(self, context: str) -> AIResponse:
-        """Internal reasoning about a context"""
-        template = self.templates.get(
-            "think",
-            PromptTemplate(
-                "Given the context:\n{context}\n\nAnalyze the situation and explain your reasoning.",
-            ),
+    def __post_init__(self) -> None:
+        """Post initialization"""
+        self.metadata = ModuleMetadata(
+            name=self.__class__.__name__,
+            version="1.0.0",
+            description="AI agent implementation",
         )
-        prompt = template.format(context=context)
-        return await self.client.ask(prompt)
 
-    async def plan(self, task: str) -> list[str]:
-        """Plan steps to accomplish a task"""
-        template = self.templates.get(
-            "plan",
-            PromptTemplate("Task: {task}\n\nBreak this task into smaller, actionable steps."),
-        )
-        prompt = template.format(task=task)
-        response = await self.client.ask(prompt)
-        return [step.strip() for step in response.content.split("\n") if step.strip()]
+    async def execute(self, task: str) -> AIResponse:
+        """Execute agent task"""
+        try:
+            return await self._get_completion(task)
+        except Exception as e:
+            raise AIError(f"Task execution failed: {e}", cause=e)
 
-    def add_template(self, name: str, template: PromptTemplate) -> None:
-        """Add new prompt template"""
-        self.templates[name] = template
+    async def _get_completion(self, prompt: str) -> AIResponse:
+        """Get completion from AI"""
+        try:
+            if not self.client:
+                raise AIError("AI client not initialized")
+            return await self.client.complete(prompt)
+        except Exception as e:
+            raise AIError(f"Failed to get completion: {e}", cause=e)
 
-    def get_template(self, name: str) -> PromptTemplate | None:
-        """Get prompt template by name"""
-        return self.templates.get(name)
+    async def _build_messages(self, prompt: str) -> list[dict[str, Any]]:
+        """Build messages for completion"""
+        return [{"role": "user", "content": prompt}]

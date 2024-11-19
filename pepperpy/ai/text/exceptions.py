@@ -3,13 +3,17 @@
 from pepperpy.core.exceptions import PepperPyError
 
 
-class TextProcessingError(PepperPyError):
-    """Base exception for text processing errors"""
+class TextError(PepperPyError):
+    """Base text processing error"""
 
 
-class ChunkingError(TextProcessingError):
-    """Error during text chunking"""
+class ProcessingError(TextError):
+    """Text processing error"""
 
 
-class ProcessingError(TextProcessingError):
-    """Error during text processing"""
+class ChunkingError(TextError):
+    """Text chunking error"""
+
+
+class AnalysisError(TextError):
+    """Text analysis error"""

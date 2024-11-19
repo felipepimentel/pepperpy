@@ -3,17 +3,17 @@
 from pepperpy.core.exceptions import PepperPyError
 
 
-class LoggingError(PepperPyError):
+class LogError(PepperPyError):
     """Base logging error"""
 
 
-class LogHandlerError(LoggingError):
+class LogHandlerError(LogError):
     """Log handler error"""
 
 
-class LogFormatterError(LoggingError):
+class LogFormatterError(LogError):
     """Log formatter error"""
 
 
-class LogFilterError(LoggingError):
-    """Log filter error"""
+class LogConfigError(LogError):
+    """Log configuration error"""

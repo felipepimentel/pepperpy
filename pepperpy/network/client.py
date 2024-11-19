@@ -3,7 +3,7 @@
 import asyncio
 import ssl
 from collections.abc import AsyncIterator
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -21,45 +21,50 @@ class ProgressCallback(Protocol):
     async def __call__(self, downloaded: int, total: int) -> None: ...
 
 
+@dataclass
 class NetworkClient(BaseModule):
     """Client for network operations"""
 
-    def __init__(self, config: NetworkConfig | None = None) -> None:
-        super().__init__()
+    config: NetworkConfig = field(default_factory=NetworkConfig)
+    metadata: ModuleMetadata = field(init=False)
+    _session: aiohttp.ClientSession | None = field(default=None, init=False)
+    _ws_connections: dict[str, WebSocket] = field(default_factory=dict, init=False)
+    _last_request_time: float = field(default=0.0, init=False)
+
+    def __post_init__(self) -> None:
+        """Post initialization"""
         self.metadata = ModuleMetadata(
             name="network",
             version="1.0.0",
             description="Network operations",
             dependencies=["aiohttp>=3.9.0"],
-            config=asdict(config) if config else {},
+            config=asdict(self.config),
         )
-        self._session: aiohttp.ClientSession | None = None
-        self._ws_connections: dict[str, WebSocket] = {}
 
     async def _setup(self) -> None:
         """Initialize network client"""
         try:
             # Setup SSL context if needed
             ssl_context = None
-            if self.config.get("verify_ssl"):
+            if self.config.verify_ssl:
                 ssl_context = ssl.create_default_context()
-                if cert_path := self.config.get("cert_path"):
+                if cert_path := self.config.cert_path:
                     ssl_context.load_cert_chain(cert_path)
 
             # Create session with custom settings
             timeout = aiohttp.ClientTimeout(
-                total=self.config.get("timeout", 30),
-                connect=self.config.get("connect_timeout", 10),
+                total=self.config.timeout,
+                connect=self.config.connect_timeout,
             )
 
             self._session = aiohttp.ClientSession(
                 timeout=timeout,
-                headers=self.config.get("default_headers", {}),
-                cookies=self.config.get("cookies", {}),
+                headers=self.config.default_headers,
+                cookies=self.config.cookies,
                 connector=aiohttp.TCPConnector(
                     ssl=ssl_context,
-                    limit=self.config.get("max_connections", 100),
-                    ttl_dns_cache=self.config.get("dns_cache_ttl", 10),
+                    limit=int(self.config.max_connections),
+                    ttl_dns_cache=int(self.config.dns_cache_ttl),
                 ),
             )
 

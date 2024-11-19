@@ -1,51 +1,63 @@
 """Chat conversation implementation"""
 
-from collections.abc import AsyncIterator
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Sequence
 
-from ..client import AIClient
-from ..types import AIResponse
-from .types import ChatRole
+from pepperpy.core.module import BaseModule
+
+from ..types import AIMessage, AIResponse
 
 
+@dataclass
 class Conversation:
+    """Chat conversation"""
+
+    id: str
+    messages: list[AIMessage] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
+
+    async def add_message(self, message: AIMessage) -> None:
+        """Add message to conversation"""
+        self.messages.append(message)
+        self.updated_at = datetime.now()
+
+    async def get_messages(self) -> Sequence[AIMessage]:
+        """Get conversation messages"""
+        return self.messages
+
+    async def clear(self) -> None:
+        """Clear conversation messages"""
+        self.messages.clear()
+        self.updated_at = datetime.now()
+
+
+class ConversationManager(BaseModule):
     """Chat conversation manager"""
 
-    def __init__(self, client: AIClient, system_prompt: str | None = None):
-        """Initialize conversation with optional system prompt"""
-        self.client = client
-        self.messages: list[dict[str, str]] = []
-        if system_prompt:
-            self.messages.append({"role": "system", "content": system_prompt})
+    async def create(self, id_: str | None = None) -> Conversation:
+        """Create new conversation"""
+        conv_id = id_ or self._generate_id()
+        return Conversation(id=conv_id)
 
-    def add_message(self, role: ChatRole, content: str) -> None:
-        """Add message to conversation history"""
-        self.messages.append({"role": role, "content": content})
+    async def process_message(self, conversation: Conversation, message: str) -> AIResponse:
+        """Process message in conversation"""
+        try:
+            # Implementar processamento real da mensagem
+            response = await self._generate_response(message)
+            await conversation.add_message(AIMessage(role="user", content=message))
+            await conversation.add_message(AIMessage(role="assistant", content=response))
+            return AIResponse(content=response)
+        except Exception as e:
+            raise ValueError(f"Failed to process message: {e}")
 
-    def clear_history(self) -> None:
-        """Clear conversation history"""
-        system_message = next((msg for msg in self.messages if msg["role"] == "system"), None)
-        self.messages.clear()
-        if system_message:
-            self.messages.append(system_message)
+    async def _generate_response(self, message: str) -> str:
+        """Generate response for message"""
+        # Implementar geração real de resposta
+        return f"Echo: {message}"
 
-    async def send_message(self, content: str) -> AIResponse:
-        """Send user message and get response"""
-        self.add_message("user", content)
-        response = await self.client.complete(self.messages)
-        self.add_message("assistant", response.content)
-        return response
-
-    async def stream_message(self, content: str) -> AsyncIterator[AIResponse]:
-        """Stream user message response"""
-        self.add_message("user", content)
-        async for response in self.client.stream(self.messages):
-            if response.content.strip():
-                yield response
-
-        # Add final response to history
-        if response.content.strip():
-            self.add_message("assistant", response.content)
-
-    def get_history(self) -> list[dict[str, str]]:
-        """Get conversation history"""
-        return self.messages.copy()
+    def _generate_id(self) -> str:
+        """Generate unique conversation ID"""
+        return datetime.now().strftime("%Y%m%d%H%M%S")

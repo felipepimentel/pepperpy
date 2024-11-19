@@ -1,67 +1,45 @@
 """Base module implementation"""
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from enum import Enum
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
 @dataclass
 class ModuleMetadata:
-    """Module metadata container"""
+    """Module metadata"""
 
     name: str
     version: str
-    description: str
-    dependencies: list[str]
-    config: dict[str, Any]
+    description: str | None = None
+    dependencies: list[str] | None = None
+    config: dict[str, Any] | None = None
 
 
-class ModuleStatus(Enum):
-    """Module status"""
+@dataclass
+class BaseModule:
+    """Base module implementation"""
 
-    INACTIVE = "inactive"
-    ACTIVE = "active"
-    ERROR = "error"
+    metadata: ModuleMetadata = field(init=False)
+    config: Any = field(default=None)
 
-
-class BaseModule(ABC):
-    """Base class for all modules"""
-
-    def __init__(self) -> None:
-        self._config: dict[str, Any] | None = None
-        self._status: ModuleStatus = ModuleStatus.INACTIVE
-        self.metadata: ModuleMetadata | None = None
-
-    @property
-    def config(self) -> dict[str, Any]:
-        """Get module configuration"""
-        if not self._config:
-            raise ValueError("Module configuration not set")
-        return self._config
-
-    @config.setter
-    def config(self, value: dict[str, Any]) -> None:
-        """Set module configuration"""
-        self._config = value
-
-    @property
-    def status(self) -> ModuleStatus:
-        """Get module status"""
-        return self._status
+    def __post_init__(self) -> None:
+        """Post initialization"""
+        self.metadata = ModuleMetadata(
+            name=self.__class__.__name__,
+            version="0.1.0",
+            config=asdict(self.config) if self.config else None,
+        )
 
     async def initialize(self) -> None:
-        """Initialize module"""
-        await self._setup()
+        """Initialize module resources"""
+        pass
 
     async def cleanup(self) -> None:
         """Cleanup module resources"""
-        await self._cleanup()
+        pass
 
-    @abstractmethod
-    async def _setup(self) -> None:
-        """Module-specific initialization"""
-
-    @abstractmethod
-    async def _cleanup(self) -> None:
-        """Module-specific cleanup"""
+    def get_config(self) -> dict[str, Any]:
+        """Get module configuration"""
+        if hasattr(self, "config"):
+            return asdict(self.config)
+        return {}

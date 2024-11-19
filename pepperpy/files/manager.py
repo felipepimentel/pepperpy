@@ -1,71 +1,50 @@
-"""File manager implementation"""
+"""File management implementation for handling file operations."""
 
+from pathlib import Path
+from typing import Literal, Union
 
-from .base import FileHandler
+import aiofiles
+from aiofiles.threadpool.binary import AsyncBufferedIOBase
+from aiofiles.threadpool.text import AsyncTextIOWrapper
+
+from pepperpy.core.logging import get_logger
+
 from .exceptions import FileError
-from .handlers.audio import AudioHandler
-from .handlers.config import ConfigFileHandler
-from .handlers.epub import EPUBHandler
-from .handlers.image import ImageHandler
-from .handlers.json import JSONHandler
-from .handlers.markdown import MarkdownHandler
-from .handlers.markdown_enhanced import MarkdownEnhancedHandler
-from .handlers.markup import MarkupHandler
-from .handlers.pdf import PDFHandler
-from .handlers.spreadsheet import SpreadsheetHandler
-from .handlers.yaml import YAMLHandler
+from .types import PathLike
+
+OpenMode = Literal["r", "w", "a", "x", "rb", "wb", "ab", "xb"]
 
 
 class FileManager:
-    """File manager for handling different file types"""
+    """File manager implementation for handling file operations asynchronously."""
 
-    def __init__(self):
-        self._handlers: dict[str, FileHandler] = {}
-        self._register_default_handlers()
+    def __init__(self) -> None:
+        """Initialize file manager."""
+        self._logger = get_logger(__name__)
 
-    def _register_default_handlers(self) -> None:
-        """Register default file handlers"""
-        self.register_handler("audio", AudioHandler())
-        self.register_handler("config", ConfigFileHandler())
-        self.register_handler("epub", EPUBHandler())
-        self.register_handler("image", ImageHandler())
-        self.register_handler("json", JSONHandler())
-        self.register_handler("markdown", MarkdownHandler())
-        self.register_handler("markdown_enhanced", MarkdownEnhancedHandler())
-        self.register_handler("markup", MarkupHandler())
-        self.register_handler("pdf", PDFHandler())
-        self.register_handler("spreadsheet", SpreadsheetHandler())
-        self.register_handler("yaml", YAMLHandler())
+    def _to_path(self, path: PathLike) -> Path:
+        """Convert path-like object to Path."""
+        return Path(path)
 
-    def register_handler(self, name: str, handler: FileHandler) -> None:
-        """
-        Register file handler
+    async def write_file(
+        self,
+        path: PathLike,
+        content: Union[str, bytes],
+        *,
+        mode: OpenMode = "w",
+    ) -> None:
+        """Write content to file asynchronously."""
+        try:
+            file_path = self._to_path(path)
+            await self._write_async(file_path, content, mode)
+        except Exception as e:
+            await self._logger.error(f"Failed to write file: {file_path}", error=str(e))
+            raise FileError(f"Failed to write file: {e}", cause=e)
 
-        Args:
-            name: Handler name
-            handler: File handler instance
-
-        """
-        self._handlers[name] = handler
-
-    def get_handler(self, name: str) -> FileHandler:
-        """
-        Get file handler by name
-
-        Args:
-            name: Handler name
-
-        Returns:
-            FileHandler: File handler instance
-
-        Raises:
-            FileError: If handler not found
-
-        """
-        if name not in self._handlers:
-            raise FileError(f"Handler not found: {name}")
-        return self._handlers[name]
-
-
-# Global file manager instance
-manager = FileManager()
+    async def _write_async(self, path: Path, content: Union[str, bytes], mode: OpenMode) -> None:
+        """Write content to file asynchronously."""
+        async with aiofiles.open(path, mode=mode) as file:
+            if isinstance(file, AsyncTextIOWrapper):
+                await file.write(str(content))
+            elif isinstance(file, AsyncBufferedIOBase):
+                await file.write(content if isinstance(content, bytes) else str(content).encode())

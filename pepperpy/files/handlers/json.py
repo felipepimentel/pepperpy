@@ -6,40 +6,54 @@ from typing import Any
 import orjson
 
 from ..exceptions import FileError
-from ..types import FileContent, FileMetadata
-from .base import BaseHandler
+from ..types import FileContent, FileType, PathLike
+from .base import FileHandler
 
 
-class JSONHandler(BaseHandler):
+class JSONHandler(FileHandler[dict[str, Any]]):
     """Handler for JSON files"""
 
-    async def read(self, path: Path) -> FileContent:
+    async def read(self, path: PathLike) -> FileContent[dict[str, Any]]:
         """Read JSON file"""
         try:
-            metadata = await self._get_metadata(path)
-            content = await self._read_file(path)
-
-            # Parse JSON content
+            file_path = self._to_path(path)
+            content = await self._read_content(file_path)
             data = orjson.loads(content)
 
-            return FileContent(content=data, metadata=metadata.metadata, format="json")
+            metadata = self._create_metadata(
+                path=file_path,
+                file_type=FileType.JSON,
+                mime_type="application/json",
+                format_str="json",
+            )
+
+            return FileContent(content=data, metadata=metadata)
+
         except Exception as e:
             raise FileError(f"Failed to read JSON file: {e!s}", cause=e)
 
     async def write(
         self,
-        path: Path,
         content: dict[str, Any],
+        path: PathLike,
         metadata: dict[str, Any] | None = None,
-    ) -> FileMetadata:
+    ) -> Path:
         """Write JSON file"""
         try:
-            # Convert to JSON
-            json_content = orjson.dumps(
+            file_path = self._to_path(path)
+            json_str = orjson.dumps(
                 content,
                 option=orjson.OPT_INDENT_2 | orjson.OPT_SERIALIZE_NUMPY,
-            ).decode("utf-8")
-
-            return await self._write_file(path, json_content)
+            ).decode()
+            await self._write_text(json_str, file_path)
+            return file_path
         except Exception as e:
             raise FileError(f"Failed to write JSON file: {e!s}", cause=e)
+
+    async def _read_content(self, path: Path) -> str:
+        """Read JSON content"""
+        return path.read_text()
+
+    async def _write_text(self, content: str, path: Path) -> None:
+        """Write text content"""
+        path.write_text(content)

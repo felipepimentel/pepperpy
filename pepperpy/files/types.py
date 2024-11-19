@@ -1,212 +1,139 @@
-"""File handling types"""
+"""File handling types and constants"""
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum, auto
 from pathlib import Path
-from typing import (
-    Any,
-    Literal,
-    Protocol,
-    runtime_checkable,
-)
+from typing import Any, Generic, TypeVar, Union
+
+try:
+    from pypdf._page import PageObject  # Updated import path
+except ImportError:
+    # Fallback type alias for when pypdf is not installed
+    PageObject = Any
+
+T = TypeVar("T")
+
+# Type alias for PDF pages
+PDFPage = PageObject
 
 
-@runtime_checkable
-class PDFDocument(Protocol):
-    """Protocol for PDF document"""
+class FileType(Enum):
+    """File type enumeration"""
 
-    metadata: dict[str, str]
+    TEXT = auto()
+    BINARY = auto()
+    IMAGE = auto()
+    AUDIO = auto()
+    VIDEO = auto()
+    MEDIA = auto()
+    PDF = auto()
+    DOCUMENT = auto()
+    SPREADSHEET = auto()
+    JSON = auto()
+    YAML = auto()
+    CONFIG = auto()
+    MARKDOWN = auto()
+    HTML = auto()
+    XML = auto()
+    EPUB = auto()
+    COMPRESSED = auto()
+    MARKUP = auto()
 
-    def get_toc(self) -> list[Any]: ...
-    def get_form_text_fields(self) -> dict[str, str]: ...
-    def new_page(self) -> "PDFPage": ...
-    def set_metadata(self, metadata: dict[str, Any]) -> None: ...
-    def save(self, path: str, **kwargs: Any) -> None: ...
-    def close(self) -> None: ...
-    def extract_image(self, xref: int) -> dict[str, Any]: ...
-    def __iter__(self) -> Any: ...
+
+PathLike = Union[str, Path]
 
 
-@runtime_checkable
-class PDFPage(Protocol):
-    """Protocol for PDF page"""
-
-    parent: PDFDocument
-
-    def get_text(self) -> str: ...
-    def get_links(self) -> list[dict[str, Any]]: ...
-    def get_images(self) -> list[Any]: ...
-    def insert_text(self, point: tuple[float, float], text: str) -> None: ...
-    def insert_image(self, rect: Any, stream: bytes) -> None: ...
+def ensure_path(path: PathLike) -> Path:
+    """Ensure path is a Path object."""
+    return Path(path) if not isinstance(path, Path) else path
 
 
 @dataclass
 class MediaInfo:
-    type: Literal["image", "video", "audio"]
-    width: int | None = None
-    height: int | None = None
-    format: str | None = None
-    mode: str | None = None
-    channels: int | None = None
-    duration: float | None = None
-    fps: float | None = None
-    total_frames: int | None = None
-    sample_width: int | None = None
-    frame_rate: int | None = None
+    """Media file information"""
 
-
-@dataclass
-class FileContent:
-    content: Any
-    metadata: dict[str, Any]
-    format: str
-
-
-@dataclass
-class SpreadsheetStats:
-    row_count: int
-    column_count: int
-    missing_values: dict[str, int]
-    column_types: dict[str, Any]
-    numeric_stats: dict[str, dict[str, float]]
-    memory_usage: int
-    duplicates: int
+    duration: float
+    bitrate: int
+    codec: str
+    format: str = ""
+    channels: int = 0
+    sample_rate: int = 0
+    frame_rate: float = 0.0
 
 
 @dataclass
 class FileMetadata:
     """File metadata"""
 
-    path: Path
+    name: str
     size: int
+    file_type: FileType
+    mime_type: str
+    format: str
     created_at: datetime
     modified_at: datetime
-    mime_type: str | None = None
-    encoding: str | None = None
+    path: Path
     metadata: dict[str, Any] = field(default_factory=dict)
+    media_info: MediaInfo | None = None
+    image_info: Any = None
 
 
 @dataclass
-class Chapter:
-    """E-book chapter"""
+class FileContent(Generic[T]):
+    """File content with metadata"""
 
-    title: str
-    content: str
-    order: int
-    level: int = 1
-    identifier: str | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class EpubTOC:
-    """E-book table of contents"""
-
-    items: list[Chapter]
-    max_depth: int = 3
+    content: T
+    metadata: FileMetadata
 
 
 @dataclass
 class ImageInfo:
-    """Image information"""
+    """Image file information"""
 
     width: int
     height: int
+    format: str
     mode: str
-    format: str
-    channels: int | None = None
-    bits: int | None = None
+    channels: int = 0
+    bits: int = 0
     dpi: tuple[float, float] | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class AudioInfo:
-    """Audio file information"""
-
-    duration: float
-    sample_rate: int
-    channels: int
-    format: str
-    bit_depth: int | None = None
-    bitrate: int | None = None
-    codec: str | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class FileStats:
-    """File statistics"""
-
-    name: str
-    extension: str
-    size: int
-    created_at: datetime
-    modified_at: datetime
-    hash: str
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class EpubAsset:
-    """Base class for EPUB assets (images, audio, etc)"""
-
-    identifier: str
-    media_type: str
-    content: bytes
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class EpubImage(EpubAsset):
-    """Image asset in EPUB"""
-
-    width: int | None = None
-    height: int | None = None
-    format: str | None = None
-
-
-@dataclass
-class EpubLink:
-    """Link in EPUB content"""
-
-    text: str
-    href: str
-    type: Literal["internal", "external", "resource"]
-    target: str | None = None
-
-
-@dataclass
-class EpubChapterContent:
-    """Structured content of an EPUB chapter"""
-
-    html: str
-    text: str
-    images: list[EpubImage]
-    links: list[EpubLink]
-    tables: list[str]
-    headers: list[tuple[int, str]]  # level, text
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class EpubChapter:
-    """Enhanced EPUB chapter with structured content"""
+class BookMetadata:
+    """Book metadata"""
 
     title: str
-    content: EpubChapterContent
-    order: int
-    level: int = 1
-    identifier: str | None = None
-    file_name: str | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
+    authors: list[str]
+    language: str
+    identifier: str
+    description: str | None = None
+    publisher: str | None = None
+    rights: str | None = None
+    publication_date: datetime | None = None
+    subjects: list[str] = field(default_factory=list)
 
 
 @dataclass
-class EpubStructure:
-    """Complete EPUB book structure"""
+class Chapter:
+    """Book chapter"""
 
-    metadata: dict[str, Any]
-    chapters: list[EpubChapter]
-    assets: list[EpubAsset]
-    toc: EpubTOC
+    title: str
+    content: str
+    file_name: str
+    order: int = 0
+    level: int = 0
+
+
+@dataclass
+class Book:
+    """Book content"""
+
+    metadata: BookMetadata
+    chapters: list[Chapter]
+    cover_image: bytes | None = None
+    styles: dict[str, str] = field(default_factory=dict)
+    images: dict[str, bytes] = field(default_factory=dict)
+    resources: dict[str, bytes] = field(default_factory=dict)
+    toc: list[tuple[Any, ...]] = field(default_factory=list)

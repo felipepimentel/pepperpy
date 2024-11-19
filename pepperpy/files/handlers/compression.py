@@ -9,13 +9,54 @@ from pathlib import Path
 from typing import Any
 
 from ..exceptions import FileError
-from .base import BaseHandler
+from ..types import FileContent, FileType, PathLike
+from .base import FileHandler
 
 
-class CompressionHandler(BaseHandler):
+class CompressionHandler(FileHandler[bytes]):
     """Handler for file compression"""
 
     COMPRESSION_LEVELS = {"fast": 1, "balanced": 6, "max": 9}
+
+    async def read(self, path: PathLike) -> FileContent:
+        """Read compressed file"""
+        try:
+            file_path = self._to_path(path)
+            content = await self._read_content(file_path)
+
+            metadata = self._create_metadata(
+                path=file_path,
+                file_type=FileType.BINARY,
+                mime_type="application/octet-stream",
+                format_str="binary",
+            )
+
+            return FileContent(content=content, metadata=metadata)
+
+        except Exception as e:
+            raise FileError(f"Failed to read compressed file: {e!s}", cause=e)
+
+    async def write(
+        self,
+        content: bytes,
+        path: PathLike,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
+        """Write compressed file"""
+        try:
+            file_path = self._to_path(path)
+            await self._write_bytes(content, file_path)
+            return file_path
+        except Exception as e:
+            raise FileError(f"Failed to write compressed file: {e!s}", cause=e)
+
+    async def _read_content(self, path: Path) -> bytes:
+        """Read compressed content"""
+        return path.read_bytes()
+
+    async def _write_bytes(self, content: bytes, path: Path) -> None:
+        """Write binary content"""
+        path.write_bytes(content)
 
     async def compress_gzip(
         self, data: bytes, level: str = "balanced", filename: str | None = None,

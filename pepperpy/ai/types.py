@@ -1,42 +1,33 @@
-"""AI module types and data structures"""
+"""AI types and constants"""
 
 from dataclasses import dataclass, field
-from typing import Any
+from datetime import datetime
+from typing import Any, Literal
+
+Role = Literal["user", "assistant", "system"]
 
 
 @dataclass
-class UsageInfo:
-    """Token usage information"""
-
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
+class AIMessage:
+    """AI message"""
+    role: Role
+    content: str
+    metadata: dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
 class AIResponse:
-    """AI response with metadata"""
-
+    """AI response"""
     content: str
-    model: str
-    usage: UsageInfo
-    metadata: dict[str, str] | None = None
-
-
-@dataclass
-class Message:
-    """Chat message"""
-
-    content: str
-    sender: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class LLMResponse:
-    """LLM response data"""
-
-    content: str
+class AIConfig:
+    """AI configuration"""
     model: str
-    usage: dict[str, int] | None = None
-    metadata: dict[str, str] | None = None
+    temperature: float = 0.7
+    max_tokens: int = 1000
+    stop_sequences: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)

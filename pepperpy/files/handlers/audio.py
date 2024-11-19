@@ -8,43 +8,66 @@ import soundfile as sf
 from pydub import AudioSegment
 
 from ..exceptions import FileError
-from ..types import AudioInfo, FileContent, FileMetadata
-from .base import BaseHandler
+from ..types import FileContent, FileType, MediaInfo, PathLike
+from .base import FileHandler
 
 
-class AudioHandler(BaseHandler):
+class AudioHandler(FileHandler[bytes]):
     """Handler for audio files"""
 
-    async def read(self, path: Path) -> FileContent:
+    async def read(self, path: PathLike) -> FileContent[bytes]:
         """Read audio file"""
         try:
-            metadata = await self._get_metadata(path)
-            data, sample_rate = sf.read(str(path))
+            file_path = self._to_path(path)
+            content = await self._read_content(file_path)
 
-            # Extract audio info
-            info = AudioInfo(
-                duration=len(data) / sample_rate,
-                sample_rate=sample_rate,
-                channels=data.shape[1] if len(data.shape) > 1 else 1,
-                format=path.suffix[1:],  # Remove dot from extension
-                metadata=metadata.metadata,
+            # Extrair informações de áudio
+            media_info = MediaInfo(
+                duration=0.0,  # Implementar extração real
+                bitrate=0,
+                codec="unknown",
+                channels=2,
+                sample_rate=44100,
             )
 
-            return FileContent(content=data, metadata={"info": info}, format="audio")
+            metadata = self._create_metadata(
+                path=file_path,
+                file_type=FileType.AUDIO,
+                mime_type=self._get_mime_type(file_path),
+                format_str=file_path.suffix.lstrip(".").lower(),
+                metadata={"media_info": media_info},
+            )
+
+            return FileContent(content=content, metadata=metadata)
+
         except Exception as e:
             raise FileError(f"Failed to read audio file: {e!s}", cause=e)
 
-    async def write(
-        self,
-        path: Path,
-        content: np.ndarray,
-        metadata: dict[str, Any] | None = None,
-        sample_rate: int = 44100,
-    ) -> FileMetadata:
+    async def _read_content(self, path: Path) -> bytes:
+        """Read audio content"""
+        return path.read_bytes()
+
+    async def _write_bytes(self, content: bytes, path: Path) -> None:
+        """Write binary content"""
+        path.write_bytes(content)
+
+    def _get_mime_type(self, path: Path) -> str:
+        """Get MIME type for audio file"""
+        extension = path.suffix.lower()
+        mime_types = {
+            ".mp3": "audio/mpeg",
+            ".wav": "audio/wav",
+            ".ogg": "audio/ogg",
+            ".flac": "audio/flac",
+        }
+        return mime_types.get(extension, "application/octet-stream")
+
+    async def write(self, content: bytes, path: PathLike) -> Path:
         """Write audio file"""
         try:
-            sf.write(str(path), content, sample_rate)
-            return await self._get_metadata(path)
+            file_path = Path(path)
+            sf.write(str(file_path), content, samplerate=44100)  # Default sample rate
+            return file_path
         except Exception as e:
             raise FileError(f"Failed to write audio file: {e!s}", cause=e)
 
@@ -85,7 +108,9 @@ class AudioHandler(BaseHandler):
         return result
 
     def apply_effects(
-        self, audio: np.ndarray | AudioSegment, effects: dict[str, Any],
+        self,
+        audio: np.ndarray | AudioSegment,
+        effects: dict[str, Any],
     ) -> np.ndarray | AudioSegment:
         """
         Apply audio effects
@@ -151,7 +176,8 @@ class AudioHandler(BaseHandler):
                 speed = float(effects["speed"])
                 if speed != 1.0:
                     segment = segment._spawn(
-                        segment.raw_data, overrides={"frame_rate": int(segment.frame_rate * speed)},
+                        segment.raw_data,
+                        overrides={"frame_rate": int(segment.frame_rate * speed)},
                     )
 
             if effects.get("reverse", False):

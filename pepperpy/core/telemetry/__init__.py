@@ -1,23 +1,37 @@
-"""Telemetry module initialization"""
+"""Core telemetry module"""
 
-from .health import HealthMonitor, Status
-from .metrics import MetricsCollector, MetricValue
-from .performance import PerformanceMonitor, ResourceUsage
-from .tracing import TraceEvent, Tracer
+from abc import ABC, abstractmethod
+from typing import Any
+
+from .collectors import TelemetryCollector
+from .exceptions import TelemetryError
+from .types import Event, Span, TraceContext
+
+
+class TelemetryProvider(ABC):
+    """Base telemetry provider interface"""
+
+    @abstractmethod
+    async def record_event(self, event: Event) -> None:
+        """Record telemetry event"""
+        pass
+
+    @abstractmethod
+    async def start_span(self, name: str, **context: Any) -> Span:
+        """Start telemetry span"""
+        pass
+
+    @abstractmethod
+    async def end_span(self, span: Span) -> None:
+        """End telemetry span"""
+        pass
+
 
 __all__ = [
-    "HealthMonitor",
-    "Status",
-    "MetricsCollector",
-    "MetricValue",
-    "PerformanceMonitor",
-    "ResourceUsage",
-    "Tracer",
-    "TraceEvent",
+    "TelemetryProvider",
+    "TelemetryCollector",
+    "TelemetryError",
+    "Event",
+    "Span",
+    "TraceContext",
 ]
-
-# Export instances
-health = HealthMonitor()
-metrics = MetricsCollector()
-performance = PerformanceMonitor()
-tracing = Tracer()

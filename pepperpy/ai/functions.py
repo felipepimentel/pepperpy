@@ -1,55 +1,65 @@
-"""High-level convenience functions for AI operations"""
+"""AI function implementations"""
 
-from collections.abc import AsyncIterator, Sequence
+from dataclasses import dataclass, field
+from typing import Any, AsyncIterator, Sequence
+
+from pepperpy.core.module import BaseModule, ModuleMetadata
 
 from .client import AIClient
-from .types import AIResponse
+from .exceptions import AIError
+from .types import AIConfig, AIResponse
 
 
-async def ask(prompt: str) -> AIResponse:
-    """
-    Send a single prompt and get response
-
-    Args:
-        prompt: The prompt to send
-
-    Returns:
-        AIResponse: The model's response
-
-    """
-    client = await AIClient.create()
-    async with client:
-        return await client.ask(prompt)
+def create_default_client() -> AIClient:
+    """Create default AI client"""
+    config = AIConfig(model="default")
+    return AIClient(config=config)
 
 
-async def complete(messages: Sequence[dict[str, str]]) -> AIResponse:
-    """
-    Complete a sequence of chat messages
+@dataclass
+class AIFunction(BaseModule):
+    """Base AI function implementation"""
 
-    Args:
-        messages: List of messages in the format {"role": str, "content": str}
+    metadata: ModuleMetadata = field(init=False)
+    client: AIClient = field(default_factory=create_default_client)
 
-    Returns:
-        AIResponse: The completion response
+    def __post_init__(self) -> None:
+        """Post initialization"""
+        self.metadata = ModuleMetadata(
+            name=self.__class__.__name__,
+            version="1.0.0",
+            description="AI function implementation",
+        )
 
-    """
-    client = await AIClient.create()
-    async with client:
-        return await client.complete(messages)
+    async def execute(self, *args: Any, **kwargs: Any) -> Any:
+        """Execute function"""
+        raise NotImplementedError
 
 
-async def stream(messages: Sequence[dict[str, str]]) -> AsyncIterator[AIResponse]:
-    """
-    Stream chat completions
+@dataclass
+class TextCompletion(AIFunction):
+    """Text completion function"""
 
-    Args:
-        messages: List of messages in the format {"role": str, "content": str}
+    async def execute(self, prompt: str | Sequence[str]) -> AIResponse:
+        """Execute completion"""
+        try:
+            # Convert sequence to single string if needed
+            prompt_str = "\n".join(str(p) for p in prompt) if isinstance(prompt, (list, tuple)) else str(prompt)
+            return await self.client.complete(prompt_str)
+        except Exception as e:
+            raise AIError(f"Completion failed: {e}", cause=e)
 
-    Yields:
-        AIResponse: The streamed response chunks
 
-    """
-    client = await AIClient.create()
-    async with client:
-        async for response in client.stream(messages):
-            yield response
+@dataclass
+class TextGeneration(AIFunction):
+    """Text generation function"""
+
+    async def execute(self, prompt: str | Sequence[str]) -> AsyncIterator[AIResponse]:
+        """Execute generation"""
+        try:
+            # Convert sequence to single string if needed
+            prompt_str = "\n".join(str(p) for p in prompt) if isinstance(prompt, (list, tuple)) else str(prompt)
+            async for response in self.client.stream(prompt_str):
+                yield response
+        except Exception as e:
+            raise AIError(f"Generation failed: {e}", cause=e)

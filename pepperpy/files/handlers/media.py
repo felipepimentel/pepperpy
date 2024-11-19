@@ -1,276 +1,86 @@
 """Media file handler implementation"""
 
-import io
+from datetime import datetime
 from pathlib import Path
-
-import cv2
-import moviepy.editor as mp
-import numpy as np
-from PIL import Image, ImageFilter
-from pydub import AudioSegment
+from typing import Any
 
 from ..exceptions import FileError
-from ..types import MediaInfo
-from .base import BaseHandler
+from ..types import FileContent, FileMetadata, FileType, MediaInfo, PathLike, ensure_path
+from .base import FileHandler
 
 
-class MediaHandler(BaseHandler):
-    """Handler for image, video and audio files"""
+class MediaHandler(FileHandler[bytes]):
+    """Handler for media files"""
 
-    SUPPORTED_IMAGE_FORMATS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
-    SUPPORTED_VIDEO_FORMATS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
-    SUPPORTED_AUDIO_FORMATS = {".mp3", ".wav", ".ogg", ".m4a", ".flac"}
-
-    async def read_image(self, path: Path) -> Image.Image:
-        """Read image file"""
+    async def read(self, path: PathLike) -> FileContent:
+        """Read media file"""
         try:
-            return Image.open(path)
-        except Exception as e:
-            raise FileError(f"Failed to read image: {e!s}", cause=e)
+            file_path = ensure_path(path)
+            content = await self._read_content(file_path)
 
-    async def read_video(self, path: Path) -> cv2.VideoCapture:
-        """Read video file"""
-        try:
-            cap = cv2.VideoCapture(str(path))
-            if not cap.isOpened():
-                raise FileError("Failed to open video file")
-            return cap
-        except Exception as e:
-            raise FileError(f"Failed to read video: {e!s}", cause=e)
+            # Extrair informações de mídia
+            media_info = await self._extract_media_info(file_path)
 
-    async def read_audio(self, path: Path) -> AudioSegment:
-        """Read audio file"""
-        try:
-            return AudioSegment.from_file(path)
-        except Exception as e:
-            raise FileError(f"Failed to read audio: {e!s}", cause=e)
+            metadata = FileMetadata(
+                name=file_path.name,
+                size=file_path.stat().st_size,
+                file_type=FileType.MEDIA,
+                mime_type=self._get_mime_type(file_path),
+                format=file_path.suffix.lstrip(".").lower(),
+                created_at=datetime.fromtimestamp(file_path.stat().st_ctime),
+                modified_at=datetime.fromtimestamp(file_path.stat().st_mtime),
+                path=file_path,
+                media_info=media_info,
+            )
 
-    async def get_media_info(self, path: Path) -> MediaInfo:
-        """Get media file information"""
-        try:
-            suffix = path.suffix.lower()
-
-            if suffix in self.SUPPORTED_IMAGE_FORMATS:
-                img = await self.read_image(path)
-                return MediaInfo(
-                    type="image",
-                    width=img.width,
-                    height=img.height,
-                    format=img.format,
-                    mode=img.mode,
-                    channels=len(img.getbands()),
-                )
-
-            if suffix in self.SUPPORTED_VIDEO_FORMATS:
-                cap = await self.read_video(path)
-                return MediaInfo(
-                    type="video",
-                    width=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                    height=int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-                    duration=float(cap.get(cv2.CAP_PROP_FRAME_COUNT) / cap.get(cv2.CAP_PROP_FPS)),
-                    fps=cap.get(cv2.CAP_PROP_FPS),
-                    total_frames=int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),
-                )
-
-            if suffix in self.SUPPORTED_AUDIO_FORMATS:
-                audio = await self.read_audio(path)
-                return MediaInfo(
-                    type="audio",
-                    duration=len(audio) / 1000.0,
-                    channels=audio.channels,
-                    sample_width=audio.sample_width,
-                    frame_rate=audio.frame_rate,
-                )
-
-            raise FileError(f"Unsupported media format: {suffix}")
+            return FileContent(content=content, metadata=metadata)
 
         except Exception as e:
-            raise FileError(f"Failed to get media info: {e!s}", cause=e)
+            raise FileError(f"Failed to read media file: {e!s}", cause=e)
 
-    # Image Operations
-    async def resize_image(
-        self, image: Image.Image, size: tuple[int, int], keep_aspect: bool = True,
-    ) -> Image.Image:
-        """Resize image"""
-        try:
-            if keep_aspect:
-                image.thumbnail(size)
-                return image
-            return image.resize(size)
-        except Exception as e:
-            raise FileError(f"Failed to resize image: {e!s}", cause=e)
-
-    async def convert_image(self, image: Image.Image, format: str, **kwargs) -> bytes:
-        """Convert image format"""
-        try:
-            output = io.BytesIO()
-            image.save(output, format=format, **kwargs)
-            return output.getvalue()
-        except Exception as e:
-            raise FileError(f"Failed to convert image: {e!s}", cause=e)
-
-    async def apply_filter(self, image: Image.Image, filter_name: str, **params) -> Image.Image:
-        """Apply image filter"""
-        try:
-            if filter_name == "blur":
-                return image.filter(ImageFilter.GaussianBlur(params.get("radius", 2)))
-            if filter_name == "sharpen":
-                return image.filter(ImageFilter.SHARPEN)
-            if filter_name == "grayscale":
-                return image.convert("L")
-            raise FileError(f"Unknown filter: {filter_name}")
-        except Exception as e:
-            raise FileError(f"Failed to apply filter: {e!s}", cause=e)
-
-    # Video Operations
-    async def extract_frames(
+    async def write(
         self,
-        video: cv2.VideoCapture,
-        start_time: float = 0,
-        end_time: float | None = None,
-        interval: float = 1.0,
-    ) -> list[np.ndarray]:
-        """Extract frames from video"""
+        content: bytes,
+        path: PathLike,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
+        """Write media file"""
         try:
-            frames = []
-            fps = video.get(cv2.CAP_PROP_FPS)
-            total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-
-            start_frame = int(start_time * fps)
-            end_frame = int(end_time * fps) if end_time else total_frames
-            interval_frames = int(interval * fps)
-
-            video.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
-
-            current_frame = start_frame
-            while current_frame < end_frame:
-                ret, frame = video.read()
-                if ret:
-                    frames.append(frame)
-                current_frame += interval_frames
-                video.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
-
-            return frames
+            file_path = ensure_path(path)
+            await self._write_bytes(content, file_path)
+            return file_path
         except Exception as e:
-            raise FileError(f"Failed to extract frames: {e!s}", cause=e)
+            raise FileError(f"Failed to write media file: {e!s}", cause=e)
 
-    async def create_video(
-        self, frames: list[np.ndarray], output_path: Path, fps: float = 30.0, codec: str = "mp4v",
-    ) -> None:
-        """Create video from frames"""
+    async def _read_content(self, path: Path) -> bytes:
+        """Read media content"""
+        return path.read_bytes()
+
+    async def _write_bytes(self, content: bytes, path: Path) -> None:
+        """Write binary content"""
+        path.write_bytes(content)
+
+    async def _extract_media_info(self, path: Path) -> MediaInfo:
+        """Extract media information from file"""
         try:
-            if not frames:
-                raise FileError("No frames provided")
-
-            height, width = frames[0].shape[:2]
-            fourcc = int(cv2.CAP_PROP_FOURCC)
-
-            out = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
-
-            for frame in frames:
-                out.write(frame)
-
-            out.release()
-
+            # Implementar extração real de metadados de mídia
+            # Por exemplo, usando ffmpeg-python ou similar
+            return MediaInfo(
+                duration=0.0,
+                bitrate=0,
+                codec="unknown",
+            )
         except Exception as e:
-            raise FileError(f"Failed to create video: {e!s}", cause=e)
+            raise FileError(f"Failed to extract media info: {e!s}", cause=e)
 
-    # Audio Operations
-    async def trim_audio(
-        self, audio: AudioSegment, start_ms: int, end_ms: int | None = None,
-    ) -> AudioSegment:
-        """Trim audio segment"""
-        try:
-            # First get the slice of audio data
-            if end_ms is not None:
-                # For a specific end time, slice both start and end
-                slice_data = audio[start_ms:end_ms]
-            else:
-                # For no end time, slice from start to the end
-                slice_data = audio[start_ms:]
-
-            # Ensure we're working with an AudioSegment
-            if not isinstance(slice_data, AudioSegment):
-                raise FileError("Failed to slice audio segment")
-
-            return slice_data
-
-        except Exception as e:
-            raise FileError(f"Failed to trim audio: {e!s}", cause=e)
-
-    async def adjust_audio(
-        self, audio: AudioSegment, volume_db: float = 0, speed: float = 1.0, normalize: bool = False,
-    ) -> AudioSegment:
-        """Adjust audio properties"""
-        try:
-            result = audio
-
-            if volume_db != 0:
-                result = result + volume_db
-
-            if speed != 1.0:
-                result = result._spawn(
-                    result.raw_data, overrides={"frame_rate": int(result.frame_rate * speed)},
-                )
-
-            if normalize:
-                max_possible = 32767  # Max possible amplitude for 16-bit audio
-                peak_amplitude = max(
-                    abs(min(result.get_array_of_samples())), abs(max(result.get_array_of_samples())),
-                )
-
-                if peak_amplitude > 0:
-                    normalize_ratio = float(max_possible) / peak_amplitude
-                    result = result.apply_gain(normalize_ratio)
-
-            return result
-
-        except Exception as e:
-            raise FileError(f"Failed to adjust audio: {e!s}", cause=e)
-
-    async def mix_audio(
-        self, segments: list[AudioSegment], crossfade_ms: int = 100,
-    ) -> AudioSegment:
-        """Mix multiple audio segments"""
-        try:
-            if not segments:
-                raise FileError("No audio segments provided")
-
-            result = segments[0]
-            for segment in segments[1:]:
-                result = result.append(segment, crossfade=crossfade_ms)
-
-            return result
-
-        except Exception as e:
-            raise FileError(f"Failed to mix audio: {e!s}", cause=e)
-
-    async def extract_audio(self, video_path: Path, output_path: Path) -> None:
-        """Extract audio from video"""
-        try:
-            video = mp.VideoFileClip(str(video_path))
-            if video.audio is None:
-                raise FileError("Video has no audio track")
-
-            video.audio.write_audiofile(str(output_path))
-            video.close()
-
-        except Exception as e:
-            raise FileError(f"Failed to extract audio: {e!s}", cause=e)
-
-    async def add_audio_to_video(
-        self, video_path: Path, audio_path: Path, output_path: Path,
-    ) -> None:
-        """Add audio track to video"""
-        try:
-            video = mp.VideoFileClip(str(video_path))
-            audio = mp.AudioFileClip(str(audio_path))
-
-            final_video = video.set_audio(audio)
-            final_video.write_videofile(str(output_path))
-
-            video.close()
-            audio.close()
-
-        except Exception as e:
-            raise FileError(f"Failed to add audio to video: {e!s}", cause=e)
+    def _get_mime_type(self, path: Path) -> str:
+        """Get MIME type for media file"""
+        extension = path.suffix.lower()
+        mime_types = {
+            ".mp4": "video/mp4",
+            ".mp3": "audio/mpeg",
+            ".wav": "audio/wav",
+            ".avi": "video/x-msvideo",
+            ".mov": "video/quicktime",
+        }
+        return mime_types.get(extension, "application/octet-stream")

@@ -1,6 +1,8 @@
 """AutoGen examples demonstrating multi-agent collaboration"""
 
 import asyncio
+import os
+from typing import Optional, Union
 
 from pepperpy.ai import AIClient
 from pepperpy.ai.autogen.agents import (
@@ -9,16 +11,18 @@ from pepperpy.ai.autogen.agents import (
     ExecutorAgent,
     PlannerAgent,
 )
-from pepperpy.ai.autogen.agents.team import AgentTeam
-from pepperpy.ai.autogen.config import TeamConfig
+from pepperpy.ai.autogen.agents.team import AgentTeam, TeamConfig
 from pepperpy.ai.types import AIResponse
 from pepperpy.console import Console
+from pepperpy.core.config import AIConfig
 
 console = Console()
 
 
-def get_content(response: str | AIResponse) -> str:
+def get_content(response: Optional[Union[str, AIResponse]]) -> str:
     """Extract content from response"""
+    if response is None:
+        return ""
     if isinstance(response, AIResponse):
         return response.content
     return response
@@ -31,25 +35,37 @@ async def setup_development_team(client: AIClient) -> AgentTeam:
     planner = PlannerAgent(
         name="Tech Architect",
         client=client,
-        instructions="You are an expert technical architect focused on planning and system design.",
+        instructions=(
+            "You are an expert technical architect focused on planning and system design. "
+            "Analyze requirements and create detailed technical specifications."
+        ),
     )
 
     coder = CoderAgent(
         name="Senior Developer",
         client=client,
-        instructions="You are an expert Python developer focused on clean, efficient code.",
+        instructions=(
+            "You are an expert Python developer focused on clean, efficient code. "
+            "Implement solutions following best practices and patterns."
+        ),
     )
 
     executor = ExecutorAgent(
         name="Implementation Lead",
         client=client,
-        instructions="You are responsible for implementing solutions and coordinating development efforts.",
+        instructions=(
+            "You are responsible for implementing solutions and coordinating development efforts. "
+            "Focus on practical implementation and integration."
+        ),
     )
 
     critic = CriticAgent(
         name="Code Reviewer",
         client=client,
-        instructions="You are a thorough code reviewer focused on quality and best practices.",
+        instructions=(
+            "You are a thorough code reviewer focused on quality and best practices. "
+            "Analyze code for potential issues and improvements."
+        ),
     )
 
     # Configurar e retornar o time
@@ -60,10 +76,7 @@ async def setup_development_team(client: AIClient) -> AgentTeam:
         review_required=True,
     )
 
-    return AgentTeam(
-        agents=[planner, coder, executor, critic],
-        config=team_config,
-    )
+    return AgentTeam(agents=[planner, coder, executor, critic], config=team_config)
 
 
 async def demonstrate_code_development() -> None:
@@ -71,8 +84,22 @@ async def demonstrate_code_development() -> None:
     try:
         console.info("🤖 Initializing Development Team...")
 
-        client = await AIClient.create()
-        async with client:
+        # Criar configuração do AI com valores padrão para campos opcionais
+        ai_config = AIConfig(
+            name="ai",
+            version="1.0.0",
+            provider="openrouter",
+            api_key=os.getenv("OPENROUTER_API_KEY", ""),  # Valor padrão vazio
+            model="anthropic/claude-3-sonnet",
+            temperature=0.7,  # Valor padrão
+            max_tokens=1000,  # Valor padrão
+        )
+
+        # Criar cliente AI diretamente com a configuração
+        client = AIClient(config=ai_config)
+        await client.initialize()
+
+        try:
             team = await setup_development_team(client)
 
             # Definir tarefa de desenvolvimento
@@ -94,7 +121,7 @@ async def demonstrate_code_development() -> None:
                 console.success(
                     "Development completed",
                     title="🎉 Final Result",
-                    content=str(get_content(result.output)),
+                    content=get_content(result.output),
                 )
 
                 # Mostrar passos do desenvolvimento
@@ -112,6 +139,9 @@ async def demonstrate_code_development() -> None:
             else:
                 console.error("Development task failed")
 
+        finally:
+            await client.cleanup()
+
     except Exception as e:
         console.error("Error during development:", str(e))
 
@@ -121,8 +151,22 @@ async def demonstrate_code_review() -> None:
     try:
         console.info("🤖 Initializing Review Team...")
 
-        client = await AIClient.create()
-        async with client:
+        # Criar configuração do AI com valores padrão para campos opcionais
+        ai_config = AIConfig(
+            name="ai",
+            version="1.0.0",
+            provider="openrouter",
+            api_key=os.getenv("OPENROUTER_API_KEY", ""),  # Valor padrão vazio
+            model="anthropic/claude-3-sonnet",
+            temperature=0.7,  # Valor padrão
+            max_tokens=1000,  # Valor padrão
+        )
+
+        # Criar cliente AI diretamente com a configuração
+        client = AIClient(config=ai_config)
+        await client.initialize()
+
+        try:
             team = await setup_development_team(client)
 
             # Código para revisão
@@ -165,21 +209,18 @@ async def demonstrate_code_review() -> None:
                 console.success(
                     "Review completed",
                     title="🔍 Review Results",
-                    content=str(get_content(result.output)),
+                    content=get_content(result.output),
                 )
             else:
                 console.error("Code review failed")
+
+        finally:
+            await client.cleanup()
 
     except Exception as e:
         console.error("Error during code review:", str(e))
 
 
 if __name__ == "__main__":
-    try:
-        # Executar demonstrações
-        asyncio.run(demonstrate_code_development())
-        console.info("\n" + "=" * 50 + "\n")
-        asyncio.run(demonstrate_code_review())
-
-    except KeyboardInterrupt:
-        console.info("\n👋 AutoGen demonstration finished!")
+    asyncio.run(demonstrate_code_development())
+    asyncio.run(demonstrate_code_review())

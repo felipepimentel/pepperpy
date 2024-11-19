@@ -4,15 +4,16 @@ from collections.abc import AsyncIterator
 
 from pepperpy.core.module import BaseModule, ModuleMetadata
 
+from .config import BaseConfig
 from .exceptions import LLMError
-from .factory import ProviderConfig, ProviderFactory
+from .factory import ProviderFactory
 from .types import LLMResponse, Message
 
 
 class LLMClient(BaseModule):
     """Client for language model operations"""
 
-    def __init__(self, config: ProviderConfig | None = None) -> None:
+    def __init__(self, config: BaseConfig | None = None) -> None:
         """
         Initialize LLM client
 
@@ -21,7 +22,7 @@ class LLMClient(BaseModule):
 
         """
         super().__init__()
-        self._config: ProviderConfig | None = None
+        self._config: BaseConfig | None = None
         self._provider = None
 
         # Configurar o módulo
@@ -38,7 +39,7 @@ class LLMClient(BaseModule):
             self._config = config
 
     @property
-    def config(self) -> ProviderConfig | None:
+    def config(self) -> BaseConfig | None:
         """Get provider configuration"""
         return self._config
 

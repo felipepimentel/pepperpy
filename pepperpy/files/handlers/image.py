@@ -1,70 +1,118 @@
 """Image file handler implementation"""
 
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-from PIL import Image, ImageOps
-from PIL.Image import Resampling
+from PIL import Image, ImageFile
 
 from ..exceptions import FileError
-from ..types import FileContent, FileMetadata, ImageInfo
-from .base import BaseHandler
+from ..types import FileContent, FileType, ImageInfo, PathLike
+from .base import FileHandler
 
 
-class ImageHandler(BaseHandler):
+class ImageHandler(FileHandler[Image.Image]):
     """Handler for image files"""
 
-    async def read(self, path: Path) -> FileContent:
+    async def read(self, path: PathLike) -> FileContent[Image.Image]:
         """Read image file"""
         try:
-            metadata = await self._get_metadata(path)
-            with Image.open(path) as img:
-                # Extract image info and convert complex keys to strings
-                img_info = {str(k): v for k, v in img.info.items()}
+            file_path = self._to_path(path)
+            content = await self._read_content(file_path)
+            image = Image.open(BytesIO(content))
 
-                info = ImageInfo(
-                    width=img.width,
-                    height=img.height,
-                    mode=img.mode,
-                    format=img.format or "",
-                    channels=len(img.getbands()),
-                    bits=8,  # Default to 8 bits per channel
-                    dpi=img.info.get("dpi"),
-                    metadata=img_info,  # Now using the converted dictionary
-                )
+            # Extrair informações da imagem
+            info = ImageInfo(
+                width=image.width,
+                height=image.height,
+                format=image.format or "",
+                mode=image.mode,
+                channels=len(image.getbands()),
+                bits=getattr(image, "bits", 8),
+                dpi=image.info.get("dpi"),
+            )
 
-                enhanced_metadata = {
-                    **metadata.metadata,
-                    "info": info,
-                }
+            metadata = self._create_metadata(
+                path=file_path,
+                file_type=FileType.IMAGE,
+                mime_type=f"image/{image.format.lower()}" if image.format else "image/unknown",
+                format_str=image.format.lower() if image.format else "unknown",
+                metadata={
+                    "image_info": info,
+                    "original_info": dict(image.info),
+                },
+            )
 
-                return FileContent(content=img.copy(), metadata=enhanced_metadata, format="image")
+            return FileContent(content=image, metadata=metadata)
+
         except Exception as e:
             raise FileError(f"Failed to read image file: {e!s}", cause=e)
 
     async def write(
         self,
-        path: Path,
         content: Image.Image,
+        path: PathLike,
         metadata: dict[str, Any] | None = None,
-    ) -> FileMetadata:
+    ) -> Path:
         """Write image file"""
         try:
-            content.save(path)
-            return await self._get_metadata(path)
+            file_path = self._to_path(path)
+
+            # Configurar opções de salvamento
+            save_kwargs = {}
+            if metadata:
+                save_kwargs.update(metadata)
+
+            # Salvar imagem
+            content.save(file_path, **save_kwargs)
+            return file_path
+
         except Exception as e:
             raise FileError(f"Failed to write image file: {e!s}", cause=e)
 
-    def resize(
-        self, image: Image.Image, size: tuple[int, int], keep_aspect: bool = True,
-    ) -> Image.Image:
-        """Resize image"""
-        if keep_aspect:
-            return ImageOps.contain(image, size, Resampling.LANCZOS)
-        return image.resize(size, Resampling.LANCZOS)
+    async def _read_content(self, path: Path) -> bytes:
+        """Read image content"""
+        return path.read_bytes()
 
-    def create_thumbnail(self, image: Image.Image, size: tuple[int, int]) -> Image.Image:
-        """Create image thumbnail"""
-        thumb = image.copy()
-        thumb.thumbnail(size, Resampling.LANCZOS)
-        return thumb
+    async def _write_text(self, content: str, path: Path) -> None:
+        """Write text content"""
+        path.write_text(content)
+
+    async def _write_bytes(self, content: bytes, path: Path) -> None:
+        """Write binary content"""
+        path.write_bytes(content)
+
+    def optimize(
+        self,
+        image: Image.Image,
+        quality: int = 85,
+        max_size: tuple[int, int] | None = None,
+    ) -> Image.Image:
+        """
+        Optimize image
+
+        Args:
+            image: Image to optimize
+            quality: JPEG quality (1-100)
+            max_size: Maximum (width, height)
+
+        Returns:
+            Image.Image: Optimized image
+        """
+        try:
+            # Criar cópia para não modificar original
+            img = image.copy()
+
+            # Redimensionar se necessário
+            if max_size:
+                img.thumbnail(max_size)
+
+            # Otimizar
+            ImageFile.MAXBLOCK = img.size[0] * img.size[1]
+            opt_buffer = BytesIO()
+            img.save(opt_buffer, format=img.format, quality=quality, optimize=True)
+            opt_buffer.seek(0)
+            return Image.open(opt_buffer)
+
+        except Exception as e:
+            raise FileError(f"Failed to optimize image: {e!s}", cause=e)

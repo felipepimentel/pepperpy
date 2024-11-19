@@ -5,78 +5,59 @@ from typing import Any
 
 import tomli
 import tomli_w
-from jsonschema import ValidationError, validate
 
 from ..exceptions import FileError
-from ..types import FileContent, FileMetadata
-from .base import BaseHandler
+from ..types import FileContent, FileType, PathLike
+from .base import FileHandler
 
 
-class ConfigFileHandler(BaseHandler):
+class ConfigHandler(FileHandler[dict[str, Any]]):
     """Handler for configuration files"""
 
-    def __init__(self):
-        super().__init__()
-        self._schema: dict[str, Any] | None = None
-
-    async def read(self, path: Path) -> FileContent:
+    async def read(self, path: PathLike) -> FileContent[dict[str, Any]]:
         """Read configuration file"""
         try:
-            metadata = await self._get_metadata(path)
-            content = await self._read_file(path)
+            file_path = self._to_path(path)
+            content = await self._read_content(file_path)
 
-            # Parse config based on extension
-            if path.suffix == ".toml":
-                data = tomli.loads(content)
-            else:
-                raise FileError(f"Unsupported config format: {path.suffix}")
+            metadata = self._create_metadata(
+                path=file_path,
+                file_type=FileType.CONFIG,
+                mime_type="application/toml",
+                format_str="toml",
+            )
 
-            # Validate against schema if available
-            if self._schema is not None:
-                try:
-                    validate(instance=data, schema=self._schema)
-                except ValidationError as e:
-                    raise FileError(f"Config validation failed: {e!s}")
+            return FileContent(content=tomli.loads(content), metadata=metadata)
 
-            return FileContent(content=data, metadata=metadata.metadata, format="config")
         except Exception as e:
             raise FileError(f"Failed to read config file: {e!s}", cause=e)
 
     async def write(
         self,
-        path: Path,
         content: dict[str, Any],
+        path: PathLike,
         metadata: dict[str, Any] | None = None,
-    ) -> FileMetadata:
+    ) -> Path:
         """Write configuration file"""
         try:
-            # Validate against schema if available
-            if self._schema is not None:
-                try:
-                    validate(instance=content, schema=self._schema)
-                except ValidationError as e:
-                    raise FileError(f"Config validation failed: {e!s}")
+            file_path = self._to_path(path)
 
-            # Convert to string based on format
-            if path.suffix == ".toml":
-                config_content = tomli_w.dumps(content)
-            else:
-                raise FileError(f"Unsupported config format: {path.suffix}")
+            # Convert to string
+            if file_path.suffix == ".toml":
+                data = tomli_w.dumps(content)
+            else:  # YAML
+                data = tomli_w.dumps(content)
 
-            return await self._write_file(path, config_content)
+            await self._write_text(data, file_path)
+            return file_path
+
         except Exception as e:
             raise FileError(f"Failed to write config file: {e!s}", cause=e)
 
-    def set_schema(self, schema: dict[str, Any]) -> None:
-        """
-        Set JSON schema for validation
+    async def _read_content(self, path: Path) -> str:
+        """Read configuration content"""
+        return path.read_text()
 
-        Args:
-            schema: JSON schema
-
-        """
-        self._schema = schema
-
-    def clear_schema(self) -> None:
-        """Clear JSON schema"""
-        self._schema = None
+    async def _write_text(self, content: str, path: Path) -> None:
+        """Write text content"""
+        path.write_text(content)

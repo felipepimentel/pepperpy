@@ -3,54 +3,57 @@
 from pathlib import Path
 from typing import Any
 
-from lxml import etree
+from bs4 import BeautifulSoup
 
 from ..exceptions import FileError
-from ..types import FileContent, FileMetadata
-from .base import BaseHandler
+from ..types import FileContent, FileType, PathLike
+from .base import FileHandler
 
 
-class MarkupHandler(BaseHandler):
-    """Handler for markup files (XML, HTML)"""
+class MarkupHandler(FileHandler[str]):
+    """Handler for markup files (HTML/XML)"""
 
-    async def read(self, path: Path) -> FileContent:
+    async def read(self, path: PathLike) -> FileContent:
         """Read markup file"""
         try:
-            metadata = await self._get_metadata(path)
+            file_path = self._to_path(path)
+            content = await self._read_content(file_path)
+            if isinstance(content, bytes):
+                content = content.decode()
 
-            # Ler o arquivo como bytes
-            with open(path, "rb") as f:
-                content = f.read()
-
-            # Parse XML/HTML
-            parser = etree.XMLParser(recover=True)
-            tree = etree.fromstring(content, parser=parser)
-            root = tree.getroottree()
-
-            return FileContent(
-                content=root,
-                metadata=metadata.metadata,
-                format=path.suffix.lstrip(".").lower(),
+            metadata = self._create_metadata(
+                path=file_path,
+                file_type=FileType.MARKUP,
+                mime_type="text/html" if file_path.suffix == ".html" else "text/xml",
+                format_str="html" if file_path.suffix == ".html" else "xml",
             )
+
+            return FileContent(content=content, metadata=metadata)
         except Exception as e:
             raise FileError(f"Failed to read markup file: {e!s}", cause=e)
 
     async def write(
-        self, path: Path, content: Any, metadata: dict[str, Any] | None = None
-    ) -> FileMetadata:
+        self,
+        content: str,
+        path: PathLike,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
         """Write markup file"""
         try:
-            if isinstance(content, etree._Element):
-                tree = content.getroottree()
-                tree.write(
-                    str(path),
-                    encoding="utf-8",
-                    xml_declaration=True,
-                    pretty_print=True,
-                )
-            else:
-                raise ValueError("Content must be an lxml Element")
-
-            return await self._get_metadata(path)
+            file_path = self._to_path(path)
+            await self._write_text(content, file_path)
+            return file_path
         except Exception as e:
             raise FileError(f"Failed to write markup file: {e!s}", cause=e)
+
+    async def _read_content(self, path: Path) -> str:
+        """Read markup content"""
+        return path.read_text()
+
+    async def _write_text(self, content: str, path: Path) -> None:
+        """Write text content"""
+        path.write_text(content)
+
+    def parse(self, content: str) -> BeautifulSoup:
+        """Parse markup content"""
+        return BeautifulSoup(content, "html.parser")
