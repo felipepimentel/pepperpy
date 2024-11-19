@@ -1,5 +1,5 @@
 #!/usr/bin/env python  # noqa: EXE001
-"""Verificador de Lint para o projeto PepperPy."""
+"""Lint checker for the PepperPy project."""
 
 import shutil
 import subprocess
@@ -10,18 +10,18 @@ ROOT_DIR = Path(__file__).parent.parent
 
 
 def is_tool_available(tool: str) -> bool:
-    """Verifica se uma ferramenta está disponível no PATH do sistema."""
+    """Check if a tool is available in the system PATH."""
     return shutil.which(tool) is not None
 
 
 def run_command(cmd: list[str]) -> bool:
-    """Executa um comando e exibe a saída detalhada para arquivos problemáticos.
+    """Execute a command and display detailed output for problematic files.
 
     Args:
-        cmd (list[str]): Comando a ser executado.
+        cmd (list[str]): Command to be executed.
 
     Returns:
-        bool: True se o comando for bem-sucedido, False caso contrário.
+        bool: True if command succeeds, False otherwise.
     """
     print(f"\nExecutando: {' '.join(cmd)}")
     try:
@@ -34,18 +34,18 @@ def run_command(cmd: list[str]) -> bool:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        print(f"{cmd[0]} concluído com sucesso!")
+        print(f"{cmd[0]} completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
-        # Imprime a saída detalhada do linter
-        print(f"{cmd[0]} encontrou problemas. Detalhes abaixo:\n")
+        # Print detailed output from the linter
+        print(f"{cmd[0]} encountered issues. Details below:\n")
         print(e.stdout or e.stderr)
 
-        # Coleta e imprime um resumo dos arquivos problemáticos
+        # Collect and print a summary of problematic files
         problematic_files = set()
         output = e.stdout.strip().splitlines() + e.stderr.strip().splitlines()
         for line in output:
-            # Trata a saída do Ruff
+            # Handle Ruff output
             if ":" in line:
                 parts = line.split(":")
                 filename = parts[0].strip()
@@ -53,7 +53,7 @@ def run_command(cmd: list[str]) -> bool:
                     problematic_files.add(filename)
 
         if problematic_files:
-            print("\nResumo dos arquivos problemáticos:")
+            print("\nSummary of problematic files:")
             for filename in sorted(problematic_files):
                 print(f"- {filename}")
 
@@ -61,10 +61,10 @@ def run_command(cmd: list[str]) -> bool:
 
 
 def run_linters() -> bool:
-    """Executa todos os linters com modo de correção automática.
+    """Run all linters with auto-fix mode.
 
     Returns:
-        bool: True se todos os linters forem bem-sucedidos, False caso contrário.
+        bool: True if all linters are successful, False otherwise.
     """
     print("Executando linters...")
 
@@ -83,6 +83,7 @@ def run_linters() -> bool:
     ]
 
     success = True
+
     for cmd in linters:
         if not run_command(cmd):
             success = False

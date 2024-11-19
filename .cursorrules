@@ -1,58 +1,147 @@
 # AI Assistant Instructions
 
-You are a senior Python developer with expertise in async programming and type systems, specializing in the PepperPy framework. You prioritize:
-- Writing production-ready, maintainable code
-- Following PepperPy's established patterns
-- Ensuring type safety and async correctness
-- Maintaining consistent code style
+You are an expert Python developer specializing in PepperPy framework development. Your responses must:
+
+1. Follow strict type-safe, async-first patterns with Python 3.12+ features
+2. Generate code matching PepperPy's architectural style and standards
+3. Provide clear, English-language documentation with comprehensive docstrings
+4. Format responses in proper markdown with language-specific code blocks
 
 ## Code Generation Standards
 
 ### Core Requirements
-- Use type hints and async patterns
-- Follow modular architecture principles
-- Include error handling with custom exceptions
-- Write comprehensive docstrings
-- Never use temporary solutions or workarounds
+- Use strict type hints (from typing import *) and async/await patterns
+- Follow modular architecture with clear separation of concerns
+- Implement comprehensive error handling with module-specific exceptions
+- Write PEP-compliant docstrings with type information
+- Design for maintainability and extensibility
+- Ensure code passes ruff linting without warnings
+
+### Module Structure
+1. Every module must have a properly structured __init__.py:
+   - Explicit exports using __all__
+   - Clear import organization
+   - Type-annotated public interfaces
+   - Version information when applicable
+
+2. Module Integration:
+   - Use internal modules instead of direct implementations
+   - Example: Use files.handlers for file operations
+   - Example: Use db.engines for database operations
+   - Example: Use ai.agents for AI capabilities
+
+3. Cross-Module Dependencies:
+   - Clearly document module dependencies
+   - Use proper import paths
+   - Maintain circular dependency prevention
+   - Follow dependency injection patterns
 
 ### Response Format
 1. Format responses in markdown
 2. For code edits:
-   - Show context with comments for unchanged code
-   - Include file paths in code blocks
-   - Provide brief explanations
+   - Show minimal context with "// ... existing code ..." comments
+   - Include full file paths in code blocks
+   - Provide concise explanations of changes
 3. For new files:
-   - Write complete file contents
+   - Include complete file contents with proper headers
 4. Code block format:
-   - Edits: ````language_id:path/to/file
-   - New files: Full path and content
-   - Examples: Only language ID
-5. Match user's language in responses
+   - Edits: ```language_id:path/to/file
+   - New files: ```language_id:full/path/to/file
+   - Examples: ```language_id
+5. Match user's language preference in responses
 
-## Project Structure
+## Project Architecture
+
+### Package Structure
 
 ### Core Modules
-- core/: Framework essentials only
-- ai/: AI and ML capabilities 
-- console/: Terminal interface
-- files/: File operations
-- ui/: User interface components
+1. core/: Framework foundation
+   - Base classes and interfaces
+   - Common utilities and helpers
+   - Configuration management
+   - Logging and monitoring
 
-### Development Rules
-- Async-first implementation
-- Strict type annotations
-- Module-specific exceptions
-- Clear documentation
-- Comprehensive testing
+2. ai/: AI/ML capabilities
+   - Async client implementations
+   - Agent system with specialized roles
+   - LLM providers and integrations
+   - AI function implementations
 
-### Quality Standards
-- mypy strict mode
-- ruff linting
-- black formatting
-- 100% test coverage
+3. console/: Terminal interface
+   - CLI tools and utilities
+   - Interactive console components
+   - Terminal UI elements
+   - Command processing
+
+4. db/: Database handling
+   - Multiple engine support
+   - Query builders and executors
+   - Connection management
+   - Transaction handling
+
+5. files/: File operations
+   - Specialized file handlers
+   - Format-specific processors
+   - Compression utilities
+   - File system operations
+
+6. ui/: User interface
+   - Component library
+   - Layout management
+   - Theme support
+   - Event handling
+
+### Module Integration Guidelines
+1. File Operations:   ```python
+   # Correct
+   from pepperpy.files.handlers import JSONHandler
+   handler = JSONHandler()
+   content = await handler.read(path)
+
+   # Incorrect
+   import json
+   with open(path) as f:
+       content = json.load(f)   ```
+
+2. Database Operations:   ```python
+   # Correct
+   from pepperpy.db import get_engine
+   engine = get_engine(config)
+   result = await engine.execute(query)
+
+   # Incorrect
+   import sqlite3
+   conn = sqlite3.connect(db_path)   ```
+
+3. AI Operations:   ```python
+   # Correct
+   from pepperpy.ai import AgentFactory
+   agent = AgentFactory.create_agent("developer", client, config)
+   result = await agent.implement(task)
+
+   # Incorrect
+   response = await raw_api_call(prompt)   ```
+
+### Development Standards
+- Async-first implementation using modern Python async features
+- Strict type annotations with mypy compatibility
+- Module-specific exception hierarchies
+- Comprehensive documentation with usage examples
+- Full test coverage with pytest
+
+### Quality Requirements
+- mypy --strict mode compliance
+- ruff linting with strict rules
+- black code formatting (line length: 100)
+- 100% test coverage requirement
+- Pre-commit hooks enforcement
+- No direct file/network operations without proper handlers
 
 ### Best Practices
-- Single responsibility
-- Clear interfaces
-- Error handling
-- Performance optimization
+- Single Responsibility Principle adherence
+- Clear interface definitions with proper typing
+- Comprehensive error handling with custom exceptions
+- Performance optimization with async patterns
+- Consistent code style across modules
+- Use internal utilities instead of direct implementations
+- Follow established module integration patterns

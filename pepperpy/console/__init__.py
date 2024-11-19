@@ -7,10 +7,16 @@ from rich.markup import escape
 from rich.panel import Panel
 from rich.text import Text
 
+from .base import Console, ConsoleApp, ConsoleConfig
 
-class Console:
-    """Console wrapper for Rich console"""
+__all__ = [
+    "Console",
+    "ConsoleApp", 
+    "ConsoleConfig"
+]
 
+class LegacyConsole:
+    """Legacy console wrapper for backward compatibility"""
     def __init__(self):
         self._console = RichConsole()
 

@@ -1,65 +1,82 @@
 """AI function implementations"""
 
-from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Sequence
-
-from pepperpy.core.module import BaseModule, ModuleMetadata
+from typing import Any, AsyncGenerator
 
 from .client import AIClient
 from .exceptions import AIError
-from .types import AIConfig, AIResponse
+from .types import AIResponse
 
 
-def create_default_client() -> AIClient:
-    """Create default AI client"""
-    config = AIConfig(model="default")
-    return AIClient(config=config)
-
-
-@dataclass
-class AIFunction(BaseModule):
+class AIFunction:
     """Base AI function implementation"""
 
-    metadata: ModuleMetadata = field(init=False)
-    client: AIClient = field(default_factory=create_default_client)
+    def __init__(self, client: AIClient) -> None:
+        self.client = client
 
-    def __post_init__(self) -> None:
-        """Post initialization"""
-        self.metadata = ModuleMetadata(
-            name=self.__class__.__name__,
-            version="1.0.0",
-            description="AI function implementation",
-        )
-
-    async def execute(self, *args: Any, **kwargs: Any) -> Any:
+    async def execute(self, *args: Any, **kwargs: Any) -> AIResponse:
         """Execute function"""
         raise NotImplementedError
 
 
-@dataclass
 class TextCompletion(AIFunction):
     """Text completion function"""
 
-    async def execute(self, prompt: str | Sequence[str]) -> AIResponse:
-        """Execute completion"""
+    async def execute(self, prompt: str, **kwargs: Any) -> AIResponse:
+        """Execute text completion"""
         try:
-            # Convert sequence to single string if needed
-            prompt_str = "\n".join(str(p) for p in prompt) if isinstance(prompt, (list, tuple)) else str(prompt)
-            return await self.client.complete(prompt_str)
+            return await self.client.complete(prompt)
         except Exception as e:
-            raise AIError(f"Completion failed: {e}", cause=e)
+            raise AIError(f"Text completion failed: {e}", cause=e)
 
 
-@dataclass
 class TextGeneration(AIFunction):
-    """Text generation function"""
+    """Text generation function with streaming support"""
 
-    async def execute(self, prompt: str | Sequence[str]) -> AsyncIterator[AIResponse]:
-        """Execute generation"""
+    async def execute(self, prompt: str, **kwargs: Any) -> AIResponse:
+        """Execute text generation"""
         try:
-            # Convert sequence to single string if needed
-            prompt_str = "\n".join(str(p) for p in prompt) if isinstance(prompt, (list, tuple)) else str(prompt)
-            async for response in self.client.stream(prompt_str):
-                yield response
+            return await self.client.complete(prompt)
         except Exception as e:
-            raise AIError(f"Generation failed: {e}", cause=e)
+            raise AIError(f"Text generation failed: {e}", cause=e)
+
+    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[str, None]:
+        """Stream text generation results"""
+        try:
+            async for chunk in self.client.stream(prompt):
+                yield chunk
+        except Exception as e:
+            raise AIError(f"Text generation stream failed: {e}", cause=e)
+
+
+class TextEmbedding(AIFunction):
+    """Text embedding function"""
+
+    async def execute(self, text: str, **kwargs: Any) -> list[float]:
+        """Get text embedding"""
+        try:
+            return await self.client.get_embedding(text)
+        except Exception as e:
+            raise AIError(f"Text embedding failed: {e}", cause=e)
+
+
+class VectorSearch(AIFunction):
+    """Vector similarity search function"""
+
+    async def execute(
+        self, 
+        collection: str,
+        text: str,
+        limit: int = 10,
+        threshold: float = 0.8,
+        **kwargs: Any
+    ) -> list[dict[str, Any]]:
+        """Search for similar vectors"""
+        try:
+            return await self.client.find_similar(
+                collection=collection,
+                text=text,
+                limit=limit,
+                threshold=threshold
+            )
+        except Exception as e:
+            raise AIError(f"Vector search failed: {e}", cause=e)
