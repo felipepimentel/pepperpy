@@ -1,27 +1,27 @@
 docs/
-├── README.md                      # Visão geral da documentação
+├── README.md                      # Documentation overview
 ├── specification/
-│   ├── architecture.md           # Especificação da arquitetura
-│   ├── design_principles.md      # Princípios de design
-│   └── project_structure.md      # Estrutura detalhada do projeto
+│   ├── architecture.md           # Architecture specification
+│   ├── design_principles.md      # Design principles
+│   └── project_structure.md      # Detailed project structure
 ├── core/
-│   ├── overview.md              # Visão geral do core
-│   ├── registry.md             # Sistema de registro
-│   ├── config.md              # Sistema de configuração
-│   └── utils.md               # Utilitários compartilhados
+│   ├── overview.md              # Core overview
+│   ├── registry.md             # Registry system
+│   ├── config.md              # Configuration system
+│   └── utils.md               # Shared utilities
 ├── modules/
 │   ├── ui/
-│   │   ├── overview.md        # Visão geral do módulo UI
-│   │   ├── components.md      # Documentação dos componentes
-│   │   └── theming.md        # Sistema de temas
+│   │   ├── overview.md        # UI module overview
+│   │   ├── components.md      # Components documentation
+│   │   └── theming.md        # Theming system
 │   ├── console/
-│   │   ├── overview.md       # Visão geral do console
-│   │   ├── rich.md          # Integração com Rich
-│   │   └── components.md    # Componentes do console
+│   │   ├── overview.md       # Console overview
+│   │   ├── rich.md          # Rich integration
+│   │   └── components.md    # Console components
 │   └── ai/
-│       ├── overview.md      # Visão geral do módulo AI
-│       └── agents.md       # Documentação dos agentes
+│       ├── overview.md      # AI module overview
+│       └── agents.md       # Agents documentation
 └── guides/
-    ├── getting_started.md   # Guia inicial
-    ├── best_practices.md    # Melhores práticas
-    └── contributing.md      # Guia de contribuição 
+    ├── getting_started.md   # Getting started guide
+    ├── best_practices.md    # Best practices
+    └── contributing.md      # Contributing guide

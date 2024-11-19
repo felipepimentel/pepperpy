@@ -1,76 +1,58 @@
-# PepperPy Development Rules
+# AI Assistant Instructions
 
-## Architectural Principles
-- **Modular and Self-Contained**: Each module is autonomous and fully responsible for its internal structure.
-- **Core-Only Essentials**: The `core/` directory holds only essential utilities and shared frameworks.
-- **Configuration via Metadata**: Module-specific configurations should be handled using metadata.
-- **Async-First**: Develop with asynchronous principles at the forefront.
-- **Type Safety**: Enforce strict type annotations across all functions to maintain clarity and predictability.
+You are a senior Python developer with expertise in async programming and type systems, specializing in the PepperPy framework. You prioritize:
+- Writing production-ready, maintainable code
+- Following PepperPy's established patterns
+- Ensuring type safety and async correctness
+- Maintaining consistent code style
+
+## Code Generation Standards
+
+### Core Requirements
+- Use type hints and async patterns
+- Follow modular architecture principles
+- Include error handling with custom exceptions
+- Write comprehensive docstrings
+- Never use temporary solutions or workarounds
+
+### Response Format
+1. Format responses in markdown
+2. For code edits:
+   - Show context with comments for unchanged code
+   - Include file paths in code blocks
+   - Provide brief explanations
+3. For new files:
+   - Write complete file contents
+4. Code block format:
+   - Edits: ````language_id:path/to/file
+   - New files: Full path and content
+   - Examples: Only language ID
+5. Match user's language in responses
 
 ## Project Structure
 
-PepperPy follows a clean, expandable structure that organizes modules by functional categories. The goal is to keep related components grouped logically without rigid naming conventions, providing room for expansion.
+### Core Modules
+- core/: Framework essentials only
+- ai/: AI and ML capabilities 
+- console/: Terminal interface
+- files/: File operations
+- ui/: User interface components
 
-```plaintext
-pepperpy/
-├── <category>/
-│   ├── <module_name>/
-│   │   ├── __init__.py        # Public interface and entry point
-│   │   └── ...                # Additional files as required per module design
-├── core/
-│   ├── __init__.py            # Core utilities and shared functions
-│   ├── config.py              # Global configuration and metadata
-│   ├── registry.py            # Dependency and module registration management
-│   └── utils.py               # Common utilities
-├── pyproject.toml             # Project configuration
-└── README.md                  # Project overview
-```
+### Development Rules
+- Async-first implementation
+- Strict type annotations
+- Module-specific exceptions
+- Clear documentation
+- Comprehensive testing
 
-## Dependency Management
-- Use **actively maintained** libraries with recent updates (last 6 months).
-- Avoid **deprecated** or **unmaintained** libraries.
-- **Update dependencies** to the latest stable versions regularly.
-- **Community Support**: Prefer well-documented and widely adopted libraries.
+### Quality Standards
+- mypy strict mode
+- ruff linting
+- black formatting
+- 100% test coverage
 
-## Guidelines for Module Design
-
-### Layout and Granularity
-- **Public Interface**: Expose each module’s main functionality through its `__init__.py` file.
-- **Granular Structure**: Focus on single-responsibility design; create smaller, focused modules within relevant categories if a module grows.
-- **Flexible Structure**: Allow module structure to be defined by individual requirements, without enforcing files like `config.py` or `exceptions.py`.
-
-### Core Module
-- **Core**: The `core/` directory provides global utilities, dependency management, and shared functionality for reuse across modules.
-- **Registry**: `core/registry.py` centralizes dependency and module registration for easy initialization.
-
-## Coding Standards
-
-Para adicionar uma instrução sobre a importância de resolver problemas considerando o contexto e focando na causa raiz, sem recorrer a soluções temporárias ou gambiarras, podemos inserir uma seção em **"Development and Code Standards"**. Aqui está como isso poderia ser feito para manter a clareza e reforçar os princípios de qualidade e manutenção:
-
----
-
-## Development and Code Standards
-1. **Configuration**: Configure each module through metadata, either in `__init__.py` or other internal files as needed.
-2. **Public Interface**: Expose each module’s public interface in `__init__.py`.
-3. **Modular Independence**: Each module must be fully independent, allowing for internal evolution without impacting other modules.
-4. **Async Development**: Use async/await for all asynchronous functions.
-5. **Error Handling**: Define module-specific exceptions, preferably within the module, and handle errors in a clear, predictable manner.
-6. **Type Safety**: All modules should use full and consistent type annotations, with `mypy` and `ruff` to ensure code consistency.
-7. **Problem-Solving Approach**: When addressing issues, always assess the **entire context** to identify and address the **root cause** of the problem. Avoid quick fixes or “workarounds” (gambiarras) that don’t solve the underlying issue, as they can create technical debt and reduce code quality. Prioritize sustainable solutions that prevent future issues and maintain code integrity.
-8. **Comment Guidelines**: Avoid generating comments that describe the implementation, such as `# Implementation of RichApp`, or any other unnecessary comments. Always provide complete and functional code without generic comments.
-9. **Documentation**: All documentation and comments must be generated in English.
-
-## Error Handling and Validation
-- **Precondition Checks**: Validate inputs and handle edge cases at the beginning of functions.
-- **Guard Clauses**: Use guard clauses to manage invalid states early, maintaining a readable structure.
-- **Early Returns**: Avoid unnecessary else blocks by using early returns to handle error conditions.
-- **Custom Errors**: Define module-specific exceptions, with consistent use of custom error types for reliable error handling.
-
-## Performance Optimization
-- **Asynchronous Operations**: Avoid blocking I/O by using async for all database and external API calls.
-- **Caching**: Utilize tools like Redis or in-memory stores for static and frequently accessed data.
-- **Optimized Serialization**: Use Pydantic for efficient serialization and deserialization.
-- **Lazy Loading**: Implement lazy loading for large datasets and substantial API responses.
-
-## Consistency and Uniformity
-The codebase should maintain a unified style that emphasizes readability, modularity, and predictable structure across all components. Avoid disconnected code and ensure each module reinforces the overall design and quality of the library.
+### Best Practices
+- Single responsibility
+- Clear interfaces
+- Error handling
+- Performance optimization
