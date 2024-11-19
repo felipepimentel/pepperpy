@@ -2,25 +2,24 @@
 
 from typing import Any, AsyncGenerator
 
+from pepperpy.db.vector import VectorEngine
+
 from .config import AIConfig
 from .exceptions import AIError
 from .types import AIResponse
-from .vector import VectorConfig, VectorManager
 
 
 class AIClient:
     """AI operations client"""
 
-    def __init__(self, config: AIConfig, vector_config: VectorConfig | None = None) -> None:
+    def __init__(self, config: AIConfig, vector_engine: VectorEngine | None = None) -> None:
         self.config = config
-        self._vector_manager = None
-        if vector_config:
-            self._vector_manager = VectorManager(vector_config, self)
+        self._vector_engine = vector_engine
 
     async def initialize(self) -> None:
         """Initialize AI client"""
-        if self._vector_manager:
-            await self._vector_manager.initialize()
+        if self._vector_engine:
+            await self._vector_engine.initialize()
 
     async def complete(self, prompt: str) -> AIResponse:
         """Complete text using AI model"""
@@ -51,12 +50,12 @@ class AIClient:
         self, collection: str, text: str, metadata: dict[str, Any] | None = None
     ) -> int:
         """Store text embedding"""
-        if not self._vector_manager:
-            raise AIError("Vector manager not configured")
+        if not self._vector_engine:
+            raise AIError("Vector engine not configured")
 
         try:
             embedding = await self.get_embedding(text)
-            [vector_id] = await self._vector_manager.store_vectors(
+            [vector_id] = await self._vector_engine.store_vectors(
                 collection, [embedding], [metadata] if metadata else None
             )
             return vector_id
@@ -67,12 +66,12 @@ class AIClient:
         self, collection: str, text: str, limit: int = 10, threshold: float = 0.8
     ) -> list[dict[str, Any]]:
         """Find similar texts by embedding"""
-        if not self._vector_manager:
-            raise AIError("Vector manager not configured")
+        if not self._vector_engine:
+            raise AIError("Vector engine not configured")
 
         try:
             query_embedding = await self.get_embedding(text)
-            results = await self._vector_manager.search_similar(
+            results = await self._vector_engine.search_similar(
                 collection, query_embedding, limit=limit, threshold=threshold
             )
             return [

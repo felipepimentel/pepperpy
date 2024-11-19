@@ -1,17 +1,15 @@
-"""Vector operations module"""
+"""Vector database operations"""
 
-from .client import VectorClient
 from .config import VectorConfig
+from .engine import VectorEngine
 from .exceptions import VectorError
-from .manager import VectorManager
 from .types import VectorEntry, VectorQuery, VectorResult
 
 __all__ = [
-    "VectorClient",
-    "VectorConfig", 
+    "VectorConfig",
+    "VectorEngine",
     "VectorError",
-    "VectorManager",
     "VectorEntry",
     "VectorQuery",
-    "VectorResult"
+    "VectorResult",
 ] 

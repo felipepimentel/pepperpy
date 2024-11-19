@@ -1,9 +1,18 @@
-"""Vector type definitions"""
+"""Vector database types"""
 
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Sequence, TypedDict
 
 from pepperpy.core.types import JsonDict
+
+
+class VectorRow(TypedDict):
+    """Database row type for vector queries"""
+
+    id: int
+    vector: list[float]
+    similarity: float
+    metadata: JsonDict
 
 
 @dataclass

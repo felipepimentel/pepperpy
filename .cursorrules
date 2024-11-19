@@ -36,6 +36,33 @@ You are an expert Python developer specializing in PepperPy framework developmen
    - Maintain circular dependency prevention
    - Follow dependency injection patterns
 
+### Module Composition Rules
+1. Core Module Responsibilities:
+   - core/: Framework foundation and shared utilities
+   - db/: All database operations (including vectors)
+   - ai/: AI/ML operations (using db when needed)
+   - files/: File system operations
+   - console/: Terminal interface
+   - ui/: User interface components
+
+2. Module Independence:
+   - Each module must be independently usable
+   - Optional dependencies must be clearly documented
+   - Provide fallback behaviors when dependencies are missing
+   - Use dependency injection for cross-module features
+
+3. Feature Distribution:
+   - Database operations belong in db/ module
+   - Caching implementations belong in core/cache/
+   - Vector operations belong in db/vector/
+   - AI operations must use db/vector/ for vector features
+
+4. Extension Points:
+   - Define clear interfaces for extensibility
+   - Use Protocol classes for interface definitions
+   - Provide base classes for common patterns
+   - Document extension mechanisms
+
 ### Response Format
 1. Format responses in markdown
 2. For code edits:
@@ -49,85 +76,6 @@ You are an expert Python developer specializing in PepperPy framework developmen
    - New files: ```language_id:full/path/to/file
    - Examples: ```language_id
 5. Match user's language preference in responses
-
-## Project Architecture
-
-### Package Structure
-
-### Core Modules
-1. core/: Framework foundation
-   - Base classes and interfaces
-   - Common utilities and helpers
-   - Configuration management
-   - Logging and monitoring
-
-2. ai/: AI/ML capabilities
-   - Async client implementations
-   - Agent system with specialized roles
-   - LLM providers and integrations
-   - AI function implementations
-
-3. console/: Terminal interface
-   - CLI tools and utilities
-   - Interactive console components
-   - Terminal UI elements
-   - Command processing
-
-4. db/: Database handling
-   - Multiple engine support
-   - Query builders and executors
-   - Connection management
-   - Transaction handling
-
-5. files/: File operations
-   - Specialized file handlers
-   - Format-specific processors
-   - Compression utilities
-   - File system operations
-
-6. ui/: User interface
-   - Component library
-   - Layout management
-   - Theme support
-   - Event handling
-
-### Module Integration Guidelines
-1. File Operations:   ```python
-   # Correct
-   from pepperpy.files.handlers import JSONHandler
-   handler = JSONHandler()
-   content = await handler.read(path)
-
-   # Incorrect
-   import json
-   with open(path) as f:
-       content = json.load(f)   ```
-
-2. Database Operations:   ```python
-   # Correct
-   from pepperpy.db import get_engine
-   engine = get_engine(config)
-   result = await engine.execute(query)
-
-   # Incorrect
-   import sqlite3
-   conn = sqlite3.connect(db_path)   ```
-
-3. AI Operations:   ```python
-   # Correct
-   from pepperpy.ai import AgentFactory
-   agent = AgentFactory.create_agent("developer", client, config)
-   result = await agent.implement(task)
-
-   # Incorrect
-   response = await raw_api_call(prompt)   ```
-
-### Development Standards
-- Async-first implementation using modern Python async features
-- Strict type annotations with mypy compatibility
-- Module-specific exception hierarchies
-- Comprehensive documentation with usage examples
-- Full test coverage with pytest
 
 ### Quality Requirements
 - mypy --strict mode compliance
@@ -145,3 +93,41 @@ You are an expert Python developer specializing in PepperPy framework developmen
 - Consistent code style across modules
 - Use internal utilities instead of direct implementations
 - Follow established module integration patterns
+
+### Type Safety
+1. Generic Type Usage:
+   - Use TypeVar for generic type parameters
+   - Properly constrain generic types
+   - Use Protocol for interface definitions
+   - Implement proper type casting when needed
+
+2. Database Operations:
+   - Define strict types for query results
+   - Use TypedDict for row types
+   - Properly type vector operations
+   - Handle JSON/JSONB type conversions
+
+3. Vector Operations:
+   - Define proper numpy type hints
+   - Use appropriate vector type definitions
+   - Handle vector dimension validation
+   - Properly type similarity search results
+
+4. Cache Operations:
+   - Define generic cache types
+   - Properly type cache keys and values
+   - Handle TTL and expiration types
+   - Type metadata appropriately
+
+### Error Handling
+1. Exception Hierarchy:
+   - Module-specific base exceptions
+   - Detailed error types
+   - Proper error propagation
+   - Comprehensive error messages
+
+2. Recovery Mechanisms:
+   - Graceful degradation
+   - Fallback behaviors
+   - Resource cleanup
+   - State recovery
