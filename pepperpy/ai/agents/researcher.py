@@ -1,45 +1,56 @@
 """Researcher agent implementation"""
 
-from dataclasses import dataclass
-
-from ..exceptions import AIError
 from ..types import AIResponse
 from .base import BaseAgent
+from .interfaces import ResearchAgent as ResearchAgentProtocol
 
 
-@dataclass
-class ResearcherAgent(BaseAgent):
+class ResearcherAgent(BaseAgent, ResearchAgentProtocol):
     """Research agent implementation"""
 
-    async def research(self, task: str) -> AIResponse:
-        """Research a topic"""
-        try:
-            prompt = (
-                f"Research the following topic:\n\n"
-                f"{task}\n\n"
-                "Include:\n"
-                "1. Overview\n"
-                "2. Key concepts\n"
-                "3. Best practices\n"
-                "4. Common challenges\n"
-                "5. Recommendations"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Research failed: {e}", cause=e)
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
 
-    async def analyze(self, content: str) -> AIResponse:
-        """Analyze research content"""
-        try:
-            prompt = f"Analyze the following research:\n\n{content}"
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Analysis failed: {e}", cause=e)
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
+
+    async def research(self, topic: str) -> AIResponse:
+        """Research a topic"""
+        prompt = (
+            f"As a research specialist with the role of {self.config.role}, "
+            f"please research this topic:\n\n{topic}\n\n"
+            "Include:\n"
+            "- Key findings\n"
+            "- Analysis\n"
+            "- Implications\n"
+            "- Recommendations"
+        )
+        return await self._client.complete(prompt)
+
+    async def analyze(self, data: str) -> AIResponse:
+        """Analyze research data"""
+        prompt = (
+            f"As a research analyst with the role of {self.config.role}, "
+            f"please analyze this data:\n\n{data}\n\n"
+            "Include:\n"
+            "- Data analysis\n"
+            "- Key insights\n"
+            "- Patterns identified\n"
+            "- Conclusions"
+        )
+        return await self._client.complete(prompt)
 
     async def summarize(self, content: str) -> AIResponse:
-        """Summarize research content"""
-        try:
-            prompt = f"Summarize the following research:\n\n{content}"
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Summarization failed: {e}", cause=e)
+        """Summarize research findings"""
+        prompt = (
+            f"As a research specialist with the role of {self.config.role}, "
+            f"please summarize these findings:\n\n{content}\n\n"
+            "Include:\n"
+            "- Key points\n"
+            "- Main conclusions\n"
+            "- Important implications\n"
+            "- Next steps"
+        )
+        return await self._client.complete(prompt)

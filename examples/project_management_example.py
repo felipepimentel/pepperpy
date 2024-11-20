@@ -6,19 +6,20 @@ from typing import cast
 from pepperpy.ai import (
     AgentConfig,
     AgentFactory,
+    AgentRole,
     AIClient,
     AIConfig,
 )
 from pepperpy.ai.agents.interfaces import ProjectManagerAgent, QAAgent
 from pepperpy.core.logging import get_logger
 
-console = get_logger(__name__)
+logger = get_logger(__name__)
 
 
 async def demonstrate_project_management() -> None:
     """Demonstrate project management workflow"""
     try:
-        await console.info("🤖 Initializing Project Management Team...")
+        await logger.info("🤖 Initializing Project Management...")
 
         # Create AI configuration
         ai_config = AIConfig(
@@ -28,43 +29,46 @@ async def demonstrate_project_management() -> None:
         )
 
         # Create AI client
-        client = AIClient(config=ai_config)
+        client = AIClient(ai_config)
+        await client.initialize()
 
         # Create agent configurations
         manager_config = AgentConfig(
             name="manager",
-            role="Project Management",
-            ai_config=ai_config,
+            role=AgentRole.MANAGER,
+            metadata={"ai_config": ai_config.to_dict()}
         )
 
         qa_config = AgentConfig(
             name="qa",
-            role="Quality Assurance",
-            ai_config=ai_config,
+            role=AgentRole.QA,
+            metadata={"ai_config": ai_config.to_dict()}
         )
 
-        # Create agents with proper type casting
+        # Create agents using factory with proper type casting
         manager = cast(ProjectManagerAgent,
-            AgentFactory.create_agent("project_manager", client, manager_config))
+            AgentFactory.create_agent("manager", client, manager_config))
         qa = cast(QAAgent,
             AgentFactory.create_agent("qa", client, qa_config))
 
+        # Initialize agents
+        await manager.initialize()
+        await qa.initialize()
+
         # Execute tasks
-        planning_task = "Create project plan for new feature development"
-        qa_task = "Define quality assurance strategy"
+        planning_task = "Create project plan for microservices migration"
+        testing_task = "Design test strategy for migration"
 
-        await console.info("Starting project management workflow...")
-
-        await console.info("Starting project planning...")
+        await logger.info("Starting planning...")
         planning_result = await manager.plan(planning_task)
-        await console.info("Project planning completed", result=planning_result.content)
+        await logger.info("Planning completed", result=planning_result.content)
 
-        await console.info("Starting QA testing...")
-        qa_result = await qa.test(qa_task)
-        await console.info("QA strategy defined", result=qa_result.content)
+        await logger.info("Starting test planning...")
+        testing_result = await qa.plan_tests(testing_task)
+        await logger.info("Test planning completed", result=testing_result.content)
 
     except Exception as e:
-        await console.error("Project management workflow failed", error=str(e))
+        await logger.error("Project management failed", error=str(e))
 
 
 if __name__ == "__main__":

@@ -1,97 +1,61 @@
-"""Agent interfaces and protocols"""
+"""Agent interfaces"""
 
-from typing import Any, Protocol
+from typing import Protocol
 
 from ..types import AIResponse
 
 
-class BaseAgent(Protocol):
+class BaseAgentProtocol(Protocol):
     """Base agent protocol"""
 
     async def initialize(self) -> None:
         """Initialize agent"""
         ...
 
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute task"""
-        ...
-
     async def cleanup(self) -> None:
-        """Cleanup resources"""
+        """Cleanup agent resources"""
         ...
 
 
-class ArchitectAgent(BaseAgent, Protocol):
-    """Architect agent protocol"""
+class AnalystAgent(BaseAgentProtocol):
+    """Analyst agent interface"""
 
-    async def design(self, task: str) -> AIResponse:
-        """Design architecture"""
+    async def analyze(self, task: str) -> AIResponse:
+        """Analyze task"""
         ...
 
 
-class DeveloperAgent(BaseAgent, Protocol):
-    """Developer agent protocol"""
-
-    async def implement(self, task: str) -> AIResponse:
-        """Implement solution"""
-        ...
-
-
-class ReviewerAgent(BaseAgent, Protocol):
-    """Reviewer agent protocol"""
-
-    async def review(self, task: str) -> AIResponse:
-        """Review code"""
-        ...
-
-
-class QAAgent(BaseAgent, Protocol):
-    """QA agent protocol"""
-
-    async def test(self, task: str) -> AIResponse:
-        """Test implementation"""
-        ...
-
-    async def review(self, task: str) -> AIResponse:
-        """Review test results"""
-        ...
-
-    async def validate(self, task: str) -> AIResponse:
-        """Validate implementation"""
-        ...
-
-
-class ResearchAgent(BaseAgent, Protocol):
+class ResearchAgent(BaseAgentProtocol):
     """Research agent interface"""
 
     async def research(self, task: str) -> AIResponse:
         """Research implementation"""
         ...
 
-    async def analyze(self, task: str) -> AIResponse:
-        """Analyze research results"""
+
+class ReviewerAgent(BaseAgentProtocol):
+    """Reviewer agent interface"""
+
+    async def review(self, code: str) -> AIResponse:
+        """Review code"""
+        ...
+
+    async def suggest(self, code: str) -> AIResponse:
+        """Suggest improvements"""
         ...
 
 
-class AnalystAgent(BaseAgent, Protocol):
-    """Analyst agent interface"""
-
-    async def analyze(self, task: str) -> AIResponse:
-        """Analysis implementation"""
-        ...
-
-    async def evaluate(self, task: str) -> AIResponse:
-        """Evaluate analysis results"""
-        ...
-
-
-class ProjectManagerAgent(BaseAgent, Protocol):
+class ProjectManagerAgent(BaseAgentProtocol):
     """Project manager agent interface"""
 
     async def plan(self, task: str) -> AIResponse:
-        """Planning implementation"""
+        """Plan project tasks"""
         ...
 
-    async def coordinate(self, task: str) -> AIResponse:
-        """Coordinate team activities"""
+
+class QAAgent(BaseAgentProtocol):
+    """QA agent interface"""
+
+    async def plan_tests(self, task: str) -> AIResponse:
+        """Plan test strategy"""
         ...

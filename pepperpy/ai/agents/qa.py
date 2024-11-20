@@ -1,46 +1,34 @@
 """QA agent implementation"""
 
-from dataclasses import dataclass
-
-from ..exceptions import AIError
 from ..types import AIResponse
 from .base import BaseAgent
+from .interfaces import QAAgent as QAAgentProtocol
 
 
-@dataclass
-class QAAgent(BaseAgent):
-    """Quality assurance agent"""
+class QAAgent(BaseAgent, QAAgentProtocol):
+    """QA agent implementation"""
 
-    async def test(self, task: str) -> AIResponse:
-        """Execute testing"""
-        try:
-            prompt = (
-                f"As a QA engineer, test:\n\n"
-                f"{task}\n\n"
-                "Include:\n"
-                "1. Test cases\n"
-                "2. Test execution\n"
-                "3. Results analysis\n"
-                "4. Bug reports\n"
-                "5. Recommendations"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Testing failed: {e}", cause=e)
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
 
-    async def review(self, task: str) -> AIResponse:
-        """Review implementation"""
-        try:
-            prompt = (
-                f"As a QA engineer, review:\n\n"
-                f"{task}\n\n"
-                "Include:\n"
-                "1. Quality assessment\n"
-                "2. Test coverage\n"
-                "3. Performance analysis\n"
-                "4. Security review\n"
-                "5. Improvement suggestions"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Review failed: {e}", cause=e) 
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
+
+    async def plan_tests(self, task: str) -> AIResponse:
+        """Plan test strategy"""
+        prompt = (
+            f"As a QA engineer with the role of {self.config.role}, "
+            f"please create a test plan for:\n\n{task}\n\n"
+            "Include:\n"
+            "- Test strategy\n"
+            "- Test cases\n"
+            "- Test scenarios\n"
+            "- Quality criteria"
+        )
+        return await self._client.complete(prompt)
+
+    async def execute(self, task: str) -> AIResponse:
+        """Execute QA task"""
+        return await self.plan_tests(task)

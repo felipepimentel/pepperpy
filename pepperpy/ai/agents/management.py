@@ -1,112 +1,120 @@
 """Management agent implementations"""
 
-from dataclasses import dataclass
-
-from ..exceptions import AIError
 from ..types import AIResponse
 from .base import BaseAgent
+from .interfaces import ProjectManagerAgent as ProjectManagerProtocol
 
 
-@dataclass
-class ProjectManagerAgent(BaseAgent):
-    """Project management agent"""
+class ProjectManagerAgent(BaseAgent, ProjectManagerProtocol):
+    """Project manager agent implementation"""
+
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
 
     async def plan(self, task: str) -> AIResponse:
         """Create project plan"""
-        try:
-            prompt = (
-                f"As a project manager, create a plan for:\n\n"
-                f"{task}\n\n"
-                "Include:\n"
-                "1. Project scope\n"
-                "2. Timeline\n"
-                "3. Resource allocation\n"
-                "4. Risk assessment\n"
-                "5. Success metrics"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Planning failed: {e}", cause=e)
+        prompt = (
+            f"As a project manager with the role of {self.config.role}, "
+            f"please create a project plan for:\n\n{task}\n\n"
+            "Include:\n"
+            "- Project scope\n"
+            "- Timeline\n"
+            "- Resource allocation\n"
+            "- Risk assessment\n"
+            "- Deliverables"
+        )
+        return await self._client.complete(prompt)
 
-    async def review(self, task: str) -> AIResponse:
-        """Review project status"""
-        try:
-            prompt = (
-                f"As a project manager, review:\n\n"
-                f"{task}\n\n"
-                "Include:\n"
-                "1. Progress assessment\n"
-                "2. Milestone status\n"
-                "3. Resource utilization\n"
-                "4. Risk updates\n"
-                "5. Recommendations"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Review failed: {e}", cause=e)
+    async def coordinate(self, tasks: list[str]) -> AIResponse:
+        """Coordinate project tasks"""
+        tasks_str = "\n".join(f"- {task}" for task in tasks)
+        prompt = (
+            f"As a project manager with the role of {self.config.role}, "
+            f"please coordinate these tasks:\n\n{tasks_str}\n\n"
+            "Provide:\n"
+            "- Task dependencies\n"
+            "- Resource assignments\n"
+            "- Timeline coordination\n"
+            "- Communication plan"
+        )
+        return await self._client.complete(prompt)
 
 
-@dataclass
 class QualityEngineerAgent(BaseAgent):
-    """Quality assurance agent"""
+    """Quality engineer agent implementation"""
 
-    async def review(self, content: str) -> AIResponse:
-        """Review quality"""
-        try:
-            prompt = (
-                f"As a quality engineer, review:\n\n"
-                f"{content}\n\n"
-                "Evaluate:\n"
-                "1. Code quality\n"
-                "2. Test coverage\n"
-                "3. Performance\n"
-                "4. Security\n"
-                "5. Best practices"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Quality review failed: {e}", cause=e)
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
+
+    async def assess_quality(self, project: str) -> AIResponse:
+        """Assess project quality"""
+        prompt = (
+            f"As a quality engineer with the role of {self.config.role}, "
+            f"please assess the quality of:\n\n{project}\n\n"
+            "Include:\n"
+            "- Quality metrics\n"
+            "- Compliance assessment\n"
+            "- Areas for improvement\n"
+            "- Recommendations"
+        )
+        return await self._client.complete(prompt)
 
 
-@dataclass
 class DevOpsAgent(BaseAgent):
-    """DevOps agent"""
+    """DevOps agent implementation"""
 
-    async def deploy(self, config: str) -> AIResponse:
-        """Plan deployment"""
-        try:
-            prompt = (
-                f"As a DevOps engineer, plan deployment for:\n\n"
-                f"{config}\n\n"
-                "Include:\n"
-                "1. Infrastructure setup\n"
-                "2. CI/CD pipeline\n"
-                "3. Monitoring\n"
-                "4. Scaling strategy\n"
-                "5. Security measures"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Deployment planning failed: {e}", cause=e)
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
+
+    async def plan_deployment(self, project: str) -> AIResponse:
+        """Plan project deployment"""
+        prompt = (
+            f"As a DevOps engineer with the role of {self.config.role}, "
+            f"please create a deployment plan for:\n\n{project}\n\n"
+            "Include:\n"
+            "- Infrastructure requirements\n"
+            "- Deployment steps\n"
+            "- Monitoring setup\n"
+            "- Rollback procedures"
+        )
+        return await self._client.complete(prompt)
 
 
-@dataclass
 class ComplianceAgent(BaseAgent):
-    """Compliance agent"""
+    """Compliance agent implementation"""
 
-    async def audit(self, content: str) -> AIResponse:
-        """Audit compliance"""
-        try:
-            prompt = (
-                f"As a compliance officer, audit:\n\n"
-                f"{content}\n\n"
-                "Check:\n"
-                "1. Regulatory compliance\n"
-                "2. Security standards\n"
-                "3. Data protection\n"
-                "4. Documentation\n"
-                "5. Risk assessment"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Compliance audit failed: {e}", cause=e)
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
+
+    async def check_compliance(self, project: str) -> AIResponse:
+        """Check project compliance"""
+        prompt = (
+            f"As a compliance specialist with the role of {self.config.role}, "
+            f"please check compliance for:\n\n{project}\n\n"
+            "Include:\n"
+            "- Regulatory requirements\n"
+            "- Compliance status\n"
+            "- Required actions\n"
+            "- Documentation needs"
+        )
+        return await self._client.complete(prompt)

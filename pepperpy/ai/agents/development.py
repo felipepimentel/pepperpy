@@ -1,29 +1,30 @@
 """Development agent implementation"""
 
-from dataclasses import dataclass
-
-from ..exceptions import AIError
 from ..types import AIResponse
 from .base import BaseAgent
+from .interfaces import BaseAgentProtocol
 
 
-@dataclass
-class DevelopmentAgent(BaseAgent):
+class DevelopmentAgent(BaseAgent, BaseAgentProtocol):
     """Development agent implementation"""
+
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
 
     async def implement(self, task: str) -> AIResponse:
         """Implement solution"""
-        try:
-            prompt = (
-                f"As a developer, implement:\n\n"
-                f"{task}\n\n"
-                "Include:\n"
-                "1. Implementation details\n"
-                "2. Code structure\n"
-                "3. Error handling\n"
-                "4. Performance considerations\n"
-                "5. Testing approach"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Implementation failed: {e}", cause=e)
+        prompt = (
+            f"As a developer with the role of {self.config.role}, "
+            f"please implement a solution for:\n\n{task}\n\n"
+            "Provide:\n"
+            "- Implementation details\n"
+            "- Code examples\n"
+            "- Key considerations\n"
+            "- Best practices used"
+        )
+        return await self._client.complete(prompt)

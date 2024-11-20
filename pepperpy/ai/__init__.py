@@ -3,36 +3,29 @@
 from .agents import (
     AgentConfig,
     AgentFactory,
+    AgentRole,
     AnalysisAgent,
-    DataAnalystAgent,
-    IntegrationAgent,
-    ProjectManagerAgent,
+    ArchitectAgent,
+    DevelopmentAgent,
     QAAgent,
     ResearchAgent,
+    ReviewerAgent,
 )
 from .client import AIClient
-from .config import AIConfig, AIModel, AIProvider, ProviderType
-from .exceptions import AIError
-from .types import AIResponse
+from .config import AIConfig
 
 __all__ = [
     # Client
     "AIClient",
     "AIConfig",
-    "AIModel",
-    "AIProvider",
-    "ProviderType",
     # Agents
     "AgentConfig",
     "AgentFactory",
+    "AgentRole",
     "AnalysisAgent",
-    "DataAnalystAgent",
-    "IntegrationAgent",
-    "ProjectManagerAgent",
+    "ArchitectAgent",
+    "DevelopmentAgent",
     "QAAgent",
     "ResearchAgent",
-    # Types
-    "AIResponse",
-    # Exceptions
-    "AIError",
+    "ReviewerAgent",
 ]

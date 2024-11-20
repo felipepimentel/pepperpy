@@ -1,6 +1,6 @@
 """AI configuration module"""
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Literal
 
@@ -83,4 +83,8 @@ class AIConfig:
             raise ValueError("Cache TTL must be non-negative")
 
         if self.provider not in [e.value for e in ProviderType]:
-            raise ValueError(f"Unsupported provider: {self.provider}") 
+            raise ValueError(f"Unsupported provider: {self.provider}")
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert config to dictionary"""
+        return asdict(self) 

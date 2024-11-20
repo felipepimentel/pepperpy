@@ -2,24 +2,26 @@
 
 import asyncio
 import sys
+from typing import cast
 
 from pepperpy.ai import (
     AgentConfig,
     AgentFactory,
+    AgentRole,
     AIClient,
     AIConfig,
-    ResearchAgent,
 )
-from pepperpy.core.logging import ConsoleLogHandler, get_logger
+from pepperpy.ai.agents.interfaces import ResearchAgent
+from pepperpy.core.logging import get_logger
 
-# Configure logger with console handler
 logger = get_logger(__name__)
-logger.add_handler(ConsoleLogHandler(sys.stdout))
 
 
 async def demonstrate_research_agent() -> None:
     """Demonstrate research agent capabilities"""
     try:
+        # Use print for immediate feedback
+        print("🤖 Initializing Research Agent...")
         await logger.info("🤖 Initializing Research Agent...")
 
         # Create AI configuration
@@ -36,14 +38,12 @@ async def demonstrate_research_agent() -> None:
         # Create agent configuration
         agent_config = AgentConfig(
             name="researcher",
-            role="Research and Analysis",
-            ai_config=ai_config,
+            role=AgentRole.RESEARCHER,
+            metadata={"ai_config": ai_config.to_dict()},
         )
 
-        # Create research agent
-        agent = AgentFactory.create_agent("researcher", client, agent_config)
-        if not isinstance(agent, ResearchAgent):
-            raise ValueError("Invalid agent type")
+        # Create research agent with proper type casting
+        agent = cast(ResearchAgent, AgentFactory.create_agent("researcher", client, agent_config))
 
         # Initialize agent
         await agent.initialize()
@@ -56,13 +56,25 @@ async def demonstrate_research_agent() -> None:
         ]
 
         for task in tasks:
+            print(f"\n📚 Researching: {task}")
             await logger.info(f"Researching: {task}")
+
             result = await agent.research(task)
+
+            print("\n✅ Research completed:")
+            print(f"{result.content}\n")
             await logger.info("Research completed", result=result.content)
 
     except Exception as e:
+        print(f"\n❌ Error during research: {e}", file=sys.stderr)
         await logger.error("Error during research", error=str(e))
+        raise
 
 
 if __name__ == "__main__":
-    asyncio.run(demonstrate_research_agent())
+    try:
+        asyncio.run(demonstrate_research_agent())
+    except KeyboardInterrupt:
+        print("\n\n⚠️ Research interrupted by user")
+    except Exception as e:
+        print(f"\n❌ Fatal error: {e}", file=sys.stderr)

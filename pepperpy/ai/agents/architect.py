@@ -1,29 +1,34 @@
 """Architect agent implementation"""
 
-from dataclasses import dataclass
-
-from ..exceptions import AIError
 from ..types import AIResponse
 from .base import BaseAgent
+from .interfaces import BaseAgentProtocol
 
 
-@dataclass
-class ArchitectAgent(BaseAgent):
-    """Architecture design agent"""
+class ArchitectAgent(BaseAgent, BaseAgentProtocol):
+    """Architecture design agent implementation"""
+
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
 
     async def design(self, task: str) -> AIResponse:
-        """Design system architecture"""
-        try:
-            prompt = (
-                f"As a system architect, design:\n\n"
-                f"{task}\n\n"
-                "Include:\n"
-                "1. System overview\n"
-                "2. Component design\n"
-                "3. Integration patterns\n"
-                "4. Scalability considerations\n"
-                "5. Security measures"
-            )
-            return await self._get_completion(prompt)
-        except Exception as e:
-            raise AIError(f"Architecture design failed: {e}", cause=e) 
+        """Design architecture"""
+        prompt = (
+            f"As a software architect with the role of {self.config.role}, "
+            f"please design a solution for:\n\n{task}\n\n"
+            "Provide a detailed architecture design including:\n"
+            "- System components\n"
+            "- Component interactions\n"
+            "- Key design decisions\n"
+            "- Technical considerations"
+        )
+        return await self._client.complete(prompt)
+
+    async def execute(self, task: str) -> AIResponse:
+        """Execute architectural task"""
+        return await self.design(task)

@@ -4,7 +4,7 @@ import asyncio
 import os
 from typing import Optional, Union
 
-from pepperpy.ai import AIClient
+from pepperpy.ai import AIClient, AIConfig
 from pepperpy.ai.autogen.agents import (
     CoderAgent,
     CriticAgent,
@@ -14,7 +14,6 @@ from pepperpy.ai.autogen.agents import (
 from pepperpy.ai.autogen.agents.team import AgentTeam, TeamConfig
 from pepperpy.ai.types import AIResponse
 from pepperpy.console import Console
-from pepperpy.core.config import AIConfig
 
 console = Console()
 
@@ -76,27 +75,27 @@ async def setup_development_team(client: AIClient) -> AgentTeam:
         review_required=True,
     )
 
-    return AgentTeam(agents=[planner, coder, executor, critic], config=team_config)
+    team = AgentTeam(agents=[planner, coder, executor, critic], config=team_config)
+    await team.initialize()
+    return team
 
 
 async def demonstrate_code_development() -> None:
     """Demonstrate collaborative code development"""
     try:
-        console.info("🤖 Initializing Development Team...")
+        await console.info("🤖 Initializing Development Team...")
 
-        # Criar configuração do AI com valores padrão para campos opcionais
+        # Criar configuração do AI
         ai_config = AIConfig(
-            name="ai",
-            version="1.0.0",
             provider="openrouter",
-            api_key=os.getenv("OPENROUTER_API_KEY", ""),  # Valor padrão vazio
+            api_key=os.getenv("OPENROUTER_API_KEY", ""),
             model="anthropic/claude-3-sonnet",
-            temperature=0.7,  # Valor padrão
-            max_tokens=1000,  # Valor padrão
+            temperature=0.7,
+            max_tokens=1000,
         )
 
-        # Criar cliente AI diretamente com a configuração
-        client = AIClient(config=ai_config)
+        # Criar cliente AI
+        client = AIClient(ai_config)
         await client.initialize()
 
         try:
@@ -112,20 +111,22 @@ async def demonstrate_code_development() -> None:
             5. Support for async functions
             """
 
-            console.info(f"📋 Starting Development Task\n\n{task}", title="Task Definition")
+            await console.info(
+                "📋 Starting Development Task", title="Task Definition", content=task
+            )
 
             # Executar tarefa com o time
             result = await team.execute_task(task)
 
             if result.success:
-                console.success(
+                await console.success(
                     "Development completed",
                     title="🎉 Final Result",
                     content=get_content(result.output),
                 )
 
                 # Mostrar passos do desenvolvimento
-                console.info("📝 Development Steps:")
+                await console.info("📝 Development Steps:")
                 for i, step in enumerate(result.steps, 1):
                     content = step["content"]
                     metadata = step.get("metadata", {})
@@ -137,33 +138,31 @@ async def demonstrate_code_development() -> None:
 
                     await console.print(step_info)
             else:
-                console.error("Development task failed")
+                await console.error("Development task failed")
 
         finally:
             await client.cleanup()
 
     except Exception as e:
-        console.error("Error during development:", str(e))
+        await console.error("Error during development", str(e))
 
 
 async def demonstrate_code_review() -> None:
     """Demonstrate collaborative code review"""
     try:
-        console.info("🤖 Initializing Review Team...")
+        await console.info("🤖 Initializing Review Team...")
 
-        # Criar configuração do AI com valores padrão para campos opcionais
+        # Criar configuração do AI
         ai_config = AIConfig(
-            name="ai",
-            version="1.0.0",
             provider="openrouter",
-            api_key=os.getenv("OPENROUTER_API_KEY", ""),  # Valor padrão vazio
+            api_key=os.getenv("OPENROUTER_API_KEY", ""),
             model="anthropic/claude-3-sonnet",
-            temperature=0.7,  # Valor padrão
-            max_tokens=1000,  # Valor padrão
+            temperature=0.7,
+            max_tokens=1000,
         )
 
-        # Criar cliente AI diretamente com a configuração
-        client = AIClient(config=ai_config)
+        # Criar cliente AI
+        client = AIClient(ai_config)
         await client.initialize()
 
         try:
@@ -200,25 +199,25 @@ async def demonstrate_code_review() -> None:
             5. Performance implications
             """
 
-            console.info(f"📋 Starting Code Review\n\n{review_task}", title="Review Task")
+            await console.info("📋 Starting Code Review", title="Review Task", content=review_task)
 
             # Executar revisão
             result = await team.execute_task(review_task)
 
             if result.success:
-                console.success(
+                await console.success(
                     "Review completed",
                     title="🔍 Review Results",
                     content=get_content(result.output),
                 )
             else:
-                console.error("Code review failed")
+                await console.error("Code review failed")
 
         finally:
             await client.cleanup()
 
     except Exception as e:
-        console.error("Error during code review:", str(e))
+        await console.error("Error during code review", str(e))
 
 
 if __name__ == "__main__":
