@@ -131,3 +131,30 @@ You are an expert Python developer specializing in PepperPy framework developmen
    - Fallback behaviors
    - Resource cleanup
    - State recovery
+
+### Module Organization Rules
+1. Framework Abstractions:
+   - Use abstraction layers for third-party frameworks
+   - Example: ai/teams/ for multi-agent frameworks
+   - Provide unified interfaces across implementations
+   - Allow runtime framework selection
+   - Support dependency injection for frameworks
+
+2. Framework Integration:
+   - Place framework-specific code in dedicated submodules
+   - Example: ai/teams/autogen/
+   - Example: ai/teams/crew/
+   - Example: ai/teams/langchain/
+   - Maintain consistent interfaces across implementations
+
+3. Framework Selection:
+   - Support configuration-based framework selection
+   - Allow runtime framework switching
+   - Provide fallback mechanisms
+   - Document framework-specific features
+
+4. Integration Guidelines:
+   - Create base protocols for common features
+   - Implement adapters for framework specifics
+   - Use factory patterns for framework instantiation
+   - Maintain framework isolation
