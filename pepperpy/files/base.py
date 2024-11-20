@@ -1,63 +1,56 @@
 """Base file handling implementation"""
 
-from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Generic, TypeVar
+from typing import Any, Protocol, TypeVar
 
-from .types import FileContent, FileMetadata, FileType, PathLike
+from .types import FileContent, FileMetadata, FileType
 
 T = TypeVar("T")
 
 
-class BaseHandler(Generic[T], ABC):
-    """Base handler implementation"""
+class FileHandler(Protocol[T]):
+    """File handler protocol"""
 
-    @abstractmethod
-    async def read(self, path: PathLike) -> FileContent:
+    async def read(self, file: Path | str) -> FileContent[T]:
         """Read file content"""
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
-    async def write(
-        self,
-        content: T,
-        path: PathLike,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
-        """Write file content"""
-        raise NotImplementedError
+    async def write(self, content: T, output: Path | str) -> None:
+        """Write content to file"""
+        ...
+
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        ...
+
+
+class BaseFileHandler:
+    """Base file handler implementation"""
+
+    def _to_path(self, file: Path | str) -> Path:
+        """Convert to Path object"""
+        return file if isinstance(file, Path) else Path(file)
 
     def _create_metadata(
         self,
         path: Path,
         file_type: FileType,
         mime_type: str,
-        format_str: str,
-        metadata: dict[str, Any] | None = None,
-        media_info: Any | None = None,
-        image_info: Any | None = None,
+        format_str: str | None = None,
+        extra: dict[str, Any] | None = None,
     ) -> FileMetadata:
         """Create file metadata"""
-        stat = path.stat()
+        stats = path.stat()
         return FileMetadata(
+            path=str(path),
             name=path.name,
-            size=stat.st_size,
-            file_type=file_type,
+            extension=path.suffix[1:],
+            type=file_type.value,
             mime_type=mime_type,
-            format=format_str,
-            created_at=datetime.fromtimestamp(stat.st_ctime),
-            modified_at=datetime.fromtimestamp(stat.st_mtime),
-            path=path,
-            metadata=metadata or {},
-            media_info=media_info,
-            image_info=image_info,
+            format=format_str or path.suffix[1:],
+            created_at=datetime.fromtimestamp(stats.st_ctime),
+            modified_at=datetime.fromtimestamp(stats.st_mtime),
+            size=stats.st_size,
+            extra=extra or {},
         )
-
-    def _to_path(self, path: PathLike) -> Path:
-        """Convert path-like to Path"""
-        if isinstance(path, Path):
-            return path
-        if isinstance(path, str):
-            return Path(path)
-        return Path(str(path))

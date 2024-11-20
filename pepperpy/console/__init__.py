@@ -1,5 +1,6 @@
 """Console module"""
 
+import os
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -47,6 +48,19 @@ class Console:
             print(f"Error: {error}")
         print(f"{'='*50}\n")
 
+    async def warning(self, message: str, title: Optional[str] = None) -> None:
+        """Log warning message"""
+        print(f"\n{'='*50}")
+        if title:
+            print(f"⚠️ {title}")
+            print(f"{'='*50}")
+        print(message)
+        print(f"{'='*50}\n")
+
     async def print(self, message: str) -> None:
         """Print message"""
         print(message)
+
+    async def clear(self) -> None:
+        """Clear console"""
+        os.system('cls' if os.name == 'nt' else 'clear')

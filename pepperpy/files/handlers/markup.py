@@ -1,59 +1,40 @@
 """Markup file handler implementation"""
 
-from pathlib import Path
-from typing import Any
-
-from bs4 import BeautifulSoup
-
 from ..exceptions import FileError
 from ..types import FileContent, FileType, PathLike
-from .base import FileHandler
+from .base import BaseFileHandler, FileHandler
 
 
-class MarkupHandler(FileHandler[str]):
-    """Handler for markup files (HTML/XML)"""
+class MarkupHandler(BaseFileHandler, FileHandler[str]):
+    """Handler for markup files"""
 
-    async def read(self, path: PathLike) -> FileContent:
+    async def read(self, file: PathLike) -> FileContent[str]:
         """Read markup file"""
         try:
-            file_path = self._to_path(path)
-            content = await self._read_content(file_path)
-            if isinstance(content, bytes):
-                content = content.decode()
+            path = self._to_path(file)
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
 
             metadata = self._create_metadata(
-                path=file_path,
+                path=path,
                 file_type=FileType.MARKUP,
-                mime_type="text/html" if file_path.suffix == ".html" else "text/xml",
-                format_str="html" if file_path.suffix == ".html" else "xml",
+                mime_type=f"text/{path.suffix[1:]}",
+                format_str=path.suffix[1:],
             )
 
             return FileContent(content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read markup file: {e!s}", cause=e)
+            raise FileError(f"Failed to read markup file: {e}", cause=e)
 
-    async def write(
-        self,
-        content: str,
-        path: PathLike,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
+    async def write(self, content: str, output: PathLike) -> None:
         """Write markup file"""
         try:
-            file_path = self._to_path(path)
-            await self._write_text(content, file_path)
-            return file_path
+            path = self._to_path(output)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(content)
         except Exception as e:
-            raise FileError(f"Failed to write markup file: {e!s}", cause=e)
+            raise FileError(f"Failed to write markup file: {e}", cause=e)
 
-    async def _read_content(self, path: Path) -> str:
-        """Read markup content"""
-        return path.read_text()
-
-    async def _write_text(self, content: str, path: Path) -> None:
-        """Write text content"""
-        path.write_text(content)
-
-    def parse(self, content: str) -> BeautifulSoup:
-        """Parse markup content"""
-        return BeautifulSoup(content, "html.parser")
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        pass

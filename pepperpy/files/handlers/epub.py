@@ -10,21 +10,27 @@ from ebooklib.epub import EpubBook, EpubHtml, EpubItem
 
 from ..exceptions import FileError
 from ..types import Book, BookMetadata, Chapter, FileContent, FileType, PathLike
-from .base import FileHandler
+from .base import BaseFileHandler, FileHandler
 
 
-class EPUBHandler(FileHandler[Book]):
+class EPUBHandler(BaseFileHandler, FileHandler[Book]):
     """Handler for EPUB files"""
 
     def __init__(self) -> None:
         """Initialize handler"""
         super().__init__()
 
-    async def read(self, file: PathLike) -> FileContent:
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        # No cleanup needed for EPUB handler
+        pass
+
+    async def read(self, file: PathLike) -> FileContent[Book]:
         """Read EPUB file"""
         try:
-            book = epub.read_epub(str(file) if isinstance(file, Path) else file)
-            return await self._process_book(book)
+            path = self._to_path(file)
+            book = epub.read_epub(str(path))
+            return await self._process_book(book, path)
         except Exception as e:
             raise FileError(f"Failed to read EPUB file: {e!s}", cause=e)
 
@@ -40,8 +46,8 @@ class EPUBHandler(FileHandler[Book]):
         except Exception as e:
             raise FileError(f"Failed to write EPUB file: {e!s}", cause=e)
 
-    async def _process_book(self, epub_book: EpubBook) -> FileContent:
-        """Process EPUB book into internal format"""
+    async def _process_book(self, epub_book: EpubBook, source_path: Path) -> FileContent[Book]:
+        """Process EPUB book"""
         try:
             # Extrair metadados
             book_metadata = BookMetadata(
@@ -52,13 +58,18 @@ class EPUBHandler(FileHandler[Book]):
                 publisher=epub_book.get_metadata("DC", "publisher")[0][0]
                 if epub_book.get_metadata("DC", "publisher")
                 else None,
-                publication_date=datetime.fromisoformat(epub_book.get_metadata("DC", "date")[0][0])
+                publication_date=datetime.fromisoformat(
+                    epub_book.get_metadata("DC", "date")[0][0]
+                )
                 if epub_book.get_metadata("DC", "date")
                 else None,
                 description=epub_book.get_metadata("DC", "description")[0][0]
                 if epub_book.get_metadata("DC", "description")
                 else None,
-                subjects=[subject[0] for subject in epub_book.get_metadata("DC", "subject")],
+                subjects=[
+                    subject[0]
+                    for subject in epub_book.get_metadata("DC", "subject")
+                ],
                 rights=epub_book.get_metadata("DC", "rights")[0][0]
                 if epub_book.get_metadata("DC", "rights")
                 else None,
@@ -68,7 +79,6 @@ class EPUBHandler(FileHandler[Book]):
             chapters: list[Chapter] = []
             for item in epub_book.get_items_of_type(ITEM_DOCUMENT):
                 if isinstance(item, EpubHtml):
-                    # Limpar HTML usando BeautifulSoup
                     soup = BeautifulSoup(item.content, "html.parser")
                     chapter = Chapter(
                         title=item.title or "",
@@ -92,12 +102,12 @@ class EPUBHandler(FileHandler[Book]):
                     item.file_name: item.content
                     for item in epub_book.get_items_of_type(ITEM_IMAGE)
                 },
+                toc=epub_book.toc,
             )
 
             # Criar metadados do arquivo
-            file_path = Path(getattr(epub_book, "file_name", "book.epub"))
             metadata = self._create_metadata(
-                path=file_path,
+                path=source_path,
                 file_type=FileType.DOCUMENT,
                 mime_type="application/epub+zip",
                 format_str="epub",
@@ -106,7 +116,7 @@ class EPUBHandler(FileHandler[Book]):
             return FileContent(content=book, metadata=metadata)
 
         except Exception as e:
-            raise FileError(f"Failed to process EPUB book: {e!s}", cause=e)
+            raise FileError(f"Failed to process EPUB book: {e}", cause=e)
 
     async def _create_epub(self, book: Book) -> EpubBook:
         """Create EPUB book from internal format"""

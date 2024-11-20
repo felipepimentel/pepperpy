@@ -1,81 +1,85 @@
-"""Example of EPUB document analysis"""
+"""EPUB analysis example"""
 
 import asyncio
-import os
 from pathlib import Path
 
-from pepperpy.ai.text import TextAnalyzer
-from pepperpy.ai.text.types import AnalysisConfig
 from pepperpy.console import Console
-from pepperpy.files import file_manager
 from pepperpy.files.handlers.epub import EPUBHandler
+from pepperpy.files.manager import FileManager
 
 console = Console()
 
 
-async def analyze_epub(file_path: str | Path) -> None:
-    """Analyze EPUB document"""
+async def analyze_epub_content(file_path: Path) -> None:
+    """Analyze EPUB content"""
+    file_manager = None
     try:
-        # Criar configuração de análise
-        config = AnalysisConfig(
-            name="epub_analysis",
-            version="1.0.0",
-            model="en_core_web_sm",
-            min_concept_frequency=2,
-            context_window=100,
-            min_phrase_length=3,
-            top_phrases=50,
+        await console.info("📚 Analyzing EPUB content...")
+
+        # Initialize handlers
+        epub_handler = EPUBHandler()
+        file_manager = FileManager()
+        await file_manager.initialize()
+
+        # Register EPUB handler
+        file_manager.register_handler(".epub", epub_handler)
+
+        # Read EPUB content
+        content = await file_manager.read_file(file_path)
+        book = content.content
+
+        # Basic analysis
+        await console.info(
+            "Book Information:",
+            content=(
+                f"Title: {book.metadata.title}\n"
+                f"Authors: {', '.join(book.metadata.authors)}\n"
+                f"Language: {book.metadata.language}\n"
+                f"Chapters: {len(book.chapters)}\n"
+                f"Total Images: {len(book.images)}"
+            ),
         )
 
-        # Registrar handler EPUB
-        file_manager.register_handler("epub", EPUBHandler())
+        # Analyze chapters
+        total_words = 0
+        total_chars = 0
 
-        # Criar analisador
-        analyzer = TextAnalyzer(config=config)
-        await analyzer.initialize()
+        for chapter in book.chapters:
+            words = len(chapter.content.split())
+            chars = len(chapter.content)
+            total_words += words
+            total_chars += chars
 
-        try:
-            # Carregar e processar EPUB
-            book = await file_manager.read_file(file_path)
-            
-            # Extrair texto
-            text = "\n\n".join(chapter.content for chapter in book.chapters)
+            await console.info(
+                f"Chapter: {chapter.title}",
+                content=(f"Words: {words:,}\n" f"Characters: {chars:,}"),
+            )
 
-            # Analisar texto
-            analysis = await analyzer.analyze(text)
-
-            # Exibir resultados
-            console.info("📚 Analysis Results:")
-            console.info(f"Tokens: {len(analysis.tokens)}")
-            console.info(f"Sentences: {len(analysis.sentences)}")
-            console.info(f"Key Phrases: {len(analysis.key_phrases)}")
-            console.info(f"Concepts: {len(analysis.concepts)}")
-
-            # Exibir frases-chave
-            console.info("\n🔑 Key Phrases:")
-            for phrase in analysis.key_phrases[:5]:
-                console.info(f"- {phrase.text} (score: {phrase.score:.2f})")
-
-            # Exibir conceitos
-            console.info("\n💡 Main Concepts:")
-            for concept in analysis.concepts[:5]:
-                console.info(f"- {concept.term} ({concept.type})")
-                console.info(f"  Context: {concept.context}")
-
-        finally:
-            await analyzer.cleanup()
+        # Summary
+        await console.success(
+            "Analysis Complete",
+            content=(
+                f"Total Words: {total_words:,}\n"
+                f"Total Characters: {total_chars:,}\n"
+                f"Average Words per Chapter: {total_words // len(book.chapters):,}"
+            ),
+        )
 
     except Exception as e:
-        console.error(f"Analysis failed: {e}")
+        await console.error("Analysis failed", str(e))
+    finally:
+        if file_manager:
+            await file_manager.cleanup()
+
+
+async def main() -> None:
+    """Run EPUB analysis example"""
+    try:
+        epub_path = Path("examples/data/sample.epub")
+        await analyze_epub_content(epub_path)
+    except Exception as e:
+        await console.error("Example failed", str(e))
 
 
 if __name__ == "__main__":
-    # Obter caminho do arquivo de exemplo
-    example_file = os.path.join(
-        os.path.dirname(__file__),
-        "data",
-        "example.epub",
-    )
-
-    # Executar análise
-    asyncio.run(analyze_epub(example_file))
+    asyncio.run(main())

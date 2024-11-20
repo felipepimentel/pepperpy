@@ -1,17 +1,13 @@
 """File handling module"""
 
-from .handlers.audio import AudioHandler
-from .handlers.base import FileHandler
-from .handlers.compression import CompressionHandler
-from .handlers.config import ConfigHandler
-from .handlers.document import DocumentHandler
-from .handlers.epub import EPUBHandler
-from .handlers.image import ImageHandler
-from .handlers.markdown import MarkdownHandler
-from .handlers.markdown_enhanced import MarkdownEnhancedHandler
-from .handlers.media import MediaHandler
+from .config import FileManagerConfig
+from .exceptions import FileError
+from .handlers.base import BaseFileHandler, FileHandler
 from .manager import FileManager
 from .types import (
+    Book,
+    BookMetadata,
+    Chapter,
     FileContent,
     FileMetadata,
     FileType,
@@ -22,22 +18,24 @@ from .types import (
 )
 
 __all__ = [
-    "AudioHandler",
-    "FileHandler",
-    "CompressionHandler",
-    "ConfigHandler",
-    "DocumentHandler",
-    "EPUBHandler",
-    "ImageHandler",
-    "MarkdownHandler",
-    "MarkdownEnhancedHandler",
-    "MediaHandler",
+    # Core
     "FileManager",
+    "FileManagerConfig",
+    # Handlers
+    "FileHandler",
+    "BaseFileHandler",
+    # Types
+    "Book",
+    "BookMetadata",
+    "Chapter",
     "FileContent",
     "FileMetadata",
     "FileType",
     "ImageInfo",
     "MediaInfo",
     "PathLike",
+    # Utils
     "ensure_path",
+    # Exceptions
+    "FileError",
 ]

@@ -1,59 +1,42 @@
 """JSON file handler implementation"""
 
-from pathlib import Path
-from typing import Any
-
-import orjson
+import json
 
 from ..exceptions import FileError
 from ..types import FileContent, FileType, PathLike
-from .base import FileHandler
+from .base import BaseFileHandler, FileHandler
 
 
-class JSONHandler(FileHandler[dict[str, Any]]):
+class JSONHandler(BaseFileHandler, FileHandler[dict]):
     """Handler for JSON files"""
 
-    async def read(self, path: PathLike) -> FileContent[dict[str, Any]]:
+    async def read(self, file: PathLike) -> FileContent[dict]:
         """Read JSON file"""
         try:
-            file_path = self._to_path(path)
-            content = await self._read_content(file_path)
-            data = orjson.loads(content)
+            path = self._to_path(file)
+            with open(path, "r", encoding="utf-8") as f:
+                content = json.load(f)
 
             metadata = self._create_metadata(
-                path=file_path,
-                file_type=FileType.JSON,
+                path=path,
+                file_type=FileType.DATA,
                 mime_type="application/json",
                 format_str="json",
             )
 
-            return FileContent(content=data, metadata=metadata)
-
+            return FileContent(content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read JSON file: {e!s}", cause=e)
+            raise FileError(f"Failed to read JSON file: {e}", cause=e)
 
-    async def write(
-        self,
-        content: dict[str, Any],
-        path: PathLike,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
+    async def write(self, content: dict, output: PathLike) -> None:
         """Write JSON file"""
         try:
-            file_path = self._to_path(path)
-            json_str = orjson.dumps(
-                content,
-                option=orjson.OPT_INDENT_2 | orjson.OPT_SERIALIZE_NUMPY,
-            ).decode()
-            await self._write_text(json_str, file_path)
-            return file_path
+            path = self._to_path(output)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(content, f, indent=2)
         except Exception as e:
-            raise FileError(f"Failed to write JSON file: {e!s}", cause=e)
+            raise FileError(f"Failed to write JSON file: {e}", cause=e)
 
-    async def _read_content(self, path: Path) -> str:
-        """Read JSON content"""
-        return path.read_text()
-
-    async def _write_text(self, content: str, path: Path) -> None:
-        """Write text content"""
-        path.write_text(content)
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        pass

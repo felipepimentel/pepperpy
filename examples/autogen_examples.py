@@ -1,7 +1,6 @@
 """AutoGen examples demonstrating multi-agent collaboration"""
 
 import asyncio
-import os
 from typing import Optional, Union
 
 from pepperpy.ai import AIClient, AIConfig
@@ -85,14 +84,8 @@ async def demonstrate_code_development() -> None:
     try:
         await console.info("🤖 Initializing Development Team...")
 
-        # Criar configuração do AI
-        ai_config = AIConfig(
-            provider="openrouter",
-            api_key=os.getenv("OPENROUTER_API_KEY", ""),
-            model="anthropic/claude-3-sonnet",
-            temperature=0.7,
-            max_tokens=1000,
-        )
+        # Criar configuração do AI usando valores padrão do ambiente
+        ai_config = AIConfig()
 
         # Criar cliente AI
         client = AIClient(ai_config)
@@ -152,14 +145,8 @@ async def demonstrate_code_review() -> None:
     try:
         await console.info("🤖 Initializing Review Team...")
 
-        # Criar configuração do AI
-        ai_config = AIConfig(
-            provider="openrouter",
-            api_key=os.getenv("OPENROUTER_API_KEY", ""),
-            model="anthropic/claude-3-sonnet",
-            temperature=0.7,
-            max_tokens=1000,
-        )
+        # Criar configuração do AI usando valores padrão do ambiente
+        ai_config = AIConfig()
 
         # Criar cliente AI
         client = AIClient(ai_config)

@@ -1,76 +1,40 @@
 """PDF file handler implementation"""
 
-from io import BytesIO
-from pathlib import Path
-from typing import Any, cast
-
-from pypdf import PdfReader
-
 from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike, ensure_path
-from .base import FileHandler
+from ..types import FileContent, FileType, PathLike
+from .base import BaseFileHandler, FileHandler
 
 
-class PDFHandler(FileHandler[bytes]):
+class PDFHandler(BaseFileHandler, FileHandler[bytes]):
     """Handler for PDF files"""
 
-    async def read(self, path: PathLike) -> FileContent:
+    async def read(self, file: PathLike) -> FileContent[bytes]:
         """Read PDF file"""
         try:
-            file_path = ensure_path(path)
-            content = await self._read_content(file_path)
-
-            # Criar PDF reader para extrair informações
-            reader = PdfReader(BytesIO(content))
+            path = self._to_path(file)
+            with open(path, "rb") as f:
+                content = f.read()
 
             metadata = self._create_metadata(
-                path=file_path,
+                path=path,
                 file_type=FileType.DOCUMENT,
                 mime_type="application/pdf",
                 format_str="pdf",
-                metadata={
-                    "pages": len(reader.pages),
-                    "info": reader.metadata or {},
-                },
             )
 
             return FileContent(content=content, metadata=metadata)
-
         except Exception as e:
-            raise FileError(f"Failed to read PDF file: {e!s}", cause=e)
+            raise FileError(f"Failed to read PDF file: {e}", cause=e)
 
-    async def write(
-        self,
-        content: bytes,
-        path: PathLike,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
+    async def write(self, content: bytes, output: PathLike) -> None:
         """Write PDF file"""
         try:
-            file_path = Path(path)
-            await self._write_bytes(content, file_path)
-            return file_path
+            path = self._to_path(output)
+            with open(path, "wb") as f:
+                f.write(content)
         except Exception as e:
-            raise FileError(f"Failed to write PDF file: {e!s}", cause=e)
+            raise FileError(f"Failed to write PDF file: {e}", cause=e)
 
-    async def _read_content(self, path: Path) -> bytes:
-        """Read PDF content"""
-        return path.read_bytes()
-
-    async def _write_text(self, content: str, path: Path) -> None:
-        """Write text content"""
-        path.write_text(content)
-
-    async def _write_bytes(self, content: bytes, path: Path) -> None:
-        """Write binary content"""
-        path.write_bytes(content)
-
-    async def _parse_pdf(self, content: bytes) -> bytes:
-        """Parse PDF content"""
-        try:
-            # Criar um BytesIO para passar para o PdfReader
-            pdf_stream = BytesIO(content)
-            reader = PdfReader(pdf_stream)
-            return cast(bytes, reader)
-        except Exception as e:
-            raise FileError(f"Failed to parse PDF: {e!s}", cause=e)
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        pass

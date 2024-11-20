@@ -1,118 +1,53 @@
 """Image file handler implementation"""
 
-from io import BytesIO
-from pathlib import Path
-from typing import Any
-
-from PIL import Image, ImageFile
+from PIL import Image as PILImage
 
 from ..exceptions import FileError
 from ..types import FileContent, FileType, ImageInfo, PathLike
-from .base import FileHandler
+from .base import BaseFileHandler, FileHandler
 
 
-class ImageHandler(FileHandler[Image.Image]):
+class ImageHandler(BaseFileHandler, FileHandler[bytes]):
     """Handler for image files"""
 
-    async def read(self, path: PathLike) -> FileContent[Image.Image]:
+    async def read(self, file: PathLike) -> FileContent[bytes]:
         """Read image file"""
         try:
-            file_path = self._to_path(path)
-            content = await self._read_content(file_path)
-            image = Image.open(BytesIO(content))
+            path = self._to_path(file)
+            with open(path, "rb") as f:
+                content = f.read()
 
-            # Extrair informações da imagem
-            info = ImageInfo(
-                width=image.width,
-                height=image.height,
-                format=image.format or "",
-                mode=image.mode,
-                channels=len(image.getbands()),
-                bits=getattr(image, "bits", 8),
-                dpi=image.info.get("dpi"),
-            )
+            # Extract image info
+            with PILImage.open(path) as img:
+                image_info = ImageInfo(
+                    width=img.width,
+                    height=img.height,
+                    channels=len(img.getbands()),
+                    mode=img.mode,
+                    format=img.format or path.suffix[1:],
+                )
 
             metadata = self._create_metadata(
-                path=file_path,
+                path=path,
                 file_type=FileType.IMAGE,
-                mime_type=f"image/{image.format.lower()}" if image.format else "image/unknown",
-                format_str=image.format.lower() if image.format else "unknown",
-                metadata={
-                    "image_info": info,
-                    "original_info": dict(image.info),
-                },
+                mime_type=f"image/{path.suffix[1:]}",
+                format_str=path.suffix[1:],
+                extra={"image_info": image_info.to_dict()},
             )
 
-            return FileContent(content=image, metadata=metadata)
-
+            return FileContent(content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read image file: {e!s}", cause=e)
+            raise FileError(f"Failed to read image file: {e}", cause=e)
 
-    async def write(
-        self,
-        content: Image.Image,
-        path: PathLike,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
+    async def write(self, content: bytes, output: PathLike) -> None:
         """Write image file"""
         try:
-            file_path = self._to_path(path)
-
-            # Configurar opções de salvamento
-            save_kwargs = {}
-            if metadata:
-                save_kwargs.update(metadata)
-
-            # Salvar imagem
-            content.save(file_path, **save_kwargs)
-            return file_path
-
+            path = self._to_path(output)
+            with open(path, "wb") as f:
+                f.write(content)
         except Exception as e:
-            raise FileError(f"Failed to write image file: {e!s}", cause=e)
+            raise FileError(f"Failed to write image file: {e}", cause=e)
 
-    async def _read_content(self, path: Path) -> bytes:
-        """Read image content"""
-        return path.read_bytes()
-
-    async def _write_text(self, content: str, path: Path) -> None:
-        """Write text content"""
-        path.write_text(content)
-
-    async def _write_bytes(self, content: bytes, path: Path) -> None:
-        """Write binary content"""
-        path.write_bytes(content)
-
-    def optimize(
-        self,
-        image: Image.Image,
-        quality: int = 85,
-        max_size: tuple[int, int] | None = None,
-    ) -> Image.Image:
-        """
-        Optimize image
-
-        Args:
-            image: Image to optimize
-            quality: JPEG quality (1-100)
-            max_size: Maximum (width, height)
-
-        Returns:
-            Image.Image: Optimized image
-        """
-        try:
-            # Criar cópia para não modificar original
-            img = image.copy()
-
-            # Redimensionar se necessário
-            if max_size:
-                img.thumbnail(max_size)
-
-            # Otimizar
-            ImageFile.MAXBLOCK = img.size[0] * img.size[1]
-            opt_buffer = BytesIO()
-            img.save(opt_buffer, format=img.format, quality=quality, optimize=True)
-            opt_buffer.seek(0)
-            return Image.open(opt_buffer)
-
-        except Exception as e:
-            raise FileError(f"Failed to optimize image: {e!s}", cause=e)
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        pass

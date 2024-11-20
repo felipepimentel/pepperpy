@@ -1,68 +1,77 @@
 """AI client implementation"""
 
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Optional, Protocol
 
 from pepperpy.core.module import BaseModule
-from pepperpy.db.vector import VectorEngine
 
 from .config import AIConfig
 from .exceptions import AIError
 from .types import AIResponse
 
 
-class AIClient(BaseModule[AIConfig]):
-    """AI client implementation"""
+class AIProvider(Protocol):
+    """AI provider protocol"""
 
-    def __init__(self, config: AIConfig) -> None:
-        super().__init__(config)
-        self._vector_engine: VectorEngine | None = None
+    async def cleanup(self) -> None:
+        """Cleanup provider resources"""
+        ...
 
-    async def _initialize(self) -> None:
-        """Initialize client"""
-        if self.config.vector_enabled and not self._vector_engine and self.config.vector_config:
-            self._vector_engine = VectorEngine(self.config.vector_config)
-            await self._vector_engine.initialize()
+    async def complete(self, prompt: str, **kwargs: Any) -> str:
+        """Complete text"""
+        ...
 
-    async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        if self._vector_engine:
-            await self._vector_engine.cleanup()
-
-    async def complete(self, prompt: str) -> AIResponse:
-        """Complete text using AI model"""
-        if not self._initialized:
-            await self.initialize()
-
-        try:
-            return AIResponse(
-                content=f"AI response to: {prompt}",
-                model=self.config.model,
-            )
-        except Exception as e:
-            raise AIError(f"Completion failed: {e}", cause=e)
-
-    async def stream(self, prompt: str) -> AsyncGenerator[str, None]:
-        """Stream text generation results"""
-        if not self._initialized:
-            await self.initialize()
-
-        try:
-            # Implementação real aqui
-            yield f"Streaming response to: {prompt}"
-        except Exception as e:
-            raise AIError(f"Stream generation failed: {e}", cause=e)
+    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[str, None]:
+        """Stream text generation"""
+        ...
 
     async def get_embedding(self, text: str) -> list[float]:
         """Get text embedding"""
+        ...
+
+
+class AIClient(BaseModule[AIConfig]):
+    """AI client implementation"""
+
+    def __init__(self, config: Optional[AIConfig] = None) -> None:
+        """Initialize client"""
+        super().__init__(config or AIConfig.get_default())
+        self._provider: Optional[AIProvider] = None
+
+    async def _initialize(self) -> None:
+        """Initialize client"""
+        if self.config.vector_enabled and not self._provider:
+            # Initialize vector operations if enabled
+            pass
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        if self._provider:
+            await self._provider.cleanup()
+
+    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
+        """Complete text using AI"""
         if not self._initialized:
             await self.initialize()
 
         try:
-            # Implementação real aqui
-            # Retorna um vetor de exemplo com dimensão 1536 (padrão OpenAI)
-            return [0.0] * 1536
+            content = await self._provider.complete(prompt, **kwargs) if self._provider else prompt
+            return AIResponse(content=content)
         except Exception as e:
-            raise AIError(f"Embedding generation failed: {e}", cause=e)
+            raise AIError(f"Completion failed: {e}", cause=e)
+
+    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[str, None]:
+        """Stream text generation"""
+        if not self._initialized:
+            await self.initialize()
+
+        try:
+            if self._provider:
+                async for chunk in self._provider.stream(prompt, **kwargs):
+                    yield chunk
+            else:
+                yield prompt
+        except Exception as e:
+            raise AIError(f"Streaming failed: {e}", cause=e)
 
     async def find_similar(
         self,
@@ -71,38 +80,27 @@ class AIClient(BaseModule[AIConfig]):
         limit: int = 10,
         threshold: float = 0.8,
     ) -> list[dict[str, Any]]:
-        """Find similar texts by embedding"""
+        """Find similar texts"""
         if not self._initialized:
             await self.initialize()
 
         try:
-            if not self._vector_engine:
-                raise AIError("Vector engine not initialized")
-
-            # Gerar embedding para o texto de consulta
-            embedding = await self.get_embedding(text)
-
-            # Buscar vetores similares
-            results = await self._vector_engine.search_similar(
-                collection=collection,
-                query_vector=embedding,
-                limit=limit,
-                threshold=threshold,
-            )
-
-            return [
-                {
-                    "id": result.id,
-                    "similarity": result.similarity,
-                    "metadata": result.metadata,
-                }
-                for result in results
-            ]
+            if not self._provider:
+                raise AIError("Provider not initialized")
+            vectors = await self._provider.get_embedding(text)
+            # TODO: Implement similarity search using vectors
+            return [{"score": 0.0, "text": "", "vectors": vectors}]
         except Exception as e:
             raise AIError(f"Similarity search failed: {e}", cause=e)
 
-    async def cleanup(self) -> None:
-        """Cleanup resources"""
-        if self._vector_engine:
-            await self._vector_engine.cleanup()
-        self._initialized = False
+    async def get_embedding(self, text: str) -> list[float]:
+        """Get text embedding"""
+        if not self._initialized:
+            await self.initialize()
+
+        try:
+            if not self._provider:
+                raise AIError("Provider not initialized")
+            return await self._provider.get_embedding(text)
+        except Exception as e:
+            raise AIError(f"Embedding failed: {e}", cause=e)

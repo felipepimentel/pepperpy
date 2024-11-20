@@ -1,63 +1,42 @@
 """Configuration file handler implementation"""
 
-from pathlib import Path
-from typing import Any
-
-import tomli
-import tomli_w
+import json
 
 from ..exceptions import FileError
 from ..types import FileContent, FileType, PathLike
-from .base import FileHandler
+from .base import BaseFileHandler, FileHandler
 
 
-class ConfigHandler(FileHandler[dict[str, Any]]):
+class ConfigHandler(BaseFileHandler, FileHandler[dict]):
     """Handler for configuration files"""
 
-    async def read(self, path: PathLike) -> FileContent[dict[str, Any]]:
+    async def read(self, file: PathLike) -> FileContent[dict]:
         """Read configuration file"""
         try:
-            file_path = self._to_path(path)
-            content = await self._read_content(file_path)
+            path = self._to_path(file)
+            with open(path, "r", encoding="utf-8") as f:
+                content = json.load(f)
 
             metadata = self._create_metadata(
-                path=file_path,
+                path=path,
                 file_type=FileType.CONFIG,
-                mime_type="application/toml",
-                format_str="toml",
+                mime_type="application/json",
+                format_str="json",
             )
 
-            return FileContent(content=tomli.loads(content), metadata=metadata)
-
+            return FileContent(content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read config file: {e!s}", cause=e)
+            raise FileError(f"Failed to read config file: {e}", cause=e)
 
-    async def write(
-        self,
-        content: dict[str, Any],
-        path: PathLike,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
+    async def write(self, content: dict, output: PathLike) -> None:
         """Write configuration file"""
         try:
-            file_path = self._to_path(path)
-
-            # Convert to string
-            if file_path.suffix == ".toml":
-                data = tomli_w.dumps(content)
-            else:  # YAML
-                data = tomli_w.dumps(content)
-
-            await self._write_text(data, file_path)
-            return file_path
-
+            path = self._to_path(output)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(content, f, indent=2)
         except Exception as e:
-            raise FileError(f"Failed to write config file: {e!s}", cause=e)
+            raise FileError(f"Failed to write config file: {e}", cause=e)
 
-    async def _read_content(self, path: Path) -> str:
-        """Read configuration content"""
-        return path.read_text()
-
-    async def _write_text(self, content: str, path: Path) -> None:
-        """Write text content"""
-        path.write_text(content)
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        pass

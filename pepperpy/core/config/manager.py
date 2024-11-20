@@ -1,78 +1,38 @@
 """Configuration manager implementation"""
 
-from pathlib import Path
-from typing import Any
+from typing import Any, Optional, TypeVar
 
-from pepperpy.core.module import BaseModule
+from .settings import Settings, settings
 
-from .exceptions import ConfigError
-from .types import ConfigManagerConfig, ConfigSource
+ConfigT = TypeVar("ConfigT")
 
 
-class ConfigManager(BaseModule[ConfigManagerConfig]):
-    """Configuration manager implementation"""
+class ConfigManager:
+    """Configuration manager singleton"""
 
-    def __init__(self, config: ConfigManagerConfig) -> None:
-        super().__init__(config)
-        self._configs: dict[str, dict[str, Any]] = {}
+    _instance: Optional["ConfigManager"] = None
+    _settings: Settings
 
-    async def _initialize(self) -> None:
-        """Initialize configuration manager"""
-        if self.config.auto_load:
-            await self._load_configs()
+    def __new__(cls) -> "ConfigManager":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._settings = settings
+        return cls._instance
 
-    async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        self._configs.clear()
+    @classmethod
+    def get_settings(cls) -> Settings:
+        """Get global settings"""
+        return cls().settings
 
-    async def _load_configs(self) -> None:
-        """Load configurations from sources"""
-        try:
-            for source in self.config.sources:
-                await self._load_source(source)
-        except Exception as e:
-            raise ConfigError(f"Failed to load configurations: {e}", cause=e)
+    @property
+    def settings(self) -> Settings:
+        """Get settings instance"""
+        return self._settings
 
-    async def _load_source(self, source: ConfigSource) -> None:
-        """Load configuration from source"""
-        try:
-            if source.path:
-                await self._load_from_file(source.name, source.path)
-            elif source.data:
-                self._configs[source.name] = source.data
-        except Exception as e:
-            raise ConfigError(f"Failed to load source {source.name}: {e}", cause=e)
+    def get_config(self, config_class: type[ConfigT], **overrides: Any) -> ConfigT:
+        """Get configuration instance with optional overrides"""
+        return config_class(**overrides)
 
-    async def _load_from_file(self, name: str, path: Path) -> None:
-        """Load configuration from file"""
-        try:
-            # Implement file loading logic here
-            # Example: YAML, JSON, etc.
-            pass
-        except Exception as e:
-            raise ConfigError(f"Failed to load file {path}: {e}", cause=e)
 
-    async def get_config(self, source: str, key: str) -> Any:
-        """Get configuration value"""
-        if not self._initialized:
-            await self.initialize()
-
-        config = self._configs.get(source)
-        if not config:
-            raise ConfigError(f"Configuration source {source} not found")
-
-        value = config.get(key)
-        if value is None:
-            raise ConfigError(f"Configuration key {key} not found in {source}")
-
-        return value
-
-    async def set_config(self, source: str, key: str, value: Any) -> None:
-        """Set configuration value"""
-        if not self._initialized:
-            await self.initialize()
-
-        if source not in self._configs:
-            self._configs[source] = {}
-
-        self._configs[source][key] = value
+# Global configuration manager instance
+config_manager = ConfigManager()

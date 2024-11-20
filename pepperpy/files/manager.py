@@ -1,50 +1,64 @@
-"""File management implementation for handling file operations."""
+"""File manager implementation"""
 
 from pathlib import Path
-from typing import Literal, Union
+from typing import Any, Optional, TypeVar
 
-import aiofiles
-from aiofiles.threadpool.binary import AsyncBufferedIOBase
-from aiofiles.threadpool.text import AsyncTextIOWrapper
+from pepperpy.core.module import BaseModule
 
-from pepperpy.core.logging import get_logger
-
+from .config import FileManagerConfig
 from .exceptions import FileError
-from .types import PathLike
+from .handlers.base import FileHandler
 
-OpenMode = Literal["r", "w", "a", "x", "rb", "wb", "ab", "xb"]
+T = TypeVar("T")
 
 
-class FileManager:
-    """File manager implementation for handling file operations asynchronously."""
+class FileManager(BaseModule[FileManagerConfig]):
+    """File manager implementation"""
 
-    def __init__(self) -> None:
-        """Initialize file manager."""
-        self._logger = get_logger(__name__)
+    def __init__(self, config: Optional[FileManagerConfig] = None) -> None:
+        """Initialize manager"""
+        super().__init__(config or FileManagerConfig.get_default())
+        self._handlers: dict[str, FileHandler[Any]] = {}
 
-    def _to_path(self, path: PathLike) -> Path:
-        """Convert path-like object to Path."""
-        return Path(path)
+    async def _initialize(self) -> None:
+        """Initialize manager"""
+        # Initialize handlers based on config
+        pass
 
-    async def write_file(
-        self,
-        path: PathLike,
-        content: Union[str, bytes],
-        *,
-        mode: OpenMode = "w",
-    ) -> None:
-        """Write content to file asynchronously."""
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        for handler in self._handlers.values():
+            await handler.cleanup()
+        self._handlers.clear()
+
+    def register_handler(self, extension: str, handler: FileHandler[Any]) -> None:
+        """Register file handler"""
+        self._handlers[extension.lower()] = handler
+
+    async def read_file(self, path: Path) -> Any:
+        """Read file using appropriate handler"""
+        if not self._initialized:
+            await self.initialize()
+
         try:
-            file_path = self._to_path(path)
-            await self._write_async(file_path, content, mode)
+            extension = path.suffix.lower()
+            handler = self._handlers.get(extension)
+            if not handler:
+                raise FileError(f"No handler found for extension: {extension}")
+            return await handler.read(path)
         except Exception as e:
-            await self._logger.error(f"Failed to write file: {file_path}", error=str(e))
-            raise FileError(f"Failed to write file: {e}", cause=e)
+            raise FileError(f"Failed to read file: {e}", cause=e)
 
-    async def _write_async(self, path: Path, content: Union[str, bytes], mode: OpenMode) -> None:
-        """Write content to file asynchronously."""
-        async with aiofiles.open(path, mode=mode) as file:
-            if isinstance(file, AsyncTextIOWrapper):
-                await file.write(str(content))
-            elif isinstance(file, AsyncBufferedIOBase):
-                await file.write(content if isinstance(content, bytes) else str(content).encode())
+    async def write_file(self, content: Any, path: Path) -> None:
+        """Write file using appropriate handler"""
+        if not self._initialized:
+            await self.initialize()
+
+        try:
+            extension = path.suffix.lower()
+            handler = self._handlers.get(extension)
+            if not handler:
+                raise FileError(f"No handler found for extension: {extension}")
+            await handler.write(content, path)
+        except Exception as e:
+            raise FileError(f"Failed to write file: {e}", cause=e)

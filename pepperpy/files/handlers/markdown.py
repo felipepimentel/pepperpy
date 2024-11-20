@@ -1,58 +1,40 @@
 """Markdown file handler implementation"""
 
-from pathlib import Path
-from typing import Any
-
-import markdown
-
 from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike, ensure_path
-from .base import FileHandler
+from ..types import FileContent, FileType, PathLike
+from .base import BaseFileHandler, FileHandler
 
 
-class MarkdownHandler(FileHandler[str]):
-    """Handler for markdown files"""
+class MarkdownHandler(BaseFileHandler, FileHandler[str]):
+    """Handler for Markdown files"""
 
-    async def read(self, path: PathLike) -> FileContent:
-        """Read markdown file"""
+    async def read(self, file: PathLike) -> FileContent[str]:
+        """Read Markdown file"""
         try:
-            file_path = ensure_path(path)
-            content = await self._read_content(file_path)
+            path = self._to_path(file)
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
 
             metadata = self._create_metadata(
-                path=file_path,
+                path=path,
                 file_type=FileType.TEXT,
                 mime_type="text/markdown",
                 format_str="md",
             )
 
             return FileContent(content=content, metadata=metadata)
-
         except Exception as e:
-            raise FileError(f"Failed to read markdown file: {e!s}", cause=e)
+            raise FileError(f"Failed to read Markdown file: {e}", cause=e)
 
-    async def write(
-        self,
-        content: str,
-        path: PathLike,
-        metadata: dict[str, Any] | None = None,
-    ) -> Path:
-        """Write markdown file"""
+    async def write(self, content: str, output: PathLike) -> None:
+        """Write Markdown file"""
         try:
-            file_path = ensure_path(path)
-            await self._write_text(content, file_path)
-            return file_path
+            path = self._to_path(output)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(content)
         except Exception as e:
-            raise FileError(f"Failed to write markdown file: {e!s}", cause=e)
+            raise FileError(f"Failed to write Markdown file: {e}", cause=e)
 
-    async def _read_content(self, path: Path) -> str:
-        """Read markdown content"""
-        return path.read_text()
-
-    async def _write_text(self, content: str, path: Path) -> None:
-        """Write text content"""
-        path.write_text(content)
-
-    def to_html(self, content: str, **kwargs: Any) -> str:
-        """Convert markdown to HTML"""
-        return markdown.markdown(content, **kwargs)
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
