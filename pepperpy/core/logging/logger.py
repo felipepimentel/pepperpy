@@ -1,50 +1,54 @@
-"""Logging utilities"""
+"""Logger implementation"""
 
 import asyncio
-from dataclasses import asdict, dataclass
-from datetime import datetime
+import inspect
 from typing import Any
 
 from .exceptions import LogError
-from .formatters import JsonFormatter
-from .handlers import AsyncHandler
+from .handlers import BaseLogHandler
 from .types import LogLevel, LogRecord
 
 
-@dataclass
 class Logger:
-    """Logger implementation"""
+    """Async logger implementation"""
 
-    name: str
-    handlers: list[AsyncHandler]
-    formatter: JsonFormatter = JsonFormatter()
-    async_: bool = True
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self._handlers: list[BaseLogHandler] = []
+
+    def add_handler(self, handler: BaseLogHandler) -> None:
+        """Add log handler"""
+        self._handlers.append(handler)
 
     async def log(self, level: LogLevel, message: str, **metadata: Any) -> None:
-        """Log a message"""
+        """Log message with level and metadata"""
         try:
-            # Criar record
+            # Get caller info
+            frame = inspect.currentframe()
+            if frame is not None:
+                frame = frame.f_back
+            if frame is not None:
+                module = frame.f_globals.get("__name__", "")
+                function = frame.f_code.co_name
+                line = frame.f_lineno
+            else:
+                module = ""
+                function = ""
+                line = 0
+
             record = LogRecord(
                 level=level,
                 message=message,
-                timestamp=datetime.now(),
-                module=self.name,
-                function="",
-                line=0,
+                logger_name=self.name,
+                module=module,
+                function=function,
+                line=line,
                 metadata=metadata,
             )
 
-            # Converter para dict antes de passar para os handlers
-            record_dict = asdict(record)
-
-            if self.async_:
-                await asyncio.gather(
-                    *(handler.handle(record_dict) for handler in self.handlers)
-                )
-            else:
-                for handler in self.handlers:
-                    await handler.handle(record_dict)
-
+            await asyncio.gather(
+                *(handler.handle(record) for handler in self._handlers), return_exceptions=True
+            )
         except Exception as e:
             raise LogError(f"Failed to log message: {e!s}", cause=e)
 
@@ -69,15 +73,6 @@ class Logger:
         await self.log(LogLevel.CRITICAL, message, **metadata)
 
 
-_loggers: dict[str, Logger] = {}
-
-
-def get_logger(name: str, async_: bool = True) -> Logger:
-    """Get or create logger"""
-    if name not in _loggers:
-        _loggers[name] = Logger(
-            name=name,
-            handlers=[AsyncHandler()],
-            async_=async_,
-        )
-    return _loggers[name]
+def get_logger(name: str) -> Logger:
+    """Get logger instance"""
+    return Logger(name)

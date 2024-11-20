@@ -1,8 +1,15 @@
-"""Database module for PepperPy"""
+"""Database module"""
 
-from .client import DatabaseClient
-from .config import DatabaseConfig
+from .config import DatabaseConfig, DatabaseEngine
+from .engines import BaseEngine, get_engine
 from .exceptions import DatabaseError
 from .types import QueryResult
 
-__all__ = ["DatabaseClient", "DatabaseConfig", "DatabaseError", "QueryResult"]
+__all__ = [
+    "DatabaseConfig",
+    "DatabaseEngine",
+    "BaseEngine",
+    "get_engine",
+    "DatabaseError",
+    "QueryResult",
+]

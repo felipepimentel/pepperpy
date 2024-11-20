@@ -2,46 +2,35 @@
 
 from .analysis import AnalysisAgent, DataAnalystAgent, IntegrationAgent
 from .base import BaseAgent
-from .development import DevelopmentAgent
 from .factory import AgentFactory
-from .management import ComplianceAgent, DevOpsAgent, ProjectManagerAgent, QualityEngineerAgent
-from .researcher import ResearcherAgent
-from .specialized import (
-    CodeReviewAgent,
-    DocumentationAgent,
-    OptimizationAgent,
-    SecurityAgent,
-    TestingAgent,
+from .interfaces import (
+    AnalystAgent,
+    ArchitectAgent,
+    DeveloperAgent,
+    ProjectManagerAgent,
+    QAAgent,
+    ReviewerAgent,
 )
-from .types import AgentConfig, AssistantAgent, ExpertAgent, TeamAgent
+from .research import ResearchAgent
+from .types import AgentConfig, AgentRole, AgentType
 
 __all__ = [
     # Base
     "BaseAgent",
     "AgentConfig",
-    # Factory
     "AgentFactory",
-    # Analysis
+    # Agents
     "AnalysisAgent",
+    "AnalystAgent",
+    "ArchitectAgent",
     "DataAnalystAgent",
+    "DeveloperAgent",
     "IntegrationAgent",
-    # Development
-    "DevelopmentAgent",
-    # Management
     "ProjectManagerAgent",
-    "QualityEngineerAgent",
-    "DevOpsAgent",
-    "ComplianceAgent",
-    # Research
-    "ResearcherAgent",
-    # Specialized
-    "CodeReviewAgent",
-    "DocumentationAgent",
-    "OptimizationAgent",
-    "SecurityAgent",
-    "TestingAgent",
+    "QAAgent",
+    "ResearchAgent",
+    "ReviewerAgent",
     # Types
-    "AssistantAgent",
-    "ExpertAgent",
-    "TeamAgent",
+    "AgentRole",
+    "AgentType",
 ]

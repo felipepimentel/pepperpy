@@ -4,57 +4,35 @@ from .agents import (
     AgentConfig,
     AgentFactory,
     AnalysisAgent,
-    BaseAgent,
-    ComplianceAgent,
     DataAnalystAgent,
-    DevelopmentAgent,
-    DevOpsAgent,
-    DocumentationAgent,
     IntegrationAgent,
-    OptimizationAgent,
     ProjectManagerAgent,
-    QualityEngineerAgent,
-    SecurityAgent,
-    TestingAgent,
+    QAAgent,
+    ResearchAgent,
 )
 from .client import AIClient
-from .exceptions import AIError, ClientError, ConfigError
-from .functions import AIFunction, TextCompletion, TextGeneration
-from .types import AIConfig, AIMessage, AIResponse
+from .config import AIConfig, AIModel, AIProvider, ProviderType
+from .exceptions import AIError
+from .types import AIResponse
 
 __all__ = [
-    # Base
+    # Client
     "AIClient",
     "AIConfig",
-    "AIFunction",
+    "AIModel",
+    "AIProvider",
+    "ProviderType",
     # Agents
     "AgentConfig",
     "AgentFactory",
-    "BaseAgent",
-    # Analysis
     "AnalysisAgent",
     "DataAnalystAgent",
     "IntegrationAgent",
-    # Development
-    "DevelopmentAgent",
-    # Management
     "ProjectManagerAgent",
-    "QualityEngineerAgent",
-    "DevOpsAgent",
-    "ComplianceAgent",
-    # Specialized
-    "DocumentationAgent",
-    "OptimizationAgent",
-    "SecurityAgent",
-    "TestingAgent",
-    # Functions
-    "TextCompletion",
-    "TextGeneration",
+    "QAAgent",
+    "ResearchAgent",
     # Types
-    "AIMessage",
     "AIResponse",
     # Exceptions
     "AIError",
-    "ClientError",
-    "ConfigError",
 ]

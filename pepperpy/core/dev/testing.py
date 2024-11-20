@@ -1,64 +1,49 @@
 """Testing utilities"""
 
 import asyncio
-from typing import Any, Callable
+import functools
+from typing import Any, Callable, TypeVar
 
-from pepperpy.core.logging import get_logger
-
-logger = get_logger(__name__)
+T = TypeVar("T", bound=Callable[..., Any])
 
 
-async def async_test(
-    test_func: Callable[..., Any],
-    *args: Any,
-    **kwargs: Any,
-) -> None:
-    """Run async test function"""
+def async_test(func: T) -> T:
+    """Decorator for async test functions"""
+
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        """Run async function in event loop"""
+        return asyncio.run(func(*args, **kwargs))
+
+    return wrapper  # type: ignore
+
+
+class AsyncTestCase:
+    """Base class for async test cases"""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Set up test class"""
+        cls.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(cls.loop)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """Tear down test class"""
+        cls.loop.close()
+        asyncio.set_event_loop(None)
+
+    def run_async(self, coro: Any) -> Any:
+        """Run coroutine in test loop"""
+        return self.loop.run_until_complete(coro)
+
+
+def run_async(coro: Any) -> Any:
+    """Run coroutine in new event loop"""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     try:
-        await logger.info(f"Running test: {test_func.__name__}")
-        result = await test_func(*args, **kwargs)
-        await logger.info(
-            f"Test {test_func.__name__} completed",
-            result=result,
-        )
-    except Exception as e:
-        await logger.error(
-            f"Test {test_func.__name__} failed",
-            error=str(e),
-        )
-        raise
-
-
-def run_async_test(
-    test_func: Callable[..., Any],
-    *args: Any,
-    **kwargs: Any,
-) -> None:
-    """Run async test in event loop"""
-    try:
-        # Criar novo event loop para garantir execução limpa
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        try:
-            # Executar teste de forma síncrona
-            loop.run_until_complete(async_test(test_func, *args, **kwargs))
-        finally:
-            # Limpar recursos
-            loop.close()
-            
-    except Exception as e:
-        # Usar versão síncrona do logger para erro final
-        sync_logger = get_logger(__name__, async_=False)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(
-                sync_logger.error(
-                    f"Failed to run test {test_func.__name__}",
-                    error=str(e),
-                )
-            )
-        finally:
-            loop.close()
-        raise
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
+        asyncio.set_event_loop(None)

@@ -1,33 +1,39 @@
-"""AI types and constants"""
+"""AI type definitions"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 
-Role = Literal["user", "assistant", "system"]
+from pepperpy.core.types import JsonDict
 
-
-@dataclass
-class AIMessage:
-    """AI message"""
-    role: Role
-    content: str
-    metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.now)
+from .config import AIConfig
 
 
 @dataclass
 class AIResponse:
     """AI response"""
+
     content: str
-    metadata: dict[str, Any] = field(default_factory=dict)
+    model: str | None = None
+    usage: dict[str, int] | None = None
+    metadata: JsonDict = field(default_factory=dict)
 
 
 @dataclass
-class AIConfig:
-    """AI configuration"""
-    model: str
-    temperature: float = 0.7
-    max_tokens: int = 1000
-    stop_sequences: list[str] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
+class AIMessage:
+    """AI message"""
+
+    role: str
+    content: str
+    name: str | None = None
+    metadata: JsonDict = field(default_factory=dict)
+
+
+@dataclass
+class AgentConfig:
+    """Agent configuration"""
+
+    name: str
+    role: str
+    ai_config: AIConfig  # Usando AIConfig do módulo config
+    metadata: JsonDict = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)

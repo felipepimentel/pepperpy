@@ -9,7 +9,7 @@ from pepperpy.ai import (
     AIClient,
     AIConfig,
 )
-from pepperpy.ai.agents.interfaces import AnalystAgent, ResearcherAgent
+from pepperpy.ai.agents.interfaces import AnalystAgent, ResearchAgent
 from pepperpy.core.logging import get_logger
 
 console = get_logger(__name__)
@@ -44,10 +44,12 @@ async def demonstrate_complete_development() -> None:
         )
 
         # Create agents using factory with proper type casting
-        researcher = cast(ResearcherAgent,
-            AgentFactory.create_agent("researcher", client, researcher_config))
-        analyst = cast(AnalystAgent,
-            AgentFactory.create_agent("analyst", client, analyst_config))
+        researcher = cast(ResearchAgent, AgentFactory.create_agent("researcher", client, researcher_config))
+        analyst = cast(AnalystAgent, AgentFactory.create_agent("analyst", client, analyst_config))
+
+        # Initialize agents
+        await researcher.initialize()
+        await analyst.initialize()
 
         # Execute tasks
         research_task = "Research best practices for microservices architecture"
@@ -66,4 +68,4 @@ async def demonstrate_complete_development() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(demonstrate_complete_development()) 
+    asyncio.run(demonstrate_complete_development())

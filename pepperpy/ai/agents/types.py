@@ -1,43 +1,45 @@
 """Agent type definitions"""
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
-from ..types import AIConfig
+from pepperpy.core.types import JsonDict
+
+from ..config import AIConfig
+
+
+class AgentRole(str, Enum):
+    """Agent roles"""
+
+    ANALYST = "analyst"
+    ARCHITECT = "architect"
+    DEVELOPER = "developer"
+    MANAGER = "manager"
+    QA = "qa"
+    RESEARCHER = "researcher"
+    REVIEWER = "reviewer"
+
+
+class AgentType(str, Enum):
+    """Agent types"""
+
+    ANALYSIS = "analysis"
+    ARCHITECT = "architect"
+    DEVELOPER = "developer"
+    INTEGRATION = "integration"
+    MANAGER = "manager"
+    QA = "qa"
+    RESEARCH = "research"
+    REVIEWER = "reviewer"
 
 
 @dataclass
 class AgentConfig:
-    """Base agent configuration"""
+    """Agent configuration"""
 
     name: str
     role: str
     ai_config: AIConfig
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class AssistantAgent:
-    """Assistant agent configuration"""
-
-    config: AgentConfig
-    personality: str = "helpful"
-    expertise: list[str] = field(default_factory=list)
-
-
-@dataclass
-class ExpertAgent:
-    """Expert agent configuration"""
-
-    config: AgentConfig
-    domain: str
-    skills: list[str] = field(default_factory=list)
-
-
-@dataclass
-class TeamAgent:
-    """Team agent configuration"""
-
-    config: AgentConfig
-    members: list[str] = field(default_factory=list)
-    roles: dict[str, str] = field(default_factory=dict) 
+    metadata: JsonDict = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict) 

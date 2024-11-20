@@ -2,57 +2,35 @@
 
 from typing import Any
 
+from pepperpy.core.module import BaseModule
+
 from ..client import AIClient
-from ..exceptions import AIError
-from .analysis import AnalysisAgent
-from .architect import ArchitectAgent
+from .analysis import AnalysisAgent, DataAnalystAgent
 from .base import BaseAgent
-from .development import DevelopmentAgent
-from .management import ProjectManagerAgent
-from .qa import QAAgent
-from .researcher import ResearcherAgent
-from .specialized import (
-    CodeReviewAgent,
-    DocumentationAgent,
-    OptimizationAgent,
-    SecurityAgent,
-    TestingAgent,
-)
-from .types import AgentConfig
+from .research import ResearchAgent as ResearchAgentImpl
+from .types import AgentConfig, AgentType
 
 
-class AgentFactory:
+class AgentFactory(BaseModule):
     """Factory for creating agents"""
 
-    _agent_types = {
-        "researcher": ResearcherAgent,
-        "analyst": AnalysisAgent,
-        "architect": ArchitectAgent,
-        "project_manager": ProjectManagerAgent,
-        "developer": DevelopmentAgent,
-        "qa": QAAgent,
-        "reviewer": CodeReviewAgent,
-        "tester": TestingAgent,
-        "optimizer": OptimizationAgent,
-        "security": SecurityAgent,
-        "documentation": DocumentationAgent,
-    }
-
-    @classmethod
+    @staticmethod
     def create_agent(
-        cls,
         agent_type: str,
         client: AIClient,
-        config: AgentConfig | None = None,
+        config: AgentConfig,
         **kwargs: Any,
     ) -> BaseAgent:
         """Create agent instance"""
-        try:
-            if agent_type not in cls._agent_types:
-                raise AIError(f"Unknown agent type: {agent_type}")
+        agents = {
+            AgentType.ANALYSIS.value: AnalysisAgent,
+            AgentType.RESEARCH.value: ResearchAgentImpl,
+            "data_analyst": DataAnalystAgent,
+            "researcher": ResearchAgentImpl,  # Alias para research
+        }
 
-            agent_class = cls._agent_types[agent_type]
-            return agent_class(client=client, **kwargs)
+        agent_class = agents.get(agent_type)
+        if not agent_class:
+            raise ValueError(f"Unknown agent type: {agent_type}")
 
-        except Exception as e:
-            raise AIError(f"Failed to create agent: {e}", cause=e) 
+        return agent_class(client=client, config=config, **kwargs) 

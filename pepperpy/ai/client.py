@@ -1,7 +1,8 @@
 """AI client implementation"""
 
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, ClassVar
 
+from pepperpy.core.module import BaseModule
 from pepperpy.db.vector import VectorEngine
 
 from .config import AIConfig
@@ -9,73 +10,107 @@ from .exceptions import AIError
 from .types import AIResponse
 
 
-class AIClient:
-    """AI operations client"""
+class AIClient(BaseModule):
+    """AI client implementation"""
 
-    def __init__(self, config: AIConfig, vector_engine: VectorEngine | None = None) -> None:
-        self.config = config
-        self._vector_engine = vector_engine
+    _instance: ClassVar[Any | None] = None
+
+    def __init__(self, config: AIConfig | None = None) -> None:
+        self.config = config or AIConfig()
+        self._vector_engine: VectorEngine | None = None
+        self._initialized = False
+
+    @classmethod
+    async def create(cls, config: AIConfig | None = None) -> "AIClient":
+        """Create AI client instance"""
+        if not cls._instance:
+            cls._instance = cls(config)
+            await cls._instance.initialize()
+        return cls._instance
 
     async def initialize(self) -> None:
-        """Initialize AI client"""
-        if self._vector_engine:
-            await self._vector_engine.initialize()
+        """Initialize client"""
+        if self._initialized:
+            return
+        self._initialized = True
 
     async def complete(self, prompt: str) -> AIResponse:
         """Complete text using AI model"""
+        if not self._initialized:
+            await self.initialize()
+
         try:
-            # Implementation depends on the AI provider
-            raise NotImplementedError
+            # Implementação real aqui
+            return AIResponse(
+                content=f"AI response to: {prompt}",
+                model=self.config.model,
+            )
         except Exception as e:
             raise AIError(f"Completion failed: {e}", cause=e)
 
     async def stream(self, prompt: str) -> AsyncGenerator[str, None]:
-        """Stream completion results"""
+        """Stream text generation results"""
+        if not self._initialized:
+            await self.initialize()
+
         try:
-            # Implementation depends on the AI provider
-            raise NotImplementedError
-            yield ""  # Added to satisfy AsyncGenerator type
+            # Implementação real aqui
+            yield f"Streaming response to: {prompt}"
         except Exception as e:
-            raise AIError(f"Stream completion failed: {e}", cause=e)
+            raise AIError(f"Stream generation failed: {e}", cause=e)
 
     async def get_embedding(self, text: str) -> list[float]:
         """Get text embedding"""
-        try:
-            # Implementation depends on the AI provider
-            raise NotImplementedError
-        except Exception as e:
-            raise AIError(f"Failed to get embedding: {e}", cause=e)
-
-    async def store_embedding(
-        self, collection: str, text: str, metadata: dict[str, Any] | None = None
-    ) -> int:
-        """Store text embedding"""
-        if not self._vector_engine:
-            raise AIError("Vector engine not configured")
+        if not self._initialized:
+            await self.initialize()
 
         try:
-            embedding = await self.get_embedding(text)
-            [vector_id] = await self._vector_engine.store_vectors(
-                collection, [embedding], [metadata] if metadata else None
-            )
-            return vector_id
+            # Implementação real aqui
+            # Retorna um vetor de exemplo com dimensão 1536 (padrão OpenAI)
+            return [0.0] * 1536
         except Exception as e:
-            raise AIError(f"Failed to store embedding: {e}", cause=e)
+            raise AIError(f"Embedding generation failed: {e}", cause=e)
 
     async def find_similar(
-        self, collection: str, text: str, limit: int = 10, threshold: float = 0.8
+        self,
+        collection: str,
+        text: str,
+        limit: int = 10,
+        threshold: float = 0.8,
     ) -> list[dict[str, Any]]:
         """Find similar texts by embedding"""
-        if not self._vector_engine:
-            raise AIError("Vector engine not configured")
+        if not self._initialized:
+            await self.initialize()
 
         try:
-            query_embedding = await self.get_embedding(text)
+            if not self._vector_engine:
+                raise AIError("Vector engine not initialized")
+
+            # Gerar embedding para o texto de consulta
+            embedding = await self.get_embedding(text)
+
+            # Buscar vetores similares
             results = await self._vector_engine.search_similar(
-                collection, query_embedding, limit=limit, threshold=threshold
+                collection=collection,
+                query_vector=embedding,
+                limit=limit,
+                threshold=threshold,
             )
+
             return [
-                {"id": r.id, "similarity": r.similarity, "metadata": r.metadata} for r in results
+                {
+                    "id": result.id,
+                    "similarity": result.similarity,
+                    "metadata": result.metadata,
+                }
+                for result in results
             ]
         except Exception as e:
             raise AIError(f"Similarity search failed: {e}", cause=e)
+
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        if self._vector_engine:
+            await self._vector_engine.cleanup()
+        self._initialized = False
+        self.__class__._instance = None

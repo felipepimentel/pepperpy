@@ -1,6 +1,7 @@
 """Console module examples demonstrating UI, CLI, and Rich console features"""
 
 import asyncio
+from typing import Any
 
 from rich.text import Text
 
@@ -18,9 +19,15 @@ from pepperpy.console.ui import (
     Table,
     TableConfig,
 )
-from pepperpy.core.logging import get_logger
 
-logger = get_logger(__name__)
+
+async def render_and_print(console: Console, content: Any) -> None:
+    """Render and print content"""
+    if hasattr(content, "render"):
+        rendered = await content.render()
+        console.print(rendered)
+    else:
+        console.print(content)
 
 
 async def demo_chat_view() -> None:
@@ -57,7 +64,7 @@ async def demo_chat_view() -> None:
     )
 
     console = Console()
-    await console.print(panel)
+    await render_and_print(console, panel)
 
 
 async def demo_progress_bar() -> None:
@@ -83,7 +90,7 @@ async def demo_progress_bar() -> None:
         for i in range(start, end + 1, 5):
             progress.set_progress(i, f"{desc} ({i}%)")
             console.clear()
-            await console.print(panel)
+            await render_and_print(console, panel)
             await asyncio.sleep(0.2)
 
 
@@ -157,7 +164,7 @@ async def demo_form() -> None:
     )
 
     console = Console()
-    await console.print(layout)
+    await render_and_print(console, layout)
 
 
 async def demo_list_view() -> None:
@@ -178,14 +185,9 @@ async def demo_list_view() -> None:
 
     # Criar tabela de estatísticas com configuração adequada
     stats_table = Table(
-        TableConfig(
-            title="Task Statistics",
-            style="cyan",
-            show_header=True,
-            padding=(0, 1)
-        )
+        TableConfig(title="Task Statistics", style="cyan", show_header=True, padding=(0, 1))
     )
-    
+
     stats_table.add_column("Category", style="cyan")
     stats_table.add_column("Count", align="right", style="green")
 
@@ -203,26 +205,18 @@ async def demo_list_view() -> None:
     await layout.split(
         Panel(
             content=list_view,
-            config=PanelConfig(
-                title="Task List",
-                style="blue",
-                border_style="double"
-            )
+            config=PanelConfig(title="Task List", style="blue", border_style="double"),
         ),
         Panel(
             content=stats_table,
-            config=PanelConfig(
-                title="Statistics",
-                style="cyan",
-                border_style="rounded"
-            )
+            config=PanelConfig(title="Statistics", style="cyan", border_style="rounded"),
         ),
         direction="horizontal",
         ratios=[2, 1],
     )
 
     console = Console()
-    await console.print(layout)
+    await render_and_print(console, layout)
 
 
 async def demo_dialog() -> None:
@@ -241,13 +235,7 @@ async def demo_dialog() -> None:
     ]
 
     # Criar tabela de mudanças
-    changes_table = Table(
-        TableConfig(
-            style="cyan",
-            show_header=False,
-            padding=(0, 1)
-        )
-    )
+    changes_table = Table(TableConfig(style="cyan", show_header=False, padding=(0, 1)))
     changes_table.add_column("Change", style="cyan")
 
     for change in changes:
@@ -255,9 +243,7 @@ async def demo_dialog() -> None:
 
     # Criar o conteúdo completo
     content_text = (
-        f"Current version: {current_version}\n"
-        f"New version: {new_version}\n\n"
-        "Changes:\n"
+        f"Current version: {current_version}\n" f"New version: {new_version}\n\n" "Changes:\n"
     )
 
     # Criar um Text para combinar texto e tabela
@@ -279,7 +265,7 @@ async def demo_dialog() -> None:
     dialog.add_button("⏳ Remind Later", on_cancel, style="yellow")
 
     console = Console()
-    await console.print(dialog)
+    await render_and_print(console, dialog)
 
 
 if __name__ == "__main__":

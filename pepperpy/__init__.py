@@ -1,13 +1,17 @@
-"""PepperPy - Python AI Development Framework"""
+"""PepperPy Framework"""
 
-from pepperpy.ai import AIClient
-from pepperpy.core.config import AIConfig, PepperConfig, load_config
+__version__ = "0.1.0"
 
-__version__ = "1.0.0"
+# Lazy imports
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .ai import AIClient
+    from .console import Console
+    from .db import DatabaseConfig
 
 __all__ = [
     "AIClient",
-    "AIConfig",
-    "PepperConfig",
-    "load_config",
+    "Console", 
+    "DatabaseConfig",
 ]

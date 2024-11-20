@@ -28,6 +28,7 @@ async def demonstrate_advanced_team() -> None:
 
         # Create AI configuration
         ai_config = AIConfig(
+            provider="openrouter",
             model="anthropic/claude-3-sonnet",
             temperature=0.7,
             max_tokens=1000,
@@ -75,15 +76,27 @@ async def demonstrate_advanced_team() -> None:
 
         # Create agents with proper type casting
         architect = cast(
-            ArchitectAgent, AgentFactory.create_agent("architect", client, architect_config)
+            ArchitectAgent,
+            AgentFactory.create_agent("architect", client, architect_config)
         )
         developer = cast(
-            DeveloperAgent, AgentFactory.create_agent("developer", client, developer_config)
+            DeveloperAgent,
+            AgentFactory.create_agent("developer", client, developer_config)
         )
         reviewer = cast(
-            ReviewerAgent, AgentFactory.create_agent("reviewer", client, reviewer_config)
+            ReviewerAgent,
+            AgentFactory.create_agent("reviewer", client, reviewer_config)
         )
-        qa = cast(QAAgent, AgentFactory.create_agent("qa", client, qa_config))
+        qa = cast(
+            QAAgent,
+            AgentFactory.create_agent("qa", client, qa_config)
+        )
+
+        # Initialize agents
+        await architect.initialize()
+        await developer.initialize()
+        await reviewer.initialize()
+        await qa.initialize()
 
         # Create and store team reference
         team = AgentTeam(
