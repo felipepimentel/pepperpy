@@ -1,41 +1,63 @@
-"""LLM provider factory"""
+"""LLM factory implementation"""
 
-from enum import Enum
-from typing import Type
+from typing import Any
 
-from .config import BaseConfig, OpenAIConfig, OpenRouterConfig, StackSpotConfig
-from .providers import BaseLLMProvider, OpenAIProvider, OpenRouterProvider, StackSpotProvider
-
-
-class ProviderType(str, Enum):
-    """Available provider types"""
-
-    OPENAI = "openai"
-    OPENROUTER = "openrouter"
-    STACKSPOT = "stackspot"
+from .client import LLMClient
+from .config import LLMConfig, LLMProvider
+from .exceptions import LLMError
 
 
-class ProviderFactory:
-    """Factory for creating LLM providers"""
+class LLMFactory:
+    """Factory for creating LLM clients"""
 
-    _providers: dict[str, tuple[Type[BaseLLMProvider], Type[BaseConfig]]] = {
-        ProviderType.OPENAI: (OpenAIProvider, OpenAIConfig),
-        ProviderType.OPENROUTER: (OpenRouterProvider, OpenRouterConfig),
-        ProviderType.STACKSPOT: (StackSpotProvider, StackSpotConfig),
-    }
+    @staticmethod
+    def create_client(config: LLMConfig, **kwargs: Any) -> LLMClient:
+        """Create LLM client instance.
+        
+        Args:
+            config: LLM configuration
+            **kwargs: Additional arguments
+            
+        Returns:
+            LLMClient: Configured LLM client
+            
+        Raises:
+            LLMError: If provider is not supported
+        """
+        try:
+            return LLMClient(config)
+        except Exception as e:
+            raise LLMError(f"Failed to create LLM client: {e}", cause=e)
 
-    @classmethod
-    def get_provider(cls, provider_type: str, config: BaseConfig) -> BaseLLMProvider:
-        """Get provider instance"""
-        if provider_type not in cls._providers:
-            raise ValueError(f"Unsupported provider type: {provider_type}")
-
-        provider_class, config_class = cls._providers[provider_type]
-
-        if not isinstance(config, config_class):
-            raise ValueError(
-                f"Invalid configuration type. Expected {config_class.__name__}, "
-                f"got {type(config).__name__}"
+    @staticmethod
+    def create_config(
+        name: str,
+        provider: str | LLMProvider,
+        model: str,
+        **kwargs: Any
+    ) -> LLMConfig:
+        """Create LLM configuration.
+        
+        Args:
+            name: Configuration name
+            provider: LLM provider name or enum
+            model: Model name
+            **kwargs: Additional configuration options
+            
+        Returns:
+            LLMConfig: LLM configuration
+            
+        Raises:
+            LLMError: If provider is not supported
+        """
+        try:
+            if isinstance(provider, str):
+                provider = LLMProvider(provider)
+            return LLMConfig(
+                name=name,
+                provider=provider,
+                model=model,
+                **kwargs
             )
-
-        return provider_class(config)
+        except Exception as e:
+            raise LLMError(f"Failed to create LLM config: {e}", cause=e)

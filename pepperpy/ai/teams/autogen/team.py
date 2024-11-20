@@ -5,11 +5,11 @@ from typing import Any
 from pepperpy.core.module import BaseModule
 
 from ...client import AIClient
-from ..interfaces import BaseTeam, TeamAgent, TeamTool
+from ..interfaces import TeamAgent, TeamTool
 from ..types import TeamConfig, TeamResult
 
 
-class AutoGenTeam(BaseTeam, BaseModule):
+class AutoGenTeam(BaseModule[TeamConfig]):
     """AutoGen team implementation"""
 
     def __init__(
@@ -18,26 +18,18 @@ class AutoGenTeam(BaseTeam, BaseModule):
         ai_client: AIClient | None = None,
         **kwargs: Any,
     ) -> None:
-        self.config = config
+        super().__init__(config)
         self._ai_client = ai_client
         self._agents: list[TeamAgent] = []
         self._tools: list[TeamTool] = []
-        self._initialized = False
 
-    async def initialize(self) -> None:
+    async def _initialize(self) -> None:
         """Initialize team"""
-        if self._initialized:
-            return
+        pass
 
-        # Initialize agents
-        for agent in self._agents:
-            await agent.initialize()
-
-        # Initialize tools
-        for tool in self._tools:
-            await tool.initialize()
-
-        self._initialized = True
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
 
     async def execute(self, task: str, **kwargs: Any) -> TeamResult:
         """Execute team task"""
@@ -46,7 +38,6 @@ class AutoGenTeam(BaseTeam, BaseModule):
 
         try:
             # Implement AutoGen-specific execution logic here
-            # This would integrate with the actual AutoGen framework
             return TeamResult(
                 success=True,
                 output="AutoGen execution result",
@@ -70,11 +61,4 @@ class AutoGenTeam(BaseTeam, BaseModule):
         self._tools.append(tool)
         if self._initialized:
             await tool.initialize()
-
-    async def cleanup(self) -> None:
-        """Cleanup team resources"""
-        for agent in self._agents:
-            await agent.cleanup()
-        for tool in self._tools:
-            await tool.cleanup()
-        self._initialized = False 
+ 

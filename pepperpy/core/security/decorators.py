@@ -1,33 +1,38 @@
-"""Security decorators implementation"""
+"""Security decorators"""
 
 import functools
-from collections.abc import Callable
-from typing import Any, TypeVar, cast
+from typing import Any, Callable, TypeVar, cast
 
-from .exceptions import AuthError
+from .context_manager import get_security_context
+from .exceptions import SecurityError
 
 T = TypeVar("T", bound=Callable[..., Any])
 
 
-def require_permission(permission: str) -> Callable[[T], T]:
-    """
-    Require specific permission to access function
+def require_auth(func: T) -> T:
+    """Require authentication decorator"""
 
-    Args:
-        permission: Required permission name
+    @functools.wraps(func)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        context = get_security_context()
+        if not context:
+            raise SecurityError("Authentication required")
+        return await func(*args, **kwargs)
 
-    Returns:
-        Callable[[T], T]: Decorated function
+    return cast(T, wrapper)
 
-    """
+
+def require_roles(*roles: str) -> Callable[[T], T]:
+    """Require roles decorator"""
 
     def decorator(func: T) -> T:
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            from .context import security_context
-
-            if not await security_context.has_permission(permission):
-                raise AuthError(f"Missing required permission: {permission}")
+            context = get_security_context()
+            if not context:
+                raise SecurityError("Authentication required")
+            if not any(role in context.roles for role in roles):
+                raise SecurityError(f"Required roles: {roles}")
             return await func(*args, **kwargs)
 
         return cast(T, wrapper)
@@ -35,25 +40,17 @@ def require_permission(permission: str) -> Callable[[T], T]:
     return decorator
 
 
-def require_role(role: str) -> Callable[[T], T]:
-    """
-    Require specific role to access function
-
-    Args:
-        role: Required role name
-
-    Returns:
-        Callable[[T], T]: Decorated function
-
-    """
+def require_permissions(*permissions: str) -> Callable[[T], T]:
+    """Require permissions decorator"""
 
     def decorator(func: T) -> T:
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            from .context import security_context
-
-            if not await security_context.has_role(role):
-                raise AuthError(f"Missing required role: {role}")
+            context = get_security_context()
+            if not context:
+                raise SecurityError("Authentication required")
+            if not all(perm in context.permissions for perm in permissions):
+                raise SecurityError(f"Required permissions: {permissions}")
             return await func(*args, **kwargs)
 
         return cast(T, wrapper)
@@ -61,51 +58,16 @@ def require_role(role: str) -> Callable[[T], T]:
     return decorator
 
 
-def authenticated() -> Callable[[T], T]:
-    """
-    Require authentication to access function
+def require_active(func: T) -> T:
+    """Require active user decorator"""
 
-    Returns:
-        Callable[[T], T]: Decorated function
+    @functools.wraps(func)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        context = get_security_context()
+        if not context:
+            raise SecurityError("Authentication required")
+        if not context.active:
+            raise SecurityError("User account is not active")
+        return await func(*args, **kwargs)
 
-    """
-
-    def decorator(func: T) -> T:
-        @functools.wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            from .context import security_context
-
-            if not await security_context.is_authenticated():
-                raise AuthError("Authentication required")
-            return await func(*args, **kwargs)
-
-        return cast(T, wrapper)
-
-    return decorator
-
-
-def require_any_role(roles: list[str]) -> Callable[[T], T]:
-    """
-    Require any of the specified roles to access function
-
-    Args:
-        roles: List of acceptable roles
-
-    Returns:
-        Callable[[T], T]: Decorated function
-
-    """
-
-    def decorator(func: T) -> T:
-        @functools.wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            from .context import security_context
-
-            for role in roles:
-                if await security_context.has_role(role):
-                    return await func(*args, **kwargs)
-            raise AuthError(f"Missing any required role: {roles}")
-
-        return cast(T, wrapper)
-
-    return decorator
+    return cast(T, wrapper)

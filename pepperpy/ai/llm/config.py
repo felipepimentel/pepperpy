@@ -1,93 +1,78 @@
 """LLM configuration"""
 
-from dataclasses import asdict, dataclass
-from typing import Any
+from dataclasses import dataclass, field
+from enum import Enum
+
+from pepperpy.core.types import JsonDict
+
+
+class LLMProvider(str, Enum):
+    """LLM provider types"""
+
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    COHERE = "cohere"
+    OPENROUTER = "openrouter"
+    STACKSPOT = "stackspot"
 
 
 @dataclass
-class BaseConfig:
-    """Base configuration for LLM providers"""
+class BaseLLMConfig:
+    """Base LLM configuration"""
 
+    name: str
     api_key: str
+    enabled: bool = True
+    api_base: str | None = None
+    timeout: float = 30.0
+    retry_attempts: int = 3
+    retry_delay: float = 1.0
+    metadata: JsonDict = field(default_factory=dict)
+
+
+@dataclass
+class OpenAIConfig(BaseLLMConfig):
+    """OpenAI provider configuration"""
+
+    organization: str | None = None
+    model: str = "gpt-4"
+
+
+@dataclass
+class OpenRouterConfig(BaseLLMConfig):
+    """OpenRouter provider configuration"""
+
+    model: str = "anthropic/claude-3-sonnet"
+    route_prefix: str | None = None
+
+
+@dataclass
+class StackSpotConfig(BaseLLMConfig):
+    """StackSpot provider configuration"""
+
+    model: str = "stackspot/stackspot-ai"
+    workspace: str | None = None
+
+
+@dataclass
+class LLMConfig:
+    """LLM configuration"""
+
+    name: str
     model: str
-    provider: str
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert config to dictionary"""
-        return asdict(self)
-
-
-@dataclass
-class OpenAIConfig(BaseConfig):
-    """OpenAI configuration"""
-
-    def __init__(
-        self,
-        api_key: str,
-        model: str,
-        temperature: float = 0.7,
-        max_tokens: int = 1000,
-    ) -> None:
-        super().__init__(
-            api_key=api_key,
-            model=model,
-            provider="openai",
-        )
-        self.temperature = temperature
-        self.max_tokens = max_tokens
-
-
-@dataclass
-class OpenRouterConfig(BaseConfig):
-    """OpenRouter configuration"""
-
-    def __init__(
-        self,
-        api_key: str,
-        model: str,
-        temperature: float = 0.7,
-        generation_config: dict[str, Any] | None = None,
-        site_url: str | None = None,
-        site_name: str | None = None,
-        timeout: int = 30,
-    ) -> None:
-        super().__init__(
-            api_key=api_key,
-            model=model,
-            provider="openrouter",
-        )
-        self.temperature = temperature
-        self.generation_config = generation_config or {}
-        self.site_url = site_url
-        self.site_name = site_name
-        self.timeout = timeout
-
-
-@dataclass
-class StackSpotConfig(BaseConfig):
-    """StackSpot configuration"""
-
-    def __init__(
-        self,
-        api_key: str,
-        model: str,
-        temperature: float = 0.7,
-        max_tokens: int = 1000,
-        base_url: str = "https://api.stackspot.com",
-        auth_url: str = "https://auth.stackspot.com",
-        account_slug: str = "default",
-        client_id: str = "",
-        client_key: str = "",
-    ) -> None:
-        super().__init__(
-            api_key=api_key,
-            model=model,
-            provider="stackspot",
-        )
-        self.temperature = temperature
-        self.max_tokens = max_tokens
-        self.base_url = base_url
-        self.auth_url = auth_url
-        self.account_slug = account_slug
-        self.client_id = client_id
-        self.client_key = client_key
+    provider: LLMProvider
+    enabled: bool = True
+    api_key: str | None = None
+    api_base: str | None = None
+    temperature: float = 0.7
+    max_tokens: int = 1000
+    top_p: float = 1.0
+    frequency_penalty: float = 0.0
+    presence_penalty: float = 0.0
+    stop_sequences: list[str] = field(default_factory=list)
+    timeout: float = 30.0
+    retry_attempts: int = 3
+    retry_delay: float = 1.0
+    cache_enabled: bool = True
+    cache_ttl: int = 3600  # 1 hour
+    metadata: JsonDict = field(default_factory=dict)

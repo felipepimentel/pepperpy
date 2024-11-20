@@ -1,110 +1,62 @@
 """LLM client implementation"""
 
-from collections.abc import AsyncIterator
+from typing import Any, AsyncGenerator
 
-from pepperpy.core.module import BaseModule, ModuleMetadata
+from pepperpy.core.module import BaseModule
 
-from .config import BaseConfig
+from .config import LLMConfig
 from .exceptions import LLMError
-from .factory import ProviderFactory
-from .types import LLMResponse, Message
+from .types import LLMResponse
 
 
-class LLMClient(BaseModule):
-    """Client for language model operations"""
+class LLMClient(BaseModule[LLMConfig]):
+    """LLM client implementation"""
 
-    def __init__(self, config: BaseConfig | None = None) -> None:
-        """
-        Initialize LLM client
-
-        Args:
-            config: Provider configuration
-
-        """
-        super().__init__()
-        self._config: BaseConfig | None = None
+    def __init__(self, config: LLMConfig) -> None:
+        super().__init__(config)
         self._provider = None
 
-        # Configurar o módulo
-        self.metadata = ModuleMetadata(
-            name="llm",
-            version="1.0.0",
-            description="Language model operations",
-            dependencies=[],
-            config=config.to_dict() if config else {},
-        )
-
-        # Configurar o provider após metadata para evitar problemas de tipagem
-        if config:
-            self._config = config
-
-    @property
-    def config(self) -> BaseConfig | None:
-        """Get provider configuration"""
-        return self._config
-
-    async def _setup(self) -> None:
-        """Initialize LLM provider"""
+    async def _initialize(self) -> None:
+        """Initialize LLM client"""
         try:
-            if not self._config:
-                raise LLMError("Configuration is required")
-
-            # Usar o provider type do config para criar o provider
-            provider_type = self._config.provider
-            self._provider = ProviderFactory.get_provider(provider_type, self._config)
-            try:
-                await self._provider.initialize()
-            except Exception as e:
-                raise LLMError(f"Provider initialization failed: {e!s}", cause=e)
+            # Initialize provider based on config
+            self._provider = self._create_provider()
+            await self._provider.initialize()
         except Exception as e:
-            raise LLMError(f"Failed to initialize LLM provider: {e!s}", cause=e)
+            raise LLMError(f"Failed to initialize LLM client: {e}", cause=e)
 
     async def _cleanup(self) -> None:
-        """Cleanup LLM resources"""
+        """Cleanup resources"""
         if self._provider:
             await self._provider.cleanup()
+        self._provider = None
 
-    async def complete(self, messages: list[Message]) -> LLMResponse:
-        """
-        Generate completion from messages
-
-        Args:
-            messages: List of messages to process
-
-        Returns:
-            LLMResponse: Generated response
-
-        Raises:
-            LLMError: If provider is not initialized or completion fails
-
-        """
-        if not self._provider:
-            raise LLMError("LLM provider not initialized")
-        return await self._provider.complete(messages)
-
-    async def stream(self, messages: list[Message]) -> AsyncIterator[LLMResponse]:
-        """
-        Stream responses from messages
-
-        Args:
-            messages: List of messages to process
-
-        Yields:
-            LLMResponse: Generated response chunks
-
-        Raises:
-            LLMError: If provider is not initialized or streaming fails
-
-        """
-        if not self._provider:
-            raise LLMError("LLM provider not initialized")
+    async def complete(self, prompt: str, **kwargs: Any) -> LLMResponse:
+        """Complete text using LLM"""
+        if not self._initialized:
+            await self.initialize()
 
         try:
-            async for response in self._provider.stream(messages):
-                yield response
+            if not self._provider:
+                raise LLMError("Provider not initialized")
+            return await self._provider.complete(prompt, **kwargs)
         except Exception as e:
-            raise LLMError(f"Failed to stream responses: {e!s}", cause=e)
+            raise LLMError(f"Completion failed: {e}", cause=e)
 
+    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[str, None]:
+        """Stream text generation"""
+        if not self._initialized:
+            await self.initialize()
 
-# Global client instance
-client = LLMClient()
+        try:
+            if not self._provider:
+                raise LLMError("Provider not initialized")
+            async for token in self._provider.stream(prompt, **kwargs):
+                yield token
+        except Exception as e:
+            raise LLMError(f"Streaming failed: {e}", cause=e)
+
+    def _create_provider(self) -> Any:
+        """Create LLM provider based on config"""
+        # Implement provider creation logic here
+        raise NotImplementedError

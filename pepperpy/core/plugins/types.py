@@ -1,21 +1,32 @@
 """Plugin type definitions"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any, Protocol
+
+from pepperpy.core.types import JsonDict
 
 
 @dataclass
-class PluginMetadata:
-    """Plugin metadata"""
+class PluginConfig:
+    """Plugin configuration"""
 
     name: str
-    version: str
-    description: str
-    dependencies: list[str]
+    enabled: bool = True
+    auto_load: bool = True
+    metadata: JsonDict = field(default_factory=dict)
 
 
-@dataclass
-class Plugin:
-    """Plugin information"""
+class Plugin(Protocol):
+    """Plugin protocol"""
 
-    metadata: PluginMetadata
-    class_: type
+    async def initialize(self) -> None:
+        """Initialize plugin"""
+        ...
+
+    async def execute(self, **kwargs: Any) -> Any:
+        """Execute plugin"""
+        ...
+
+    async def cleanup(self) -> None:
+        """Cleanup plugin resources"""
+        ...

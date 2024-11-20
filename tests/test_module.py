@@ -1,63 +1,80 @@
-"""Test base module functionality"""
-
-from dataclasses import asdict
+"""Test base module implementation"""
 
 import pytest
 
-from pepperpy.core.config import ModuleConfig
+from pepperpy.core.dev import AsyncTestCase, async_test
 from pepperpy.core.module import BaseModule, ModuleStatus
+from pepperpy.core.types import JsonDict
 
 
-class DummyModule(BaseModule):
-    """Test implementation of BaseModule"""
+class TestConfig:
+    """Test configuration"""
 
-    __module_name__ = "test_module"
+    def __init__(self, name: str = "test") -> None:
+        self.name = name
+        self.metadata: JsonDict = {}
 
-    async def _setup(self) -> None:
-        """Setup test module"""
-        self._status = ModuleStatus.ACTIVE
+
+class TestModuleImpl(BaseModule[TestConfig]):
+    """Concrete implementation for testing"""
+
+    def __init__(self) -> None:
+        super().__init__(TestConfig())
+
+    async def _initialize(self) -> None:
+        """Initialize implementation"""
+        pass
 
     async def _cleanup(self) -> None:
-        """Cleanup test module"""
-        self._status = ModuleStatus.INACTIVE
+        """Cleanup implementation"""
+        pass
 
 
-@pytest.fixture
-def base_config() -> ModuleConfig:
-    """Provide base module configuration"""
-    return ModuleConfig(
-        name="test_module",
-        version="1.0.0",
-        debug=True,
-    )
+class ErrorModuleImpl(BaseModule[TestConfig]):
+    """Error module implementation"""
+
+    def __init__(self) -> None:
+        super().__init__(TestConfig())
+
+    async def _initialize(self) -> None:
+        """Initialize with error"""
+        raise ValueError("Test error")
+
+    async def _cleanup(self) -> None:
+        """Cleanup implementation"""
+        pass
 
 
-@pytest.mark.asyncio
-async def test_base_module_initialization(base_config: ModuleConfig):
-    """Test base module initialization"""
-    module = DummyModule()
-    module.config = asdict(base_config)
-    assert module.status == ModuleStatus.INACTIVE
-    await module.initialize()
-    assert module.status == ModuleStatus.ACTIVE
+class TestModule(AsyncTestCase):
+    """Test base module"""
 
+    @async_test
+    async def test_initialization(self) -> None:
+        """Test module initialization"""
+        module = TestModuleImpl()
+        assert module.status == ModuleStatus.UNINITIALIZED
+        assert not module.is_initialized
 
-@pytest.mark.asyncio
-async def test_base_module_cleanup(base_config: ModuleConfig):
-    """Test base module cleanup"""
-    module = DummyModule()
-    module.config = asdict(base_config)
-    await module.initialize()
-    assert module.status == ModuleStatus.ACTIVE
-    await module.cleanup()
-    assert module.status == ModuleStatus.INACTIVE
+        await module.initialize()
+        assert module.status == ModuleStatus.INITIALIZED
+        assert module.is_initialized
 
+    @async_test
+    async def test_cleanup(self) -> None:
+        """Test module cleanup"""
+        module = TestModuleImpl()
+        await module.initialize()
+        assert module.status == ModuleStatus.INITIALIZED
 
-@pytest.mark.asyncio
-async def test_base_module_config(base_config: ModuleConfig):
-    """Test base module configuration"""
-    module = DummyModule()
-    config_dict = asdict(base_config)
-    module.config = config_dict
-    assert module.config == config_dict
-    assert module.config["debug"] is True
+        await module.cleanup()
+        assert module.status == ModuleStatus.TERMINATED
+        assert not module.is_initialized
+
+    @async_test
+    async def test_error_handling(self) -> None:
+        """Test module error handling"""
+        module = ErrorModuleImpl()
+        with pytest.raises(ValueError):
+            await module.initialize()
+        assert module.status == ModuleStatus.ERROR
+        assert not module.is_initialized

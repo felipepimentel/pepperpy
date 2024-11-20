@@ -1,53 +1,49 @@
 """Network type definitions"""
 
-import json
-from dataclasses import dataclass
-from typing import Any
+from dataclasses import dataclass, field
+from typing import Any, Protocol
 
-from aiohttp import ClientWebSocketResponse
+from pepperpy.core.types import JsonDict
 
 
 @dataclass
-class Request:
-    """HTTP request information"""
+class NetworkRequest:
+    """Network request"""
 
-    method: str
     url: str
-    headers: dict[str, str]
-    params: dict[str, str]
-    data: Any
-    timeout: float
+    method: str = "GET"
+    headers: dict[str, str] = field(default_factory=dict)
+    params: dict[str, str] = field(default_factory=dict)
+    data: Any | None = None
+    timeout: float = 30.0
+    metadata: JsonDict = field(default_factory=dict)
 
 
 @dataclass
-class Response:
-    """HTTP response information"""
+class NetworkResponse:
+    """Network response"""
 
     status: int
-    headers: dict[str, str]
-    content: bytes
-    text: str
-    json: dict[str, Any] | None
-    elapsed: float
+    data: Any
+    headers: dict[str, str] = field(default_factory=dict)
+    metadata: JsonDict = field(default_factory=dict)
 
 
-@dataclass
-class WebSocket:
-    """WebSocket connection"""
+class NetworkWebSocket(Protocol):
+    """Network WebSocket protocol"""
 
-    url: str
-    connection: ClientWebSocketResponse
-    protocols: list[str]
+    async def connect(self) -> None:
+        """Connect to WebSocket"""
+        ...
 
     async def send(self, data: Any) -> None:
         """Send data through WebSocket"""
-        await self.connection.send_str(json.dumps(data))
+        ...
 
     async def receive(self) -> Any:
         """Receive data from WebSocket"""
-        msg = await self.connection.receive_str()
-        return json.loads(msg)
+        ...
 
     async def close(self) -> None:
         """Close WebSocket connection"""
-        await self.connection.close()
+        ...

@@ -1,21 +1,30 @@
 """File handling configuration"""
 
 from dataclasses import dataclass, field
-from typing import Any
+from pathlib import Path
 
-from pepperpy.core.config import ModuleConfig
+from pepperpy.core.types import JsonDict, ModuleConfig
 
 
 @dataclass
-class FileConfig(ModuleConfig):
-    """Configuration for file operations"""
+class FileHandlerConfig(ModuleConfig):
+    """File handler configuration"""
 
-    default_encoding: str = "utf-8"
-    chunk_size: int = 8192
-    max_file_size: int | None = None
-    allowed_extensions: set[str] | None = None
+    base_path: Path | None = None
+    allowed_extensions: list[str] = field(default_factory=list)
+    max_size: int | None = None  # in bytes
+    chunk_size: int = 8192  # in bytes
+    encoding: str = "utf-8"
     create_dirs: bool = True
-    backup_enabled: bool = False
-    backup_dir: str | None = None
-    metadata_enabled: bool = True
-    params: dict[str, Any] = field(default_factory=dict)
+    overwrite: bool = False
+    metadata: JsonDict = field(default_factory=dict)
+
+
+@dataclass
+class FileManagerConfig(ModuleConfig):
+    """File manager configuration"""
+
+    handlers: dict[str, FileHandlerConfig] = field(default_factory=dict)
+    default_handler: str | None = None
+    base_path: Path | None = None
+    metadata: JsonDict = field(default_factory=dict)

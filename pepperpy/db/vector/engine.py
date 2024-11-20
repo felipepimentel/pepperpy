@@ -1,36 +1,60 @@
-"""Vector database engine"""
+"""Vector database engine implementation"""
 
-from typing import Any, Sequence, cast
+from time import perf_counter
+from typing import Any, Sequence, TypedDict, cast
 
 from ..engines import BaseEngine
 from ..exceptions import DatabaseError
+from ..types import QueryResult
 from .config import VectorConfig
 from .exceptions import VectorError
-from .types import VectorResult, VectorRow
+from .types import VectorResult
+
+
+class VectorRow(TypedDict):
+    """Vector database row type"""
+
+    id: int
+    vector: list[float]
+    similarity: float
+    metadata: dict[str, Any]
 
 
 class VectorEngine(BaseEngine):
-    """Vector database operations"""
+    """Vector database engine implementation"""
 
     def __init__(self, config: VectorConfig) -> None:
         super().__init__(config.db_config)
-        self.config = config
+        self.vector_config = config
         self._initialized = False
 
-    async def initialize(self) -> None:
-        """Initialize vector operations"""
-        if self._initialized:
-            return
-
+    async def execute(self, query: str, params: dict[str, Any] | None = None) -> QueryResult:
+        """Execute database query"""
         try:
-            await super().initialize()
+            if not self._initialized:
+                await self.initialize()
+
+            start_time = perf_counter()
+            # Implement actual query execution here
+            # This is a placeholder that should be overridden by concrete implementations
+            execution_time = perf_counter() - start_time
             
+            return QueryResult(
+                rows=[],
+                affected_rows=0,
+                execution_time=execution_time
+            )
+        except Exception as e:
+            raise DatabaseError(f"Query execution failed: {e}", cause=e)
+
+    async def _initialize(self) -> None:
+        """Initialize vector operations"""
+        await super()._initialize()
+        try:
             # Enable vector extension
             await self.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-            
             # Create vector table
             await self._create_vector_table()
-            
             self._initialized = True
         except Exception as e:
             raise VectorError("Failed to initialize vector engine", cause=e)
@@ -41,14 +65,10 @@ class VectorEngine(BaseEngine):
         CREATE TABLE IF NOT EXISTS vectors (
             id SERIAL PRIMARY KEY,
             collection TEXT NOT NULL,
-            vector vector({self.config.dimension}),
+            vector vector({self.vector_config.dimension}),
             metadata JSONB,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
-        CREATE INDEX IF NOT EXISTS vectors_collection_idx ON vectors(collection);
-        CREATE INDEX IF NOT EXISTS vectors_vector_idx ON vectors 
-        USING ivfflat (vector vector_cosine_ops)
-        WITH (lists = 100);
         """
         await self.execute(query)
 
@@ -76,7 +96,6 @@ class VectorEngine(BaseEngine):
                     query,
                     {"collection": collection, "vector": vector, "metadata": meta}
                 )
-                # Cast row to correct type
                 row = cast(VectorRow, result.rows[0])
                 results.append(row["id"])
             

@@ -1,8 +1,22 @@
-"""Network module for handling network operations"""
+"""Network module"""
 
 from .client import NetworkClient
 from .config import NetworkConfig
 from .exceptions import NetworkError
-from .types import Request, Response, WebSocket
+from .types import (
+    NetworkRequest,
+    NetworkResponse,
+    NetworkWebSocket,
+)
 
-__all__ = ["NetworkClient", "NetworkConfig", "Request", "Response", "WebSocket", "NetworkError"]
+__all__ = [
+    # Client
+    "NetworkClient",
+    "NetworkConfig",
+    # Types
+    "NetworkRequest",
+    "NetworkResponse",
+    "NetworkWebSocket",
+    # Exceptions
+    "NetworkError",
+]

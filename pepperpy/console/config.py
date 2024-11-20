@@ -1,38 +1,54 @@
-"""Console module configuration"""
+"""Console configuration"""
 
-from dataclasses import dataclass
-from typing import Any
+from dataclasses import dataclass, field
+from enum import Enum
 
-from pepperpy.core.config import ModuleConfig
+from pepperpy.core.types import JsonDict, ModuleConfig
+
+
+class ConsoleMode(str, Enum):
+    """Console mode"""
+
+    BASIC = "basic"
+    RICH = "rich"
+    INTERACTIVE = "interactive"
+    LEGACY = "legacy"
+
+
+class ConsoleTheme(str, Enum):
+    """Console theme"""
+
+    DEFAULT = "default"
+    DARK = "dark"
+    LIGHT = "light"
+    CUSTOM = "custom"
 
 
 @dataclass
 class ConsoleConfig(ModuleConfig):
     """Console configuration"""
-    name: str = "console"
-    version: str = "1.0.0"
-    style: str = "default"
-    color_system: str = "auto"
-    highlight: bool = True
-    markup: bool = True
-    emoji: bool = True
+
+    name: str
+    mode: ConsoleMode = ConsoleMode.RICH
+    theme: ConsoleTheme = ConsoleTheme.DEFAULT
+    enabled: bool = True
+    show_timestamps: bool = True
+    show_levels: bool = True
+    show_colors: bool = True
     width: int | None = None
     height: int | None = None
-    tab_size: int = 4
-    soft_wrap: bool = False
+    metadata: JsonDict = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, Any]:
-        """Convert config to dictionary"""
-        return {
-            "name": self.name,
-            "version": self.version,
-            "style": self.style,
-            "color_system": self.color_system,
-            "highlight": self.highlight,
-            "markup": self.markup,
-            "emoji": self.emoji,
-            "width": self.width,
-            "height": self.height,
-            "tab_size": self.tab_size,
-            "soft_wrap": self.soft_wrap,
-        } 
+
+@dataclass
+class ConsoleUIConfig(ModuleConfig):
+    """Console UI configuration"""
+
+    name: str
+    enabled: bool = True
+    show_header: bool = True
+    show_footer: bool = True
+    show_progress: bool = True
+    show_status: bool = True
+    refresh_rate: float = 0.1  # seconds
+    metadata: JsonDict = field(default_factory=dict)

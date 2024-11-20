@@ -1,95 +1,78 @@
-"""Plugin system management"""
+"""Plugin manager implementation"""
 
-import importlib
-import inspect
-from pathlib import Path
 from typing import Any
 
-from pepperpy.core.module import BaseModule, ModuleMetadata
+from pepperpy.core.module import BaseModule
 
-from .exceptions import PluginError, PluginLoadError
+from .exceptions import PluginError
+from .types import Plugin, PluginConfig
 
 
-class PluginManager(BaseModule):
-    """Manager for plugin discovery and loading"""
+class PluginManager(BaseModule[PluginConfig]):
+    """Plugin manager implementation"""
 
-    def __init__(self):
-        super().__init__()
-        self.metadata = ModuleMetadata(
-            name="plugin_manager",
-            version="1.0.0",
-            description="Plugin system management",
-            dependencies=[],
-            config={},
-        )
-        self._plugins: dict[str, Any] = {}
-        self._paths: list[str] = []
+    def __init__(self, config: PluginConfig) -> None:
+        super().__init__(config)
+        self._plugins: dict[str, Plugin] = {}
 
-    async def _setup(self) -> None:
+    async def _initialize(self) -> None:
         """Initialize plugin manager"""
+        if self.config.auto_load:
+            await self._load_plugins()
 
     async def _cleanup(self) -> None:
-        """Cleanup plugin manager"""
+        """Cleanup plugin resources"""
+        for plugin in self._plugins.values():
+            await plugin.cleanup()
         self._plugins.clear()
-        self._paths.clear()
 
-    def register(self, name: str, plugin: Any) -> None:
+    async def _load_plugins(self) -> None:
+        """Load plugins"""
+        try:
+            # Implement plugin loading logic here
+            pass
+        except Exception as e:
+            raise PluginError(f"Failed to load plugins: {e}", cause=e)
+
+    async def register_plugin(self, name: str, plugin: Plugin) -> None:
         """Register plugin"""
-        self._plugins[name] = plugin
+        if not self._initialized:
+            await self.initialize()
 
-    def get_plugin(self, name: str) -> Any | None:
-        """Get registered plugin"""
-        return self._plugins.get(name)
+        if name in self._plugins:
+            raise PluginError(f"Plugin {name} already registered")
 
-    def add_search_path(self, path: str) -> None:
-        """Add plugin search path"""
-        if path not in self._paths:
-            self._paths.append(path)
+        try:
+            await plugin.initialize()
+            self._plugins[name] = plugin
+        except Exception as e:
+            raise PluginError(f"Failed to register plugin {name}: {e}", cause=e)
 
-    async def discover(self) -> None:
-        """Discover plugins in search paths"""
-        for path in self._paths:
-            try:
-                plugin_path = Path(path)
-                if not plugin_path.exists():
-                    continue
+    async def execute_plugin(self, name: str, **kwargs: Any) -> Any:
+        """Execute plugin"""
+        if not self._initialized:
+            await self.initialize()
 
-                # Import all python files
-                for file_path in plugin_path.glob("**/*.py"):
-                    if file_path.name.startswith("_"):
-                        continue
+        plugin = self._plugins.get(name)
+        if not plugin:
+            raise PluginError(f"Plugin {name} not found")
 
-                    module_path = str(file_path.relative_to(plugin_path.parent)).replace("/", ".")
-                    module_name = module_path[:-3]  # Remove .py
+        try:
+            return await plugin.execute(**kwargs)
+        except Exception as e:
+            raise PluginError(f"Failed to execute plugin {name}: {e}", cause=e)
 
-                    try:
-                        module = importlib.import_module(module_name)
+    async def unregister_plugin(self, name: str) -> None:
+        """Unregister plugin"""
+        if not self._initialized:
+            await self.initialize()
 
-                        # Look for plugin classes/functions
-                        for item in dir(module):
-                            if item.startswith("_"):
-                                continue
+        plugin = self._plugins.get(name)
+        if not plugin:
+            raise PluginError(f"Plugin {name} not found")
 
-                            obj = getattr(module, item)
-                            if hasattr(obj, "_plugin_name"):
-                                self.register(obj._plugin_name, obj)
-
-                    except Exception as e:
-                        raise PluginLoadError(
-                            f"Failed to load plugin module {module_name}: {e!s}", cause=e,
-                        )
-
-            except Exception as e:
-                raise PluginError(f"Plugin discovery failed: {e!s}", cause=e)
-
-    def get_plugins_by_type(self, plugin_type: type) -> list[Any]:
-        """Get all plugins of specific type"""
-        return [
-            plugin
-            for plugin in self._plugins.values()
-            if inspect.isclass(plugin) and issubclass(plugin, plugin_type)
-        ]
-
-
-# Global plugin registry
-registry = PluginManager()
+        try:
+            await plugin.cleanup()
+            del self._plugins[name]
+        except Exception as e:
+            raise PluginError(f"Failed to unregister plugin {name}: {e}", cause=e)

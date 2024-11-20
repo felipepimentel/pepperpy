@@ -1,48 +1,42 @@
 """Configuration type definitions"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from pepperpy.core.types import JsonDict
 
 
-class ConfigFormat(Enum):
-    """Configuration file formats"""
+class ConfigFormat(str, Enum):
+    """Configuration format"""
 
-    YAML = "yaml"
     JSON = "json"
+    YAML = "yaml"
     TOML = "toml"
+    ENV = "env"
     INI = "ini"
+
+
+ConfigValue = Union[str, int, float, bool, list[Any], dict[str, Any], None]
 
 
 @dataclass
 class ConfigSource:
-    """Configuration source information"""
+    """Configuration source"""
 
     name: str
     path: Path | None = None
     format: ConfigFormat | None = None
-    last_modified: datetime | None = None
+    data: dict[str, ConfigValue] = field(default_factory=dict)
     metadata: JsonDict = field(default_factory=dict)
 
 
 @dataclass
-class ConfigValue:
-    """Configuration value with metadata"""
+class ConfigManagerConfig:
+    """Configuration manager configuration"""
 
-    value: Any
-    source: ConfigSource
-    updated_at: datetime = field(default_factory=datetime.utcnow)
-    metadata: JsonDict = field(default_factory=dict)
-
-
-@dataclass
-class ConfigSnapshot:
-    """Configuration state snapshot"""
-
-    values: dict[str, ConfigValue]
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    name: str
+    sources: list[ConfigSource] = field(default_factory=list)
+    auto_load: bool = True
     metadata: JsonDict = field(default_factory=dict)

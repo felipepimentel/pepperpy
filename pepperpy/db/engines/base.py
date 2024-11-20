@@ -1,37 +1,34 @@
-"""Base database engine implementation"""
+"""Base database engine"""
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any
+
+from pepperpy.core.module import BaseModule
 
 from ..config import DatabaseConfig
 from ..types import QueryResult
 
 
-class BaseEngine(ABC):
-    """Base class for database engines"""
+class BaseEngine(BaseModule[DatabaseConfig]):
+    """Base database engine"""
 
-    def __init__(self, config: DatabaseConfig):
-        self.config = config
-        self._pool = None
+    def __init__(self, config: DatabaseConfig) -> None:
+        """Initialize database engine.
 
-    @abstractmethod
-    async def initialize(self) -> None:
-        """Initialize database engine"""
-
-    @abstractmethod
-    async def cleanup(self) -> None:
-        """Cleanup database resources"""
+        Args:
+            config: Database configuration
+        """
+        super().__init__(config)
 
     @abstractmethod
     async def execute(self, query: str, params: dict[str, Any] | None = None) -> QueryResult:
         """Execute database query"""
+        raise NotImplementedError
 
-    @abstractmethod
-    async def execute_many(
-        self, query: str, params_list: list[dict[str, Any]],
-    ) -> list[QueryResult]:
-        """Execute multiple queries"""
+    async def _initialize(self) -> None:
+        """Initialize database connection"""
+        pass
 
-    @abstractmethod
-    async def transaction(self) -> Any:
-        """Get transaction context manager"""
+    async def _cleanup(self) -> None:
+        """Cleanup database resources"""
+        pass

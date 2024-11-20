@@ -1,77 +1,56 @@
-"""SQLite engine implementation"""
+"""SQLite database engine"""
 
-import time
+import sqlite3
 from typing import Any
 
-import aiosqlite
-
+from ..config import DatabaseConfig
 from ..exceptions import DatabaseError
 from ..types import QueryResult
 from .base import BaseEngine
 
 
 class SQLiteEngine(BaseEngine):
-    """SQLite database engine"""
+    """SQLite database engine implementation"""
 
-    async def initialize(self) -> None:
-        """Initialize SQLite database"""
+    def __init__(self, config: DatabaseConfig) -> None:
+        super().__init__(config)
+        self._conn: sqlite3.Connection | None = None
+        self._cursor: sqlite3.Cursor | None = None
+
+    async def _initialize(self) -> None:
+        """Initialize database connection"""
         try:
-            self._pool = await aiosqlite.connect(
-                database=self.config.database, timeout=self.config.timeout,
+            self._conn = sqlite3.connect(
+                database=self.config.database,
+                timeout=self.config.timeout
             )
-            self._pool.row_factory = aiosqlite.Row
+            self._cursor = self._conn.cursor()
         except Exception as e:
-            raise DatabaseError(f"Failed to initialize SQLite: {e!s}", cause=e)
+            raise DatabaseError(f"Failed to connect to SQLite: {e}", cause=e)
 
-    async def cleanup(self) -> None:
-        """Cleanup SQLite resources"""
-        if self._pool:
-            await self._pool.close()
+    async def _cleanup(self) -> None:
+        """Cleanup database resources"""
+        if self._cursor:
+            self._cursor.close()
+        if self._conn:
+            self._conn.close()
 
     async def execute(self, query: str, params: dict[str, Any] | None = None) -> QueryResult:
-        """Execute SQLite query"""
+        """Execute database query"""
         try:
-            start_time = time.time()
-            async with self._pool.execute(query, params or {}) as cursor:
-                rows = await cursor.fetchall()
-                await self._pool.commit()
+            if not self._cursor or not self._conn:
+                raise DatabaseError("Database not initialized")
 
-                return QueryResult(
-                    rows=[dict(row) for row in rows],
-                    affected_rows=cursor.rowcount,
-                    last_insert_id=cursor.lastrowid,
-                    execution_time=time.time() - start_time,
-                )
+            self._cursor.execute(query, params or {})
+            rows = [dict(zip([col[0] for col in self._cursor.description], row))
+                   for row in self._cursor.fetchall()]
+
+            self._conn.commit()
+            
+            return QueryResult(
+                rows=rows,
+                affected_rows=self._cursor.rowcount,
+                execution_time=0.0  # SQLite doesn't provide execution time
+            )
         except Exception as e:
-            await self._pool.rollback()
-            raise DatabaseError(f"SQLite query failed: {e!s}", cause=e)
-
-    async def execute_many(
-        self, query: str, params_list: list[dict[str, Any]],
-    ) -> list[QueryResult]:
-        """Execute multiple SQLite queries"""
-        results = []
-        async with self._pool.cursor() as cursor:
-            try:
-                for params in params_list:
-                    start_time = time.time()
-                    await cursor.execute(query, params)
-                    rows = await cursor.fetchall()
-
-                    results.append(
-                        QueryResult(
-                            rows=[dict(row) for row in rows],
-                            affected_rows=cursor.rowcount,
-                            last_insert_id=cursor.lastrowid,
-                            execution_time=time.time() - start_time,
-                        ),
-                    )
-                await self._pool.commit()
-                return results
-            except Exception as e:
-                await self._pool.rollback()
-                raise DatabaseError(f"SQLite batch query failed: {e!s}", cause=e)
-
-    async def transaction(self) -> Any:
-        """Get SQLite transaction context manager"""
-        return self._pool
+            raise DatabaseError(f"Query execution failed: {e}", cause=e)

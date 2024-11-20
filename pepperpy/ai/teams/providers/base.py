@@ -1,16 +1,14 @@
-"""Base provider for multi-agent frameworks"""
+"""Base team provider implementation"""
 
-from abc import ABC, abstractmethod
 from typing import Any, Protocol
 
 from pepperpy.core.module import BaseModule
 
-from ..interfaces import TeamAgent, TeamTool
 from ..types import TeamConfig, TeamResult
 
 
 class TeamProvider(Protocol):
-    """Protocol for team providers"""
+    """Team provider protocol"""
 
     async def initialize(self) -> None:
         """Initialize provider"""
@@ -20,66 +18,21 @@ class TeamProvider(Protocol):
         """Execute team task"""
         ...
 
-    async def add_agent(self, agent: TeamAgent) -> None:
-        """Add agent to team"""
-        ...
-
-    async def add_tool(self, tool: TeamTool) -> None:
-        """Add tool to team"""
-        ...
-
     async def cleanup(self) -> None:
-        """Cleanup provider resources"""
+        """Cleanup provider"""
         ...
 
 
-class BaseTeamProvider(BaseModule, ABC):
-    """Base class for team providers"""
+class BaseTeamProvider(BaseModule[TeamConfig]):
+    """Base team provider implementation"""
 
     def __init__(self, config: TeamConfig) -> None:
-        self.config = config
-        self._agents: list[TeamAgent] = []
-        self._tools: list[TeamTool] = []
-        self._initialized = False
+        super().__init__(config)
 
-    @abstractmethod
-    async def initialize(self) -> None:
+    async def _initialize(self) -> None:
         """Initialize provider"""
-        if self._initialized:
-            return
+        pass
 
-        # Initialize agents
-        for agent in self._agents:
-            await agent.initialize()
-
-        # Initialize tools
-        for tool in self._tools:
-            await tool.initialize()
-
-        self._initialized = True
-
-    @abstractmethod
-    async def execute(self, task: str, **kwargs: Any) -> TeamResult:
-        """Execute team task"""
-        if not self._initialized:
-            await self.initialize()
-
-    async def add_agent(self, agent: TeamAgent) -> None:
-        """Add agent to team"""
-        self._agents.append(agent)
-        if self._initialized:
-            await agent.initialize()
-
-    async def add_tool(self, tool: TeamTool) -> None:
-        """Add tool to team"""
-        self._tools.append(tool)
-        if self._initialized:
-            await tool.initialize()
-
-    async def cleanup(self) -> None:
-        """Cleanup provider resources"""
-        for agent in self._agents:
-            await agent.cleanup()
-        for tool in self._tools:
-            await tool.cleanup()
-        self._initialized = False
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        pass

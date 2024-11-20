@@ -1,10 +1,15 @@
-"""Core module initialization"""
+"""Core module"""
 
-from .exceptions import PepperPyError
-from .module import BaseModule, ModuleMetadata
+from .config import ConfigManager, ConfigManagerConfig
+from .module import BaseModule
+from .types import JsonDict
 
 __all__ = [
-    "PepperPyError",
+    # Module
     "BaseModule",
-    "ModuleMetadata",
+    # Config
+    "ConfigManager",
+    "ConfigManagerConfig",
+    # Types
+    "JsonDict",
 ]

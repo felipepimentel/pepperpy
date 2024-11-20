@@ -2,21 +2,30 @@
 
 from .client import LLMClient
 from .config import (
-    BaseConfig,
+    BaseLLMConfig,
+    LLMConfig,
+    LLMProvider,
     OpenAIConfig,
     OpenRouterConfig,
     StackSpotConfig,
 )
-from .factory import ProviderType
-from .types import LLMResponse, Message
+from .exceptions import LLMError
+from .factory import LLMFactory
+from .types import LLMResponse
 
 __all__ = [
+    # Client
     "LLMClient",
-    "BaseConfig",
+    "LLMFactory",
+    # Config
+    "BaseLLMConfig",
+    "LLMConfig",
+    "LLMProvider",
     "OpenAIConfig",
     "OpenRouterConfig",
     "StackSpotConfig",
-    "ProviderType",
+    # Types
     "LLMResponse",
-    "Message",
+    # Exceptions
+    "LLMError",
 ]

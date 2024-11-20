@@ -1,6 +1,6 @@
 """AI client implementation"""
 
-from typing import Any, AsyncGenerator, ClassVar
+from typing import Any, AsyncGenerator
 
 from pepperpy.core.module import BaseModule
 from pepperpy.db.vector import VectorEngine
@@ -10,29 +10,23 @@ from .exceptions import AIError
 from .types import AIResponse
 
 
-class AIClient(BaseModule):
+class AIClient(BaseModule[AIConfig]):
     """AI client implementation"""
 
-    _instance: ClassVar[Any | None] = None
-
-    def __init__(self, config: AIConfig | None = None) -> None:
-        self.config = config or AIConfig()
+    def __init__(self, config: AIConfig) -> None:
+        super().__init__(config)
         self._vector_engine: VectorEngine | None = None
-        self._initialized = False
 
-    @classmethod
-    async def create(cls, config: AIConfig | None = None) -> "AIClient":
-        """Create AI client instance"""
-        if not cls._instance:
-            cls._instance = cls(config)
-            await cls._instance.initialize()
-        return cls._instance
-
-    async def initialize(self) -> None:
+    async def _initialize(self) -> None:
         """Initialize client"""
-        if self._initialized:
-            return
-        self._initialized = True
+        if self.config.vector_enabled and not self._vector_engine and self.config.vector_config:
+            self._vector_engine = VectorEngine(self.config.vector_config)
+            await self._vector_engine.initialize()
+
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
+        if self._vector_engine:
+            await self._vector_engine.cleanup()
 
     async def complete(self, prompt: str) -> AIResponse:
         """Complete text using AI model"""
@@ -40,7 +34,6 @@ class AIClient(BaseModule):
             await self.initialize()
 
         try:
-            # Implementação real aqui
             return AIResponse(
                 content=f"AI response to: {prompt}",
                 model=self.config.model,
@@ -113,4 +106,3 @@ class AIClient(BaseModule):
         if self._vector_engine:
             await self._vector_engine.cleanup()
         self._initialized = False
-        self.__class__._instance = None

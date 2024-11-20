@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Any, Literal
 
 from pepperpy.core.types import JsonDict
+from pepperpy.db.vector import VectorConfig
 
 AIProvider = Literal["openai", "anthropic", "cohere", "openrouter"]
 AIModel = Literal[
@@ -47,6 +48,8 @@ class AIConfig:
     retry_delay: float = 1.0
     cache_enabled: bool = True
     cache_ttl: int = 3600  # 1 hour
+    vector_enabled: bool = False
+    vector_config: VectorConfig | None = None
     metadata: JsonDict = field(default_factory=dict)
     params: dict[str, Any] = field(default_factory=dict)  # Provider-specific parameters
 

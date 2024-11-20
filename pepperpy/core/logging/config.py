@@ -2,32 +2,53 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 
-from pepperpy.core.config import ModuleConfig
+from pepperpy.core.types import JsonDict, ModuleConfig
 
 
-class LogLevel(Enum):
+class LogLevel(str, Enum):
     """Log levels"""
 
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
+    DEBUG = "debug"
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    CRITICAL = "critical"
+
+
+class LogFormat(str, Enum):
+    """Log formats"""
+
+    TEXT = "text"
+    JSON = "json"
+    RICH = "rich"
 
 
 @dataclass
-class LogConfig(ModuleConfig):
-    """Configuration for logging"""
+class LogHandlerConfig:
+    """Log handler configuration"""
+
+    name: str
+    type: str
+    enabled: bool = True
+    level: LogLevel = LogLevel.INFO
+    format: LogFormat = LogFormat.TEXT
+    file_path: Path | None = None
+    rotation: bool = False
+    max_size: int = 10 * 1024 * 1024  # 10MB
+    backup_count: int = 5
+    metadata: JsonDict = field(default_factory=dict)
+
+
+@dataclass
+class LoggerConfig(ModuleConfig):
+    """Logger configuration"""
 
     name: str
     level: LogLevel = LogLevel.INFO
-    console_enabled: bool = True
-    file_enabled: bool = False
-    file_path: str | None = None
-    format: str = "[{timestamp}] {level:<8} {module}: {message}"
-    date_format: str = "%Y-%m-%d %H:%M:%S"
-    colors_enabled: bool = True
-    async_enabled: bool = True
-    buffer_size: int = 1000
-    metadata: dict[str, str] = field(default_factory=dict)
+    handlers: list[LogHandlerConfig] = field(default_factory=list)
+    enabled: bool = True
+    propagate: bool = True
+    capture_warnings: bool = True
+    metadata: JsonDict = field(default_factory=dict)

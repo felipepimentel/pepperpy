@@ -1,22 +1,19 @@
-"""Text processing configuration"""
+"""Text processor configuration"""
 
-from dataclasses import asdict, dataclass
-from typing import Any
+from dataclasses import dataclass, field
 
-from pepperpy.core.config import ModuleConfig
+from pepperpy.core.types import JsonDict, ModuleConfig
 
 
 @dataclass
-class TextConfig(ModuleConfig):
-    """Configuration for text processing"""
+class TextProcessorConfig(ModuleConfig):
+    """Text processor configuration"""
 
-    use_tokenizer: bool = False
-    tokenizer_model: str = "gpt2"
-    max_chunk_size: int = 1000
-    min_chunk_size: int = 100
-    overlap: int = 100
-    respect_sentences: bool = True
-
-    def dict(self) -> dict[str, Any]:
-        """Convert config to dictionary"""
-        return asdict(self)
+    name: str
+    max_length: int | None = None
+    min_length: int | None = None
+    strip_html: bool = False
+    normalize_whitespace: bool = True
+    chunk_size: int = 1000
+    overlap: int = 0
+    metadata: JsonDict = field(default_factory=dict)

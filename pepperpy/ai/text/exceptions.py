@@ -1,14 +1,14 @@
 """Text processing exceptions"""
 
-from pepperpy.core.exceptions import PepperPyError
+from pepperpy.core.types import CoreError
 
 
-class TextError(PepperPyError):
-    """Base text processing error"""
+class TextError(CoreError):
+    """Base text error"""
 
 
-class ProcessingError(TextError):
-    """Text processing error"""
+class TextProcessorError(TextError):
+    """Text processor error"""
 
 
 class ChunkingError(TextError):
@@ -17,3 +17,7 @@ class ChunkingError(TextError):
 
 class AnalysisError(TextError):
     """Text analysis error"""
+
+
+class ProcessingError(TextError):
+    """Text processing error"""

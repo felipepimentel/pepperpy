@@ -1,56 +1,60 @@
 """Base agent implementation"""
 
-from dataclasses import dataclass, field
 from typing import Any
 
-from pepperpy.core.module import BaseModule, ModuleMetadata
+from pepperpy.core.module import BaseModule
 
 from ..client import AIClient
-from ..exceptions import AIError
-from ..types import AIConfig, AIResponse
+from ..types import AIResponse
+from .types import AgentConfig
 
 
-def create_default_client() -> AIClient:
-    """Create default AI client"""
-    config = AIConfig(
-        model="default",
-        temperature=0.7,
-        max_tokens=1000,
-    )
-    return AIClient(config=config)
-
-
-@dataclass
-class BaseAgent(BaseModule):
+class BaseAgent(BaseModule[AgentConfig]):
     """Base agent implementation"""
 
-    metadata: ModuleMetadata = field(init=False)
-    client: AIClient = field(default_factory=create_default_client)
+    def __init__(self, client: AIClient, config: AgentConfig, **kwargs: Any) -> None:
+        """Initialize agent.
+        
+        Args:
+            client: AI client instance
+            config: Agent configuration
+            **kwargs: Additional arguments
+        """
+        super().__init__(config)
+        self.client = client
+        self._kwargs = kwargs
 
-    def __post_init__(self) -> None:
-        """Post initialization"""
-        self.metadata = ModuleMetadata(
-            name=self.__class__.__name__,
-            version="1.0.0",
-            description="AI agent implementation",
-        )
+    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute agent task.
+        
+        Args:
+            task: Task to execute
+            **kwargs: Additional arguments
+        
+        Returns:
+            AIResponse: Task execution result
+        """
+        if not self._initialized:
+            await self.initialize()
+        return await self._get_completion(task, **kwargs)
 
-    async def execute(self, task: str) -> AIResponse:
-        """Execute agent task"""
-        try:
-            return await self._get_completion(task)
-        except Exception as e:
-            raise AIError(f"Task execution failed: {e}", cause=e)
+    async def _get_completion(self, prompt: str, **kwargs: Any) -> AIResponse:
+        """Get completion from AI client.
+        
+        Args:
+            prompt: Prompt to complete
+            **kwargs: Additional arguments
+            
+        Returns:
+            AIResponse: Completion result
+        """
+        return await self.client.complete(prompt)
 
-    async def _get_completion(self, prompt: str) -> AIResponse:
-        """Get completion from AI"""
-        try:
-            if not self.client:
-                raise AIError("AI client not initialized")
-            return await self.client.complete(prompt)
-        except Exception as e:
-            raise AIError(f"Failed to get completion: {e}", cause=e)
+    async def _initialize(self) -> None:
+        """Initialize agent"""
+        if self.client:
+            await self.client.initialize()
 
-    async def _build_messages(self, prompt: str) -> list[dict[str, Any]]:
-        """Build messages for completion"""
-        return [{"role": "user", "content": prompt}]
+    async def _cleanup(self) -> None:
+        """Cleanup agent resources"""
+        pass
