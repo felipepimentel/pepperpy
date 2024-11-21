@@ -34,7 +34,7 @@ class AISettings:
     """AI module settings"""
 
     provider: str = "openrouter"
-    model: str = "anthropic/claude-3-sonnet"
+    model: Optional[str] = None
     api_key: Optional[str] = None
     api_base: Optional[str] = None
     temperature: float = 0.7
@@ -78,8 +78,8 @@ class Settings:
 
         # AI settings
         self.ai = AISettings(
-            provider=self._get_str("AI_PROVIDER", "openrouter"),
-            model=self._get_str("AI_MODEL", "anthropic/claude-3-sonnet"),
+            provider=self._get_str("AI_PROVIDER"),
+            model=self._get_str("AI_MODEL"),
             api_key=self._get_str("OPENROUTER_API_KEY"),
             temperature=self._get_float("AI_TEMPERATURE", 0.7),
             max_tokens=self._get_int("AI_MAX_TOKENS", 1000),

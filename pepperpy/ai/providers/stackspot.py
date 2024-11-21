@@ -1,143 +1,53 @@
-"""StackSpot AI LLM provider"""
+"""Stackspot provider implementation"""
 
-from collections.abc import AsyncIterator
+from typing import Any, AsyncGenerator
 
-import httpx
-
-from pepperpy.ai.llm.exceptions import ProviderError
-from pepperpy.ai.llm.types import LLMConfig, LLMResponse, Message
-
-from .base import BaseLLMProvider
+from ..config import AIConfig
+from ..exceptions import AIError
+from ..types import AIResponse
+from .base import AIProvider
 
 
-class StackSpotConfig(LLMConfig):
-    """StackSpot AI provider configuration"""
+class StackspotProvider(AIProvider):
+    """Stackspot provider implementation"""
 
-    def __init__(
-        self,
-        account_slug: str,
-        client_id: str,
-        client_key: str,
-        qc_slug: str,
-        model: str = "stackspot-ai",
-        base_url: str = "https://genai-code-buddy-api.stackspot.com/v1",
-        auth_url: str = "https://idm.stackspot.com",
-    ) -> None:
-        if not all([account_slug, client_id, client_key, qc_slug]):
-            raise ValueError("All StackSpot credentials are required")
-
-        super().__init__(
-            provider="stackspot",
-            api_key=client_key,
-            model=model,
-        )
-        self.account_slug = account_slug
-        self.client_id = client_id
-        self.client_key = client_key
-        self.qc_slug = qc_slug
-        self.base_url = base_url
-        self.auth_url = auth_url
-
-
-class StackSpotProvider(BaseLLMProvider):
-    """StackSpot AI LLM provider implementation"""
-
-    def __init__(self, config: StackSpotConfig | None = None) -> None:
-        if not config:
-            raise ValueError("StackSpot configuration is required")
-
+    def __init__(self, config: AIConfig) -> None:
+        """Initialize provider"""
         self.config = config
-        self._client: httpx.AsyncClient | None = None
-        self._token: str | None = None
+        self._client = None
 
     async def initialize(self) -> None:
         """Initialize provider"""
-        self._client = httpx.AsyncClient(base_url=self.config.base_url)
-        await self._get_token()
+        try:
+            # TODO: Implementar inicialização do cliente Stackspot
+            pass
+        except Exception as e:
+            raise AIError(f"Failed to initialize Stackspot provider: {e}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup provider resources"""
-        if self._client:
-            await self._client.aclose()
-            self._client = None
-        self._token = None
+        self._client = None
 
-    async def _get_token(self) -> str:
-        """Get access token
-
-        Returns:
-            str: Access token
-
-        Raises:
-            ProviderError: If token cannot be obtained
-        """
+    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
+        """Complete text"""
         try:
-            if not self._token:
-                async with httpx.AsyncClient() as client:
-                    response = await client.post(
-                        f"{self.config.auth_url}/{self.config.account_slug}/oidc/oauth/token",
-                        headers={"Content-Type": "application/x-www-form-urlencoded"},
-                        data={
-                            "client_id": self.config.client_id,
-                            "grant_type": "client_credentials",
-                            "client_secret": self.config.client_key,
-                        },
-                    )
-                    response.raise_for_status()
-                    data = response.json()
-                    if not data.get("access_token"):
-                        raise ProviderError("Invalid token response")
-                    self._token = data["access_token"]
-
-            if not self._token:  # Verificação adicional após tentativa de obtenção
-                raise ProviderError("Failed to obtain access token")
-
-            return self._token
-
+            # TODO: Implementar completion usando API do Stackspot
+            return AIResponse(content=prompt)
         except Exception as e:
-            raise ProviderError("Failed to get access token", cause=e)
+            raise AIError(f"Stackspot completion failed: {e}", cause=e)
 
-    async def complete(self, messages: list[Message]) -> LLMResponse:
-        """Complete chat messages using Quick Command"""
-        if not self._client:
-            raise ProviderError("Provider not initialized")
-
+    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
+        """Stream text generation"""
         try:
-            token = await self._get_token()
-
-            # Create Quick Command execution
-            response = await self._client.post(
-                f"/quick-commands/create-execution/{self.config.qc_slug}",
-                headers={
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "input_data": "\n".join(
-                        msg["content"] for msg in messages if msg["role"] == "user"
-                    ),
-                },
-            )
-            response.raise_for_status()
-            execution_id = response.json()
-
-            # Get execution result
-            response = await self._client.get(
-                f"/quick-commands/execution/{execution_id}",
-                headers={"Authorization": f"Bearer {token}"},
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            return LLMResponse(
-                content=data["answer"],
-                model=self.config.model,
-                usage={},
-                metadata=data,
-            )
+            # TODO: Implementar streaming usando API do Stackspot
+            yield AIResponse(content=prompt)
         except Exception as e:
-            raise ProviderError("Failed to execute Quick Command", cause=e)
+            raise AIError(f"Stackspot streaming failed: {e}", cause=e)
 
-    async def stream(self, messages: list[Message]) -> AsyncIterator[LLMResponse]:
-        """Stream is not supported by StackSpot AI"""
-        raise ProviderError("Streaming not supported by StackSpot AI")
+    async def get_embedding(self, text: str) -> list[float]:
+        """Get text embedding"""
+        try:
+            # TODO: Implementar embeddings usando API do Stackspot
+            return [0.0] * 1536  # Placeholder
+        except Exception as e:
+            raise AIError(f"Stackspot embedding failed: {e}", cause=e)

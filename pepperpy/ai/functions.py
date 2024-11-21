@@ -7,51 +7,37 @@ from .exceptions import AIError
 from .types import AIResponse
 
 
-class AIFunction:
-    """Base AI function implementation"""
+class TextGeneration:
+    """Text generation functions"""
 
     def __init__(self, client: AIClient) -> None:
+        """Initialize text generation"""
         self.client = client
 
-    async def execute(self, *args: Any, **kwargs: Any) -> AIResponse:
-        """Execute function"""
-        raise NotImplementedError
-
-
-class TextCompletion(AIFunction):
-    """Text completion function"""
-
-    async def execute(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Execute text completion"""
+    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
+        """Generate text completion"""
         try:
-            return await self.client.complete(prompt)
-        except Exception as e:
-            raise AIError(f"Text completion failed: {e}", cause=e)
-
-
-class TextGeneration(AIFunction):
-    """Text generation function with streaming support"""
-
-    async def execute(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Execute text generation"""
-        try:
-            return await self.client.complete(prompt)
+            return await self.client.complete(prompt, **kwargs)
         except Exception as e:
             raise AIError(f"Text generation failed: {e}", cause=e)
 
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[str, None]:
-        """Stream text generation results"""
+    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
+        """Stream text generation"""
         try:
-            async for chunk in self.client.stream(prompt):
+            async for chunk in self.client.stream(prompt, **kwargs):
                 yield chunk
         except Exception as e:
             raise AIError(f"Text generation stream failed: {e}", cause=e)
 
 
-class TextEmbedding(AIFunction):
-    """Text embedding function"""
+class TextEmbedding:
+    """Text embedding functions"""
 
-    async def execute(self, text: str, **kwargs: Any) -> list[float]:
+    def __init__(self, client: AIClient) -> None:
+        """Initialize text embedding"""
+        self.client = client
+
+    async def embed(self, text: str) -> list[float]:
         """Get text embedding"""
         try:
             return await self.client.get_embedding(text)
@@ -59,16 +45,19 @@ class TextEmbedding(AIFunction):
             raise AIError(f"Text embedding failed: {e}", cause=e)
 
 
-class VectorSearch(AIFunction):
-    """Vector similarity search function"""
+class VectorSearch:
+    """Vector search functions"""
 
-    async def execute(
-        self, 
+    def __init__(self, client: AIClient) -> None:
+        """Initialize vector search"""
+        self.client = client
+
+    async def search(
+        self,
         collection: str,
         text: str,
         limit: int = 10,
         threshold: float = 0.8,
-        **kwargs: Any
     ) -> list[dict[str, Any]]:
         """Search for similar vectors"""
         try:
@@ -76,7 +65,7 @@ class VectorSearch(AIFunction):
                 collection=collection,
                 text=text,
                 limit=limit,
-                threshold=threshold
+                threshold=threshold,
             )
         except Exception as e:
             raise AIError(f"Vector search failed: {e}", cause=e)

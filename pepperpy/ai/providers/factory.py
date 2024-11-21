@@ -1,40 +1,27 @@
-"""Provider factory implementation"""
+"""AI provider factory"""
 
-from typing import Any
-
-from ..llm.config import LLMConfig, LLMProvider
-from .exceptions import ProviderError
+from ..config import AIConfig
+from ..exceptions import AIError
+from .base import AIProvider
+from .openai import OpenAIProvider
 from .openrouter import OpenRouterProvider
+from .stackspot import StackspotProvider
 
 
-class ProviderFactory:
-    """Factory for creating providers"""
+class AIProviderFactory:
+    """Factory for creating AI providers"""
 
     @staticmethod
-    def create_provider(config: LLMConfig, **kwargs: Any) -> Any:
-        """Create provider instance.
-        
-        Args:
-            config: LLM configuration
-            **kwargs: Additional arguments
-            
-        Returns:
-            Provider instance
-            
-        Raises:
-            ProviderError: If provider is not supported
-        """
-        try:
-            providers = {
-                LLMProvider.OPENROUTER: OpenRouterProvider,
-                # Adicionar outros providers conforme necessário
-            }
+    def create_provider(config: AIConfig) -> AIProvider:
+        """Create AI provider instance"""
+        providers: dict[str, type[AIProvider]] = {
+            "openrouter": OpenRouterProvider,
+            "openai": OpenAIProvider,
+            "stackspot": StackspotProvider,
+        }
 
-            provider_class = providers.get(config.provider)
-            if not provider_class:
-                raise ProviderError(f"Unsupported provider: {config.provider}")
+        provider_class = providers.get(config.provider)
+        if not provider_class:
+            raise AIError(f"Unknown AI provider: {config.provider}")
 
-            return provider_class(config, **kwargs)
-
-        except Exception as e:
-            raise ProviderError(f"Failed to create provider: {e}", cause=e)
+        return provider_class(config)

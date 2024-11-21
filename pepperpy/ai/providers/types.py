@@ -23,7 +23,7 @@ class OpenRouterConfig:
 
     name: str
     api_key: str
-    model: str = "anthropic/claude-3-sonnet"
+    model: str | None = None
     enabled: bool = True
     api_base: str = "https://openrouter.ai/api/v1"
     site_url: str | None = None

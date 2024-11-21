@@ -3,65 +3,43 @@
 import asyncio
 
 from pepperpy.ai import AIClient
+from pepperpy.ai.config import AIConfig
+from pepperpy.ai.types import AIResponse
 from pepperpy.console import Console
 
 console = Console()
 
 
-class Conversation:
-    """Conversation handler"""
-
-    def __init__(self, client: AIClient) -> None:
-        self._client = client
-        self._history: list[str] = []
-
-    async def send_message(self, message: str) -> str:
-        """Send message and get response"""
-        try:
-            response = await self._client.complete(message)
-            self._history.append(message)
-            self._history.append(response.content)
-            return response.content
-        except Exception as e:
-            raise RuntimeError(f"Failed to send message: {e}")
-
-    async def clear_history(self) -> None:
-        """Clear conversation history"""
-        self._history.clear()
-
-
 async def demonstrate_conversation() -> None:
-    """Demonstrate conversation capabilities"""
+    """Demonstrate conversation with AI"""
     try:
         await console.info("🤖 Initializing AI Client...")
 
-        # Create AI client with default configuration
-        client = AIClient()
+        # Create AI configuration
+        ai_config = AIConfig.get_default()
+
+        # Create AI client
+        client = AIClient(config=ai_config)
         await client.initialize()
 
         try:
-            # Create conversation
-            conversation = Conversation(client)
-
-            # First interaction
             await console.info("Starting conversation...")
-            response = await conversation.send_message(
+
+            # Ask about async/await
+            response = await client.complete(
                 "Hello! Can you help me understand how to use async/await in Python?"
             )
-            await console.info("AI Response:", content=response)
+            await console.info("AI Response:", content=response.content)
 
-            # Clear history and start new topic
-            await conversation.clear_history()
-            response = await conversation.send_message(
+            # Ask about type hints
+            response = await client.complete(
                 "Now, can you explain the benefits of type hints in Python?"
             )
-            await console.info("AI Response:", content=response)
+            await console.info("AI Response:", content=response.content)
 
-            # Follow-up question
-            response = await conversation.send_message(
-                "How do type hints work with async functions?"
-            )
-            await console.info("AI Response:", content=response)
+            # Ask about combining both
+            response = await client.complete("How do type hints work with async functions?")
+            await console.info("AI Response:", content=response.content)
 
         finally:
             await client.cleanup()
@@ -71,19 +49,27 @@ async def demonstrate_conversation() -> None:
 
 
 async def demonstrate_streaming() -> None:
-    """Demonstrate streaming capabilities"""
+    """Demonstrate streaming responses"""
     try:
         await console.info("🤖 Initializing Streaming...")
 
+        # Create AI client
         client = AIClient()
         await client.initialize()
 
         try:
-            prompt = "Explain the concept of coroutines in Python"
             await console.info("Starting stream...")
 
+            # Stream response about coroutines
+            prompt = "Explain the concept of coroutines in Python"
+            await console.print(prompt)
+            await console.print("")
+
             async for chunk in client.stream(prompt):
-                print(chunk, end="", flush=True)
+                if isinstance(chunk, AIResponse):
+                    print(chunk.content, end="", flush=True)
+                else:
+                    print(chunk, end="", flush=True)
             print()  # New line after streaming
 
         finally:
@@ -93,11 +79,14 @@ async def demonstrate_streaming() -> None:
         await console.error("Streaming failed", str(e))
 
 
-if __name__ == "__main__":
+async def main() -> None:
+    """Run AI examples"""
     try:
-        asyncio.run(demonstrate_conversation())
-        asyncio.run(demonstrate_streaming())
+        await demonstrate_conversation()
+        await demonstrate_streaming()
     except KeyboardInterrupt:
-        print("\n\n⚠️ Examples interrupted by user")
-    except Exception as e:
-        print(f"\n❌ Fatal error: {e}")
+        await console.info("\nExamples finished! 👋")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

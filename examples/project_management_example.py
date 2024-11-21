@@ -8,7 +8,6 @@ from pepperpy.ai import (
     AgentFactory,
     AgentRole,
     AIClient,
-    AIConfig,
 )
 from pepperpy.ai.agents.interfaces import ProjectManagerAgent, QAAgent
 from pepperpy.core.logging import get_logger
@@ -21,35 +20,24 @@ async def demonstrate_project_management() -> None:
     try:
         await logger.info("🤖 Initializing Project Management...")
 
-        # Create AI configuration
-        ai_config = AIConfig(
-            model="anthropic/claude-3-sonnet",
-            temperature=0.7,
-            max_tokens=1000,
-        )
-
         # Create AI client
-        client = AIClient(ai_config)
+        client = AIClient()
         await client.initialize()
 
         # Create agent configurations
         manager_config = AgentConfig(
-            name="manager",
-            role=AgentRole.MANAGER,
-            metadata={"ai_config": ai_config.to_dict()}
+            name="manager", role=AgentRole.MANAGER, metadata={"ai_config": client.config.to_dict()}
         )
 
         qa_config = AgentConfig(
-            name="qa",
-            role=AgentRole.QA,
-            metadata={"ai_config": ai_config.to_dict()}
+            name="qa", role=AgentRole.QA, metadata={"ai_config": client.config.to_dict()}
         )
 
         # Create agents using factory with proper type casting
-        manager = cast(ProjectManagerAgent,
-            AgentFactory.create_agent("manager", client, manager_config))
-        qa = cast(QAAgent,
-            AgentFactory.create_agent("qa", client, qa_config))
+        manager = cast(
+            ProjectManagerAgent, AgentFactory.create_agent("manager", client, manager_config)
+        )
+        qa = cast(QAAgent, AgentFactory.create_agent("qa", client, qa_config))
 
         # Initialize agents
         await manager.initialize()

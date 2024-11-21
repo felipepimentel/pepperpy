@@ -42,7 +42,7 @@ class OpenAIConfig(BaseLLMConfig):
 class OpenRouterConfig(BaseLLMConfig):
     """OpenRouter provider configuration"""
 
-    model: str = "anthropic/claude-3-sonnet"
+    model: str | None = None
     route_prefix: str | None = None
 
 

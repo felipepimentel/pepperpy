@@ -8,7 +8,6 @@ from pepperpy.ai import (
     AgentFactory,
     AgentRole,
     AIClient,
-    AIConfig,
 )
 from pepperpy.ai.agents.interfaces import AnalystAgent, ResearchAgent
 from pepperpy.core.logging import get_logger
@@ -21,26 +20,19 @@ async def demonstrate_complete_development() -> None:
     try:
         await logger.info("🤖 Initializing Development Team...")
 
-        # Create AI configuration
-        ai_config = AIConfig(
-            model="anthropic/claude-3-sonnet",
-            temperature=0.7,
-            max_tokens=1000,
-        )
-
         # Create AI client
-        client = AIClient(ai_config)
+        client = AIClient()
         await client.initialize()
 
         # Create agent configurations
         researcher_config = AgentConfig(
             name="researcher",
             role=AgentRole.RESEARCHER,
-            metadata={"ai_config": ai_config.to_dict()},
+            metadata={"ai_config": client.config.to_dict()},
         )
 
         analyst_config = AgentConfig(
-            name="analyst", role=AgentRole.ANALYST, metadata={"ai_config": ai_config.to_dict()}
+            name="analyst", role=AgentRole.ANALYST, metadata={"ai_config": client.config.to_dict()}
         )
 
         # Create agents using factory with proper type casting

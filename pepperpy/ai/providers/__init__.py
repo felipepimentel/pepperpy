@@ -1,17 +1,11 @@
 """AI providers module"""
 
-from .exceptions import ProviderError
-from .factory import ProviderFactory
+from .base import AIProvider
+from .factory import AIProviderFactory
 from .openrouter import OpenRouterProvider
-from .types import ProviderResponse
 
 __all__ = [
-    # Factory
-    "ProviderFactory",
-    # Providers
+    "AIProvider",
+    "AIProviderFactory",
     "OpenRouterProvider",
-    # Types
-    "ProviderResponse",
-    # Exceptions
-    "ProviderError",
 ]
