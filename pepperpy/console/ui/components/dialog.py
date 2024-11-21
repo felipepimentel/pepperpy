@@ -1,84 +1,41 @@
-"""Dialog component"""
+"""Dialog component implementation"""
 
-from dataclasses import dataclass
-from typing import Any, Callable
-
-from rich.box import ROUNDED
-from rich.console import Console as RichConsole
-from rich.panel import Panel as RichPanel
-from rich.text import Text
+from typing import Callable
 
 from .base import Component
 
 
-@dataclass
-class DialogButton:
-    """Dialog button configuration"""
-
-    label: str
-    callback: Callable[[], None]
-    style: str = "default"
-
-
 class Dialog(Component):
-    """Dialog component"""
+    """Dialog component implementation"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.title = ""
-        self._content: Any = None
-        self._buttons: list[DialogButton] = []
-        self._console = RichConsole()
+        self._message = ""
+        self._buttons: list[tuple[str, Callable[[], None]]] = []
+
+    @property
+    def message(self) -> str:
+        """Get dialog message"""
+        return self._message
+
+    @message.setter
+    def message(self, value: str) -> None:
+        """Set dialog message"""
+        self._message = value
+
+    def add_button(self, label: str, callback: Callable[[], None]) -> None:
+        """Add button to dialog"""
+        self._buttons.append((label, callback))
 
     async def initialize(self) -> None:
         """Initialize dialog"""
-        await super().initialize()
+        pass
 
     async def cleanup(self) -> None:
-        """Cleanup dialog resources"""
-        await super().cleanup()
+        """Cleanup dialog"""
+        pass
 
-    def add_button(self, label: str, callback: Callable[[], None], style: str = "default") -> None:
-        """Add button to dialog"""
-        self._buttons.append(DialogButton(label, callback, style))
-
-    @property
-    def content(self) -> Any:
-        """Get dialog content"""
-        return self._content
-
-    @content.setter
-    def content(self, value: Any) -> None:
-        """Set dialog content"""
-        self._content = value
-
-    async def render(self) -> RichPanel:
+    async def render(self) -> str:
         """Render dialog"""
-        await super().render()
-        text = Text()
-
-        # Renderizar o conteúdo
-        if isinstance(self._content, Component):
-            rendered_content = await self._content.render()
-            # Se o conteúdo for um objeto Rich, usar str() para renderizar
-            if hasattr(rendered_content, "__rich__"):
-                with self._console.capture() as capture:
-                    self._console.print(rendered_content)
-                text.append(capture.get())
-            else:
-                text.append(str(rendered_content))
-        elif hasattr(self._content, "__rich__"):
-            # Se o conteúdo for um objeto Rich (como Text), renderizar diretamente
-            with self._console.capture() as capture:
-                self._console.print(self._content)
-            text.append(capture.get())
-        else:
-            text.append(str(self._content))
-
-        # Adicionar botões
-        if self._buttons:
-            text.append("\n\n")
-            for btn in self._buttons:
-                text.append(f"[{btn.style}]{btn.label}[/] ")
-
-        return RichPanel(text, title=self.title, box=ROUNDED, style="blue")
+        # Implement dialog rendering
+        return "Dialog rendered"

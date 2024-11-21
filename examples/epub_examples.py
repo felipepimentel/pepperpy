@@ -1,98 +1,74 @@
-"""EPUB handling examples"""
+"""EPUB examples demonstrating file handling capabilities"""
 
 import asyncio
 from pathlib import Path
 
 from pepperpy.console import Console
 from pepperpy.files.handlers.epub import EPUBHandler
+from pepperpy.files.manager import FileManager
 
 console = Console()
 
 
 async def demonstrate_epub_handling() -> None:
-    """Demonstrate EPUB handling capabilities"""
+    """Demonstrate EPUB file handling"""
     try:
-        await console.info("📚 Initializing EPUB Handler...")
+        console.info("📚 Initializing EPUB Handler...")
 
-        # Create handler
-        handler = EPUBHandler()
+        # Initialize file manager and handler
+        file_manager = FileManager()
+        await file_manager.initialize()
 
-        # Example EPUB file
-        epub_path = Path("examples/data/sample.epub")
-        output_path = Path("examples/output/processed.epub")
+        try:
+            # Register EPUB handler
+            epub_handler = EPUBHandler()
+            file_manager.register_handler(".epub", epub_handler)
 
-        # Read EPUB
-        await console.info(f"Reading EPUB from {epub_path}")
-        content = await handler.read(epub_path)
+            console.info("Reading EPUB file...")
 
-        # Process content
-        book = content.content
-        await console.info(
-            "Book Information:",
-            content=(
-                f"Title: {book.metadata.title}\n"
-                f"Authors: {', '.join(book.metadata.authors)}\n"
-                f"Chapters: {len(book.chapters)}\n"
-                f"Images: {len(book.images)}\n"
-                f"Styles: {len(book.styles)}"
-            )
-        )
+            # Example EPUB path
+            epub_path = Path("examples/data/sample.epub")
 
-        # Process chapters
-        for chapter in book.chapters:
-            await console.info(
-                f"Chapter: {chapter.title}",
-                content=f"Length: {len(chapter.content)} characters"
+            # Read EPUB content
+            book = await file_manager.read_file(str(epub_path))
+
+            # Display book information
+            console.info(
+                "Book Information:",
+                content=(
+                    f"Title: {book.metadata.title}\n"
+                    f"Authors: {', '.join(book.metadata.authors)}\n"
+                    f"Language: {book.metadata.language}\n"
+                    f"Chapters: {len(book.chapters)}\n"
+                    f"Total Images: {len(book.images)}"
+                ),
             )
 
-        # Write processed EPUB
-        await console.info(f"Writing processed EPUB to {output_path}")
-        await handler.write(book, output_path)
+            # Process chapters
+            for chapter in book.chapters:
+                console.info(
+                    f"Chapter: {chapter.title}",
+                    content=f"Content length: {len(chapter.content)} chars",
+                )
 
-        await console.success("EPUB processing completed!")
+            console.success("EPUB processing complete!")
 
+        finally:
+            await file_manager.cleanup()
+
+    except FileNotFoundError:
+        console.error("EPUB file not found")
     except Exception as e:
-        await console.error("EPUB handling failed", str(e))
+        console.error("EPUB handling failed", str(e))
 
 
-async def demonstrate_epub_search() -> None:
-    """Demonstrate EPUB search capabilities"""
+async def main() -> None:
+    """Run EPUB examples"""
     try:
-        await console.info("🔍 Initializing EPUB Search...")
-
-        handler = EPUBHandler()
-        epub_path = Path("examples/data/sample.epub")
-
-        # Read EPUB
-        content = await handler.read(epub_path)
-        book = content.content
-
-        # Search in content
-        search_term = "Python"
-        await console.info(f"Searching for '{search_term}'...")
-
-        results = []
-        for chapter in book.chapters:
-            if search_term.lower() in chapter.content.lower():
-                results.append(f"Found in chapter: {chapter.title}")
-
-        if results:
-            await console.success(
-                "Search Results",
-                content="\n".join(results)
-            )
-        else:
-            await console.info(f"No matches found for '{search_term}'")
-
-    except Exception as e:
-        await console.error("EPUB search failed", str(e))
+        await demonstrate_epub_handling()
+    except KeyboardInterrupt:
+        console.info("\nExamples finished! 👋")
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(demonstrate_epub_handling())
-        asyncio.run(demonstrate_epub_search())
-    except KeyboardInterrupt:
-        print("\n\n⚠️ Examples interrupted by user")
-    except Exception as e:
-        print(f"\n❌ Fatal error: {e}")
+    asyncio.run(main())

@@ -34,8 +34,8 @@ class AIClient(InitializableModule):
     async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
         """Stream completion using the provider"""
         self._ensure_initialized()
-        async for response in await self._provider.stream(prompt, **kwargs):
-            yield response
+        async for chunk in self._provider.stream(prompt, **kwargs):
+            yield chunk
 
     async def get_embedding(self, text: str) -> list[float]:
         """Get text embedding"""

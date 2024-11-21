@@ -15,7 +15,7 @@ console = Console()
 async def demonstrate_autogen() -> None:
     """Demonstrate autogen workflow"""
     try:
-        await console.info("🤖 Initializing Autogen Team...")
+        console.info("🤖 Initializing Autogen Team...")
 
         # Create AI configuration and client
         ai_config = AIConfig(
@@ -67,7 +67,7 @@ async def demonstrate_autogen() -> None:
 
                 try:
                     # Execute team tasks
-                    await console.info("Starting team tasks...")
+                    console.info("Starting team tasks...")
 
                     tasks = [
                         "Design system architecture",
@@ -75,9 +75,9 @@ async def demonstrate_autogen() -> None:
                     ]
 
                     for task in tasks:
-                        await console.info(f"Executing task: {task}")
+                        console.info(f"Executing task: {task}")
                         result = await team.execute_task(task)
-                        await console.info("Task completed:", content=result.content)
+                        console.info("Task completed:", content=result.content)
 
                 finally:
                     await team.cleanup()
@@ -89,7 +89,7 @@ async def demonstrate_autogen() -> None:
             await client.cleanup()
 
     except Exception as e:
-        await console.error("Autogen workflow failed", str(e))
+        console.error("Autogen workflow failed", str(e))
 
 
 if __name__ == "__main__":

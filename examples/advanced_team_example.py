@@ -15,7 +15,7 @@ console = Console()
 async def demonstrate_advanced_team() -> None:
     """Demonstrate advanced team workflow"""
     try:
-        await console.info("🤖 Initializing Advanced Team...")
+        console.info("🤖 Initializing Advanced Team...")
 
         # Create AI configuration and client
         ai_config = AIConfig.get_default()
@@ -66,7 +66,7 @@ async def demonstrate_advanced_team() -> None:
 
                 try:
                     # Execute team tasks
-                    await console.info("Starting team tasks...")
+                    console.info("Starting team tasks...")
 
                     tasks = [
                         "Design system architecture",
@@ -75,9 +75,9 @@ async def demonstrate_advanced_team() -> None:
                     ]
 
                     for task in tasks:
-                        await console.info(f"Executing task: {task}")
+                        console.info(f"Executing task: {task}")
                         result = await team.execute_task(task)
-                        await console.info("Task completed:", content=result.content)
+                        console.info("Task completed:", content=result.content)
 
                 finally:
                     await team.cleanup()
@@ -89,7 +89,7 @@ async def demonstrate_advanced_team() -> None:
             await client.cleanup()
 
     except Exception as e:
-        await console.error("Team workflow failed", str(e))
+        console.error("Team workflow failed", str(e))
 
 
 if __name__ == "__main__":

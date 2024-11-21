@@ -19,6 +19,10 @@ logger = get_logger(__name__)
 
 async def demonstrate_project_management() -> None:
     """Demonstrate project management workflow"""
+    client = None
+    manager = None
+    qa = None
+
     try:
         await logger.info("🤖 Initializing Project Management...")
 
@@ -62,6 +66,16 @@ async def demonstrate_project_management() -> None:
 
     except Exception as e:
         await logger.error("Project management failed", error=str(e))
+        raise  # Re-raise the exception after logging
+
+    finally:
+        # Cleanup resources in reverse order
+        if qa:
+            await qa.cleanup()
+        if manager:
+            await manager.cleanup()
+        if client:
+            await client.cleanup()
 
 
 if __name__ == "__main__":

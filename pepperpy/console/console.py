@@ -15,30 +15,22 @@ class Console:
         """Synchronous print"""
         self._console.print(*args, **kwargs)
 
-    async def print_async(self, *args: Any, **kwargs: Any) -> None:
-        """Asynchronous print"""
-        self._console.print(*args, **kwargs)
+    def clear(self) -> None:
+        """Clear console screen"""
+        self._console.clear()
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         """Print info message"""
-        self._console.print("ℹ️", *args, **kwargs)
-
-    async def info_async(self, *args: Any, **kwargs: Any) -> None:
-        """Print info message asynchronously"""
         self._console.print("ℹ️", *args, **kwargs)
 
     def error(self, *args: Any, **kwargs: Any) -> None:
         """Print error message"""
         self._console.print("❌", *args, style="red", **kwargs)
 
-    async def error_async(self, *args: Any, **kwargs: Any) -> None:
-        """Print error message asynchronously"""
-        self._console.print("❌", *args, style="red", **kwargs)
-
     def success(self, *args: Any, **kwargs: Any) -> None:
         """Print success message"""
         self._console.print("✅", *args, style="green", **kwargs)
 
-    async def success_async(self, *args: Any, **kwargs: Any) -> None:
-        """Print success message asynchronously"""
-        self._console.print("✅", *args, style="green", **kwargs) 
+    def warning(self, *args: Any, **kwargs: Any) -> None:
+        """Print warning message"""
+        self._console.print("⚠️", *args, style="yellow", **kwargs) 

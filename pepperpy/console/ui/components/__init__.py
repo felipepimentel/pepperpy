@@ -4,7 +4,7 @@ from .base import Component
 from .button import Button
 from .chat import ChatView
 from .dialog import Dialog
-from .form import Form
+from .form import Form, FormField
 from .input import Input
 from .layout import Layout
 from .list import ListView
@@ -19,7 +19,8 @@ __all__ = [
     "Button",
     "ChatView",
     "Dialog",
-    "Form", 
+    "Form",
+    "FormField",
     "Input",
     "Layout",
     "ListView",
