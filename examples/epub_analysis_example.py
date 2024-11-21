@@ -25,7 +25,7 @@ async def analyze_epub_content(file_path: Path) -> None:
         file_manager.register_handler(".epub", epub_handler)
 
         # Read EPUB content
-        content = await file_manager.read_file(file_path)
+        content = await file_manager.read_file(str(file_path))
         book = content.content
 
         # Basic analysis

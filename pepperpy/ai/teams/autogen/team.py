@@ -1,64 +1,29 @@
-"""AutoGen team implementation"""
+"""Autogen team implementation"""
 
 from typing import Any
 
-from pepperpy.core.module import BaseModule
-
-from ...client import AIClient
-from ..interfaces import TeamAgent, TeamTool
-from ..types import TeamConfig, TeamResult
+from ...types import AIMessage, AIResponse, MessageRole
+from ..base import BaseTeam
 
 
-class AutoGenTeam(BaseModule[TeamConfig]):
-    """AutoGen team implementation"""
-
-    def __init__(
-        self,
-        config: TeamConfig,
-        ai_client: AIClient | None = None,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(config)
-        self._ai_client = ai_client
-        self._agents: list[TeamAgent] = []
-        self._tools: list[TeamTool] = []
+class AutogenTeam(BaseTeam):
+    """Autogen team implementation"""
 
     async def _initialize(self) -> None:
         """Initialize team"""
-        pass
+        if not self._ai_client.is_initialized:
+            await self._ai_client.initialize()
 
     async def _cleanup(self) -> None:
-        """Cleanup resources"""
+        """Cleanup team resources"""
         pass
 
-    async def execute(self, task: str, **kwargs: Any) -> TeamResult:
+    async def execute_task(self, task: str, **kwargs: Any) -> AIResponse:
         """Execute team task"""
-        if not self._initialized:
-            await self.initialize()
-
-        try:
-            # Implement AutoGen-specific execution logic here
-            return TeamResult(
-                success=True,
-                output="AutoGen execution result",
-                metadata={"framework": "autogen"}
-            )
-        except Exception as e:
-            return TeamResult(
-                success=False,
-                output=None,
-                metadata={"error": str(e)}
-            )
-
-    async def add_agent(self, agent: TeamAgent) -> None:
-        """Add agent to team"""
-        self._agents.append(agent)
-        if self._initialized:
-            await agent.initialize()
-
-    async def add_tool(self, tool: TeamTool) -> None:
-        """Add tool to team"""
-        self._tools.append(tool)
-        if self._initialized:
-            await tool.initialize()
- 
+        self._ensure_initialized()
+        # TODO: Implementar execução real usando Autogen
+        messages = [
+            AIMessage(role=MessageRole.USER, content=task),
+            AIMessage(role=MessageRole.ASSISTANT, content=f"Autogen team executing: {task}"),
+        ]
+        return AIResponse(content=f"Autogen team executing: {task}", messages=messages)

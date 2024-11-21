@@ -1,5 +1,5 @@
-"""LangChain team implementation"""
+"""Langchain team module"""
 
-from .team import LangChainTeam
+from .team import LangchainTeam
 
-__all__ = ["LangChainTeam"] 
+__all__ = ["LangchainTeam"] 

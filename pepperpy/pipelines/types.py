@@ -1,41 +1,63 @@
 """Pipeline type definitions"""
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, TypeVar
+from typing import Any, Sequence, TypeVar
 
-from pepperpy.ai.config import AIConfig
-from pepperpy.core.types import JsonDict, ModuleConfig
+from pydantic import BaseModel, Field
 
-InputT = TypeVar("InputT")
-OutputT = TypeVar("OutputT")
+from pepperpy.ai.config.provider import ProviderConfig as AIConfig
+from pepperpy.core.types import JsonDict
 
 
-class PipelineType(str, Enum):
-    """Pipeline types"""
-
-    TEXT = "text"
-    DATA = "data"
-    VECTOR = "vector"
-    CUSTOM = "custom"
-
-
-@dataclass
-class PipelineConfig(ModuleConfig):
+class PipelineConfig(BaseModel):
     """Pipeline configuration"""
 
-    pipeline_type: PipelineType = PipelineType.CUSTOM
-    ai_config: AIConfig | None = None
-    steps: list[str] = field(default_factory=list)
-    parallel: bool = False
-    input_type: str | None = None
-    output_type: str | None = None
+    name: str
+    ai_config: AIConfig
+    metadata: JsonDict = Field(default_factory=dict)
+
+    class Config:
+        """Pydantic config"""
+        frozen = True
 
 
-@dataclass
-class PipelineResult:
+class PipelineResult(BaseModel):
     """Pipeline execution result"""
 
     success: bool
     output: Any
-    metadata: JsonDict = field(default_factory=dict) 
+    metadata: JsonDict = Field(default_factory=dict)
+
+    class Config:
+        """Pydantic config"""
+        frozen = True
+
+
+class PipelineStep(BaseModel):
+    """Pipeline step definition"""
+
+    name: str
+    handler: str
+    config: dict[str, Any] = Field(default_factory=dict)
+    metadata: JsonDict = Field(default_factory=dict)
+
+    class Config:
+        """Pydantic config"""
+        frozen = True
+
+
+class Pipeline(BaseModel):
+    """Pipeline definition"""
+
+    name: str
+    steps: Sequence[PipelineStep]
+    config: PipelineConfig
+    metadata: JsonDict = Field(default_factory=dict)
+
+    class Config:
+        """Pydantic config"""
+        frozen = True
+
+
+# Type variables for pipeline input/output
+InputT = TypeVar("InputT")
+OutputT = TypeVar("OutputT")

@@ -3,14 +3,16 @@
 import asyncio
 from typing import cast
 
-from pepperpy.ai import (
-    AgentConfig,
-    AgentFactory,
-    AgentRole,
-    AIClient,
-)
+from dotenv import load_dotenv  # Importing dotenv
+
+from pepperpy.ai import AIClient, AIConfig
+from pepperpy.ai.agents import AgentFactory
 from pepperpy.ai.agents.interfaces import ProjectManagerAgent, QAAgent
+from pepperpy.ai.config.agent import AgentConfig
+from pepperpy.ai.roles import AgentRole
 from pepperpy.core.logging import get_logger
+
+load_dotenv()  # Loading environment variables
 
 logger = get_logger(__name__)
 
@@ -20,17 +22,20 @@ async def demonstrate_project_management() -> None:
     try:
         await logger.info("🤖 Initializing Project Management...")
 
-        # Create AI client
-        client = AIClient()
+        # Create AI configuration
+        ai_config = AIConfig.get_default()
+
+        # Create AI client with the obtained configuration
+        client = AIClient(config=ai_config)
         await client.initialize()
 
         # Create agent configurations
         manager_config = AgentConfig(
-            name="manager", role=AgentRole.MANAGER, metadata={"ai_config": client.config.to_dict()}
+            name="manager", role=AgentRole.MANAGER, metadata={"ai_config": client.config.dict()}
         )
 
         qa_config = AgentConfig(
-            name="qa", role=AgentRole.QA, metadata={"ai_config": client.config.to_dict()}
+            name="qa", role=AgentRole.QA, metadata={"ai_config": client.config.dict()}
         )
 
         # Create agents using factory with proper type casting

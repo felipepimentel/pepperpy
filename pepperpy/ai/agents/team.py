@@ -30,9 +30,7 @@ class AgentTeam(BaseModule[TeamConfig]):
         """Add agent to team"""
         self._agents[name] = agent
 
-    async def coordinate(
-        self, tasks: Sequence[Tuple[BaseAgent, str]], **kwargs: Any
-    ) -> TeamResult:
+    async def coordinate(self, tasks: Sequence[Tuple[BaseAgent, str]], **kwargs: Any) -> TeamResult:
         """Coordinate team tasks"""
         if not self._initialized:
             await self.initialize()
@@ -45,5 +43,5 @@ class AgentTeam(BaseModule[TeamConfig]):
         return TeamResult(
             success=all(r.success for r in results),
             output="\n\n".join(r.content for r in results),
-            metadata={"results": results}
+            metadata={"results": results},
         )

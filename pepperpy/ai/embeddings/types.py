@@ -1,24 +1,23 @@
-"""Embedding types and models"""
+"""Embedding types"""
 
-from dataclasses import dataclass
-from typing import List, NewType
+from dataclasses import dataclass, field
+from typing import Sequence
 
-# Tipos básicos
-EmbeddingVector = NewType("EmbeddingVector", List[float])
-EmbeddingBatch = NewType("EmbeddingBatch", List[EmbeddingVector])
+from pepperpy.core.types import JsonDict
 
 
 @dataclass
 class EmbeddingResult:
-    """Result from embedding generation"""
-    embeddings: EmbeddingVector
+    """Embedding result"""
+
+    embeddings: Sequence[float]
     model: str
     dimensions: int
+    metadata: JsonDict = field(default_factory=dict)
 
 
 @dataclass
-class EmbeddingBatchResult:
-    """Result from batch embedding generation"""
-    embeddings: EmbeddingBatch
-    model: str
-    dimensions: int
+class EmbeddingBatch:
+    """Batch of embeddings"""
+    vectors: list[Sequence[float]]
+    metadata: JsonDict = field(default_factory=dict)

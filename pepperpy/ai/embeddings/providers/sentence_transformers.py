@@ -1,66 +1,30 @@
-"""Sentence Transformers embedding provider"""
+"""Sentence transformers embedding provider"""
 
-from typing import List
-
-import numpy as np
-import torch
 from sentence_transformers import SentenceTransformer
 
 from ..config import EmbeddingConfig
-from ..exceptions import EmbeddingError
-from ..types import EmbeddingResult
-from .base import BaseEmbeddingProvider
+from .base import EmbeddingProvider
 
 
-class SentenceTransformersProvider(BaseEmbeddingProvider):
-    """Sentence Transformers embedding provider implementation"""
+class SentenceTransformersProvider(EmbeddingProvider):
+    """Sentence transformers provider implementation"""
 
     def __init__(self, config: EmbeddingConfig) -> None:
+        """Initialize provider"""
         super().__init__(config)
         self._model: SentenceTransformer | None = None
 
-    async def initialize(self) -> None:
+    async def _initialize(self) -> None:
         """Initialize provider"""
-        try:
-            self._model = SentenceTransformer(self.config.model_name)
-        except Exception as e:
-            raise EmbeddingError(f"Failed to initialize model: {e!s}", cause=e)
+        self._model = SentenceTransformer(self.config.model_name)
 
-    async def cleanup(self) -> None:
-        """Cleanup provider resources"""
+    async def _cleanup(self) -> None:
+        """Cleanup resources"""
         self._model = None
 
-    async def embed(self, text: str) -> EmbeddingResult:
-        """Generate embeddings for text"""
+    async def get_embedding(self, text: str) -> list[float]:
+        """Get text embedding"""
         if not self._model:
-            raise EmbeddingError("Model not initialized")
-
-        try:
-            # Gerar embeddings
-            embeddings = self._model.encode(
-                text,
-                convert_to_tensor=True,
-                normalize_embeddings=True,
-            )
-
-            # Converter para numpy e depois para lista
-            if isinstance(embeddings, torch.Tensor):
-                embeddings_np = embeddings.detach().cpu().numpy()
-            else:
-                embeddings_np = np.array(embeddings)
-
-            # Converter para float32 e depois para lista
-            embeddings_list = embeddings_np.astype(np.float32).tolist()
-
-            return EmbeddingResult(
-                embeddings=embeddings_list,
-                model=self.config.model_name,
-                dimensions=len(embeddings_list),
-            )
-
-        except Exception as e:
-            raise EmbeddingError(f"Failed to generate embeddings: {e!s}", cause=e)
-
-    async def embed_batch(self, texts: List[str]) -> List[EmbeddingResult]:
-        """Generate embeddings for multiple texts"""
-        return [await self.embed(text) for text in texts]
+            raise RuntimeError("Provider not initialized")
+        embedding = self._model.encode(text)
+        return embedding.tolist()

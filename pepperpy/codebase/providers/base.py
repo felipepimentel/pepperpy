@@ -1,61 +1,44 @@
-"""Base provider for code analysis"""
+"""Base codebase provider implementation"""
 
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Protocol
+from typing import Any, AsyncGenerator, Protocol, Sequence
 
 from pepperpy.core.module import BaseModule
 
-from ..types import CodeEntity, IndexEntry, RefactorSuggestion, ReviewComment, ScanResult
+from ..config import CodebaseConfig
+from ..types import CodeFile, CodeSearchResult
 
 
-class CodeScanProvider(Protocol):
-    """Protocol for code scan providers"""
+class FileReader(Protocol):
+    """File reader protocol"""
 
-    async def initialize(self) -> None:
-        """Initialize provider"""
+    async def read_text(self, path: str) -> str:
+        """Read text file"""
         ...
 
-    async def scan_code(self, index: list[IndexEntry]) -> ScanResult:
-        """Scan code and provide analysis"""
-        ...
-
-    async def stream_reviews(self, entity: CodeEntity) -> AsyncGenerator[ReviewComment, None]:
-        """Stream code review comments"""
-        ...
-
-    async def suggest_refactors(self, entity: CodeEntity) -> list[RefactorSuggestion]:
-        """Suggest code refactorings"""
-        ...
-
-    async def cleanup(self) -> None:
-        """Cleanup resources"""
+    async def exists(self, path: str) -> bool:
+        """Check if file exists"""
         ...
 
 
-class BaseCodeProvider(BaseModule, ABC):
-    """Base class for code analysis providers"""
+class BaseProvider(BaseModule[CodebaseConfig], ABC):
+    """Base codebase provider implementation"""
+
+    def __init__(self, config: CodebaseConfig) -> None:
+        super().__init__(config)
+        self._file_reader: FileReader | None = None
 
     @abstractmethod
-    async def initialize(self) -> None:
-        """Initialize provider"""
-        ...
+    async def search(self, query: str, **kwargs: Any) -> AsyncGenerator[CodeSearchResult, None]:
+        """Search codebase"""
+        pass
 
     @abstractmethod
-    async def scan_code(self, index: list[IndexEntry]) -> ScanResult:
-        """Scan code and provide analysis"""
-        ...
+    async def get_file(self, path: str) -> CodeFile:
+        """Get file content"""
+        pass
 
     @abstractmethod
-    async def stream_reviews(self, entity: CodeEntity) -> AsyncGenerator[ReviewComment, None]:
-        """Stream code review comments"""
-        ...
-
-    @abstractmethod
-    async def suggest_refactors(self, entity: CodeEntity) -> list[RefactorSuggestion]:
-        """Suggest code refactorings"""
-        ...
-
-    @abstractmethod
-    async def cleanup(self) -> None:
-        """Cleanup resources"""
-        ...
+    async def get_files(self, pattern: str) -> Sequence[CodeFile]:
+        """Get files matching pattern"""
+        pass

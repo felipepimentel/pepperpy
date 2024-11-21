@@ -1,23 +1,45 @@
-"""AutoGen team provider implementation"""
+"""Autogen team provider implementation"""
 
-from typing import Any
+from typing import Any, Sequence
 
-from ..types import TeamResult
-from .base import BaseTeamProvider
+from ...types import AIResponse
+from .base import TeamProvider
 
 
-class AutoGenProvider(BaseTeamProvider):
-    """AutoGen team provider implementation"""
+class AutogenTeamProvider(TeamProvider):
+    """Autogen team provider implementation"""
 
-    async def execute(self, task: str, **kwargs: Any) -> TeamResult:
-        """Execute team task using AutoGen"""
-        if not self._initialized:
-            await self.initialize()
+    async def _setup(self) -> None:
+        """Setup provider resources"""
+        # Implementar configuração específica do Autogen
+        pass
 
-        try:
-            # Implement AutoGen-specific logic here
-            return TeamResult(
-                success=True, output="AutoGen execution result", metadata={"framework": "autogen"}
-            )
-        except Exception as e:
-            return TeamResult(success=False, output=None, metadata={"error": str(e)})
+    async def _teardown(self) -> None:
+        """Teardown provider resources"""
+        # Implementar limpeza específica do Autogen
+        pass
+
+    async def execute_task(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute team task"""
+        self._ensure_initialized()
+        # Implementar execução usando Autogen
+        return AIResponse(
+            content=f"Autogen team executing: {task}",
+            messages=[],
+            metadata={"provider": "autogen"},
+        )
+
+    async def get_team_members(self) -> Sequence[str]:
+        """Get team member names"""
+        self._ensure_initialized()
+        # Implementar obtenção de membros do Autogen
+        return ["autogen_member_1", "autogen_member_2"]
+
+    async def get_team_roles(self) -> dict[str, str]:
+        """Get team member roles"""
+        self._ensure_initialized()
+        # Implementar obtenção de papéis do Autogen
+        return {
+            "autogen_member_1": "developer",
+            "autogen_member_2": "reviewer",
+        }

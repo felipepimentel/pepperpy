@@ -1,60 +1,50 @@
-"""Validation implementations"""
+"""Common validator implementations"""
 
-from typing import Any, Type, TypeVar
+from typing import Any, Sequence, Type, TypeVar
 
-from .exceptions import ValidationError
-from .types import ValidationResult
+from pydantic import BaseModel, ValidationError
 
-T = TypeVar("T")
+from .base import ValidationResult, Validator
+
+T = TypeVar("T", bound=BaseModel)
 
 
-class DataValidator:
-    """Generic data validator"""
+class PydanticValidator(Validator[T, dict[str, Any]]):
+    """Validator using Pydantic models"""
 
-    async def validate_type(self, value: Any, expected_type: Type[T]) -> ValidationResult:
+    def __init__(self, model: Type[T]):
+        self.model = model
+
+    async def validate(self, value: dict[str, Any]) -> ValidationResult[T]:
+        """Validate single value"""
+        try:
+            instance = self.model(**value)
+            return ValidationResult(is_valid=True, value=instance)
+        except ValidationError as e:
+            return ValidationResult(is_valid=False, errors=[str(err) for err in e.errors()])
+
+    async def validate_many(
+        self, values: Sequence[dict[str, Any]]
+    ) -> Sequence[ValidationResult[T]]:
+        """Validate multiple values"""
+        return [await self.validate(value) for value in values]
+
+
+class TypeValidator(Validator[Any, Any]):
+    """Type validator"""
+
+    def __init__(self, expected_type: Type[Any]):
+        self.expected_type = expected_type
+
+    async def validate(self, value: Any) -> ValidationResult[Any]:
         """Validate value type"""
-        if not isinstance(value, expected_type):
-            raise ValidationError(
-                f"Expected type {expected_type.__name__}, got {type(value).__name__}"
-            )
-        return ValidationResult(valid=True)
+        if isinstance(value, self.expected_type):
+            return ValidationResult(is_valid=True, value=value)
+        return ValidationResult(
+            is_valid=False,
+            errors=[f"Expected type {self.expected_type.__name__}, got {type(value).__name__}"],
+        )
 
-
-class NumberValidator:
-    """Number validation utilities"""
-
-    async def validate_range(
-        self, value: float, min_value: float | None = None, max_value: float | None = None
-    ) -> ValidationResult:
-        """Validate number range"""
-        if min_value is not None and value < min_value:
-            raise ValidationError(f"Value {value} is less than minimum {min_value}")
-        if max_value is not None and value > max_value:
-            raise ValidationError(f"Value {value} is greater than maximum {max_value}")
-        return ValidationResult(valid=True)
-
-
-class StringValidator:
-    """String validation utilities"""
-
-    async def validate_length(
-        self, value: str, min_length: int | None = None, max_length: int | None = None
-    ) -> ValidationResult:
-        """Validate string length"""
-        if min_length is not None and len(value) < min_length:
-            raise ValidationError(f"String length {len(value)} is less than minimum {min_length}")
-        if max_length is not None and len(value) > max_length:
-            raise ValidationError(f"String length {len(value)} is greater than maximum {max_length}")
-        return ValidationResult(valid=True)
-
-
-class TypeValidator:
-    """Type validation utilities"""
-
-    async def validate_instance(self, value: Any, expected_type: Type[T]) -> ValidationResult:
-        """Validate type instance"""
-        if not isinstance(value, expected_type):
-            raise ValidationError(
-                f"Expected instance of {expected_type.__name__}, got {type(value).__name__}"
-            )
-        return ValidationResult(valid=True) 
+    async def validate_many(self, values: Sequence[Any]) -> Sequence[ValidationResult[Any]]:
+        """Validate multiple values"""
+        return [await self.validate(value) for value in values]

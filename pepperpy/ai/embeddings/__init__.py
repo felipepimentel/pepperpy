@@ -1,13 +1,12 @@
-"""Embeddings module for vector representations"""
+"""Embeddings module"""
 
-from .config import EmbeddingConfig
-from .providers import get_provider
-from .types import EmbeddingBatch, EmbeddingResult, EmbeddingVector
+from .config import EmbeddingConfig, EmbeddingProvider
+from .providers import create_provider
+from .types import EmbeddingResult
 
 __all__ = [
     "EmbeddingConfig",
-    "EmbeddingVector",
-    "EmbeddingBatch",
+    "EmbeddingProvider",
     "EmbeddingResult",
-    "get_provider",
+    "create_provider",
 ]

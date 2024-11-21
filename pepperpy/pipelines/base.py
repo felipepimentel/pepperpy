@@ -1,28 +1,25 @@
-"""Pipeline base implementation"""
+"""Base pipeline implementation"""
 
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Generic
 
 from pepperpy.core.module import BaseModule
 
-from .types import PipelineConfig, PipelineResult
+from .types import InputT, OutputT, PipelineConfig, PipelineResult
 
 
-class BasePipeline(BaseModule[PipelineConfig]):
+class BasePipeline(Generic[InputT, OutputT], BaseModule[PipelineConfig], ABC):
     """Base pipeline implementation"""
 
-    def __init__(self, config: PipelineConfig) -> None:
-        super().__init__(config)
+    @abstractmethod
+    async def process(self, input_data: InputT) -> PipelineResult[OutputT]:
+        """Process pipeline input"""
+        pass
 
     async def _initialize(self) -> None:
         """Initialize pipeline"""
         pass
 
     async def _cleanup(self) -> None:
-        """Cleanup resources"""
+        """Cleanup pipeline resources"""
         pass
-
-    async def execute(self, input_data: Any) -> PipelineResult:
-        """Execute pipeline"""
-        if not self._initialized:
-            await self.initialize()
-        raise NotImplementedError

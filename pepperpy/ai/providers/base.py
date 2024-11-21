@@ -3,38 +3,30 @@
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator
 
-from ..config import AIConfig
+from pepperpy.core.module import InitializableModule
+
+from ..config.provider import ProviderConfig
 from ..types import AIResponse
 
 
-class AIProvider(ABC):
+class AIProvider(InitializableModule, ABC):
     """Base class for AI providers"""
 
-    def __init__(self, config: AIConfig) -> None:
-        """Initialize provider with configuration"""
+    def __init__(self, config: ProviderConfig) -> None:
+        super().__init__()
         self.config = config
 
     @abstractmethod
-    async def initialize(self) -> None:
-        """Initialize provider"""
-        ...
-
-    @abstractmethod
-    async def cleanup(self) -> None:
-        """Cleanup provider resources"""
-        ...
-
-    @abstractmethod
     async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Complete text"""
-        ...
+        """Complete a prompt and return the response"""
+        pass
 
     @abstractmethod
     async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream text generation"""
-        ...
+        """Stream completion of a prompt"""
+        pass
 
     @abstractmethod
     async def get_embedding(self, text: str) -> list[float]:
         """Get text embedding"""
-        ... 
+        pass 

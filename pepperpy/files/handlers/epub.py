@@ -13,7 +13,7 @@ from ..types import Book, BookMetadata, Chapter, FileContent, FileType, PathLike
 from .base import BaseFileHandler, FileHandler
 
 
-class EPUBHandler(BaseFileHandler, FileHandler[Book]):
+class EPUBHandler(BaseFileHandler, FileHandler[FileContent[Book]]):
     """Handler for EPUB files"""
 
     def __init__(self) -> None:
@@ -174,3 +174,7 @@ class EPUBHandler(BaseFileHandler, FileHandler[Book]):
 
         except Exception as e:
             raise FileError(f"Failed to create EPUB book: {e!s}", cause=e)
+
+    async def read_file(self, path: str) -> FileContent[Book]:
+        """Ler arquivo EPUB a partir do caminho fornecido"""
+        return await self.read(path)

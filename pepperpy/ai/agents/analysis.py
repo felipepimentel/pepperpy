@@ -1,12 +1,22 @@
 """Analysis agent implementations"""
 
-from ..types import AIResponse
+from typing import TYPE_CHECKING
+
+from pepperpy.ai.config.agent import AgentConfig
+from pepperpy.ai.types import AIResponse
+
 from .base import BaseAgent
 from .interfaces import AnalystAgent
+
+if TYPE_CHECKING:
+    from pepperpy.ai.client import AIClient
 
 
 class AnalysisAgent(BaseAgent, AnalystAgent):
     """Analysis agent implementation"""
+
+    def __init__(self, config: AgentConfig, client: "AIClient") -> None:
+        super().__init__(config, client)
 
     async def analyze(self, task: str) -> AIResponse:
         """Analyze task"""

@@ -1,16 +1,19 @@
 """Agent factory implementation"""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from ..client import AIClient
-from .analysis import AnalysisAgent
+from pepperpy.ai.config.agent import AgentConfig
+from pepperpy.ai.roles import AgentRole
+
+from .analysis import AnalysisAgent, DataAnalystAgent
 from .architect import ArchitectAgent
 from .base import BaseAgent
 from .development import DevelopmentAgent
 from .qa import QAAgent
-from .research import ResearchAgent
-from .reviewer import ReviewerAgent
-from .types import AgentConfig, AgentRole
+from .review import ReviewAgent
+
+if TYPE_CHECKING:
+    from pepperpy.ai.client import AIClient
 
 
 class AgentFactory:
@@ -30,14 +33,14 @@ class AgentFactory:
         agents = {
             AgentRole.ARCHITECT: ArchitectAgent,
             AgentRole.DEVELOPER: DevelopmentAgent,
-            AgentRole.REVIEWER: ReviewerAgent,
+            AgentRole.REVIEWER: ReviewAgent,
             AgentRole.ANALYST: AnalysisAgent,
             AgentRole.QA: QAAgent,
-            AgentRole.RESEARCHER: ResearchAgent,
+            AgentRole.RESEARCHER: DataAnalystAgent,
         }
 
         agent_class = agents.get(role)
         if not agent_class:
             raise ValueError(f"Unknown agent role: {role}")
 
-        return agent_class(client=client, config=config, **kwargs) 
+        return agent_class(client=client, config=config, **kwargs)

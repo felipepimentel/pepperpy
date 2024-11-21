@@ -2,50 +2,67 @@
 
 from typing import Any
 
-from pepperpy.core.module import BaseModule
-
-from ...client import AIClient
-from ..interfaces import TeamAgent, TeamTool
-from ..types import TeamConfig, TeamResult
+from ...types import AIMessage, AIResponse, MessageRole
+from ..base import BaseTeam
 
 
-class CrewTeam(BaseModule[TeamConfig]):
+class CrewTeam(BaseTeam):
     """Crew team implementation"""
-
-    def __init__(
-        self,
-        config: TeamConfig,
-        ai_client: AIClient | None = None,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(config)
-        self._ai_client = ai_client
-        self._agents: list[TeamAgent] = []
-        self._tools: list[TeamTool] = []
 
     async def _initialize(self) -> None:
         """Initialize team"""
-        pass
+        if not self._ai_client.is_initialized:
+            await self._ai_client.initialize()
 
     async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> TeamResult:
-        """Execute team task"""
-        if not self._initialized:
-            await self.initialize()
-
-        try:
-            # Implement Crew-specific execution logic here
-            return TeamResult(
-                success=True,
-                output="Crew execution result",
-                metadata={"framework": "crew"}
+        """Cleanup team resources"""
+        for agent in self.agent_configs:
+            await self._ai_client.complete(
+                f"Finalizing {agent.name}'s tasks and saving context"
             )
-        except Exception as e:
-            return TeamResult(
-                success=False,
-                output=None,
-                metadata={"error": str(e)}
-            ) 
+
+    async def execute_task(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute team task"""
+        self._ensure_initialized()
+        
+        messages = [AIMessage(role=MessageRole.USER, content=task)]
+        
+        # Distribuir tarefa entre os agentes
+        for agent in self.agent_configs:
+            agent_prompt = (
+                f"As {agent.name} with role {agent.role}, "
+                f"analyze and contribute to: {task}"
+            )
+            agent_response = await self._ai_client.complete(agent_prompt)
+            messages.append(
+                AIMessage(
+                    role=MessageRole.ASSISTANT,
+                    content=agent_response.content,
+                    metadata={"agent": agent.name, "role": agent.role}
+                )
+            )
+
+        # Consolidar resultados
+        consolidation_prompt = (
+            "Review and consolidate all agent contributions into a final response:\n" +
+            "\n".join(f"- {m.content}" for m in messages if m.role == MessageRole.ASSISTANT)
+        )
+        
+        final_response = await self._ai_client.complete(consolidation_prompt)
+        messages.append(
+            AIMessage(
+                role=MessageRole.ASSISTANT,
+                content=final_response.content,
+                metadata={"phase": "consolidation"}
+            )
+        )
+
+        return AIResponse(
+            content=final_response.content,
+            messages=messages,
+            metadata={
+                "team": "crew",
+                "agents": [a.name for a in self.agent_configs],
+                "task": task
+            }
+        )

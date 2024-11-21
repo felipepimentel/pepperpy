@@ -1,29 +1,30 @@
-"""Embedding providers package"""
+"""Embedding providers module"""
 
-from ..config import EmbeddingConfig
-from ..exceptions import ConfigurationError
-from .base import BaseEmbeddingProvider
+from typing import Type
+
+from ...exceptions import AIError
+from ..config import EmbeddingConfig, EmbeddingProvider
+from .base import EmbeddingProvider as BaseProvider
+from .huggingface import HuggingFaceProvider
+from .openai import OpenAIProvider
 from .sentence_transformers import SentenceTransformersProvider
 
-
-def get_provider(config: EmbeddingConfig | None = None) -> BaseEmbeddingProvider:
-    """Get embedding provider based on configuration"""
-    if not config:
-        raise ConfigurationError("Embedding configuration is required")
-
-    providers: dict[str, type[BaseEmbeddingProvider]] = {
-        "sentence_transformers": SentenceTransformersProvider,
-    }
-
-    provider_class = providers.get(config.provider)
-    if not provider_class:
-        raise ConfigurationError(f"Unknown embedding provider: {config.provider}")
-
-    return provider_class(config)
-
-
 __all__ = [
-    "BaseEmbeddingProvider",
-    "SentenceTransformersProvider",
-    "get_provider",
+    "EmbeddingProvider",
+    "BaseProvider",
+    "create_provider",
 ]
+
+_PROVIDERS: dict[EmbeddingProvider, Type[BaseProvider]] = {
+    EmbeddingProvider.OPENAI: OpenAIProvider,
+    EmbeddingProvider.HUGGINGFACE: HuggingFaceProvider,
+    EmbeddingProvider.SENTENCE_TRANSFORMERS: SentenceTransformersProvider,
+}
+
+
+def create_provider(config: EmbeddingConfig) -> BaseProvider:
+    """Create embedding provider instance"""
+    provider_class = _PROVIDERS.get(config.provider)
+    if not provider_class:
+        raise AIError(f"Unknown embedding provider: {config.provider}")
+    return provider_class(config=config)

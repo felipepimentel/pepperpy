@@ -1,51 +1,29 @@
-"""LangChain team implementation"""
+"""Langchain team implementation"""
 
 from typing import Any
 
-from pepperpy.core.module import BaseModule
-
-from ...client import AIClient
-from ..interfaces import TeamAgent, TeamTool
-from ..types import TeamConfig, TeamResult
+from ...types import AIMessage, AIResponse, MessageRole
+from ..base import BaseTeam
 
 
-class LangChainTeam(BaseModule[TeamConfig]):
-    """LangChain team implementation"""
-
-    def __init__(
-        self,
-        config: TeamConfig,
-        ai_client: AIClient | None = None,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(config)
-        self._ai_client = ai_client
-        self._agents: list[TeamAgent] = []
-        self._tools: list[TeamTool] = []
+class LangchainTeam(BaseTeam):
+    """Langchain team implementation"""
 
     async def _initialize(self) -> None:
         """Initialize team"""
-        pass
+        if not self._ai_client.is_initialized:
+            await self._ai_client.initialize()
 
     async def _cleanup(self) -> None:
-        """Cleanup resources"""
+        """Cleanup team resources"""
         pass
 
-    async def execute(self, task: str, **kwargs: Any) -> TeamResult:
+    async def execute_task(self, task: str, **kwargs: Any) -> AIResponse:
         """Execute team task"""
-        if not self._initialized:
-            await self.initialize()
-
-        try:
-            # Implement LangChain-specific execution logic here
-            return TeamResult(
-                success=True,
-                output="LangChain execution result",
-                metadata={"framework": "langchain"}
-            )
-        except Exception as e:
-            return TeamResult(
-                success=False,
-                output=None,
-                metadata={"error": str(e)}
-            ) 
+        self._ensure_initialized()
+        # TODO: Implementar execução real usando Langchain
+        messages = [
+            AIMessage(role=MessageRole.USER, content=task),
+            AIMessage(role=MessageRole.ASSISTANT, content=f"Langchain team executing: {task}"),
+        ]
+        return AIResponse(content=f"Langchain team executing: {task}", messages=messages)

@@ -1,121 +1,96 @@
-"""Advanced team example demonstrating multi-agent collaboration"""
+"""Advanced team example"""
 
 import asyncio
 
-from pepperpy.ai import AIClient
-from pepperpy.ai.agents import AgentConfig, AgentFactory, AgentRole
-from pepperpy.ai.types import AIResponse
+from pepperpy.ai import AIClient, AIConfig
+from pepperpy.ai.config.agent import AgentConfig
+from pepperpy.ai.roles import AgentRole
+from pepperpy.ai.teams.config import TeamConfig, TeamFramework
+from pepperpy.ai.teams.manager import TeamManager
 from pepperpy.console import Console
 
 console = Console()
 
 
-async def demonstrate_team_collaboration() -> None:
-    """Demonstrate team collaboration"""
+async def demonstrate_advanced_team() -> None:
+    """Demonstrate advanced team workflow"""
     try:
-        await console.info("🤖 Initializing AI Team...")
+        await console.info("🤖 Initializing Advanced Team...")
 
-        # Create AI client
-        client = AIClient()
+        # Create AI configuration and client
+        ai_config = AIConfig.get_default()
+        client = AIClient(config=ai_config)
         await client.initialize()
 
         try:
-            # Create agent configurations
-            architect_config = AgentConfig(
-                name="architect",
-                role=AgentRole.ARCHITECT,
-                metadata={
-                    "ai_config": client.config.to_dict(),
-                    "instructions": "Design scalable and maintainable architecture solutions",
-                },
-            )
+            # Create team manager
+            team_manager = TeamManager()
+            await team_manager.initialize()
 
-            developer_config = AgentConfig(
-                name="developer",
-                role=AgentRole.DEVELOPER,
-                metadata={
-                    "ai_config": client.config.to_dict(),
-                    "instructions": "Implement solutions following best practices",
-                },
-            )
+            try:
+                # Create team configuration
+                team_config = TeamConfig(
+                    name="development_team",
+                    framework=TeamFramework.AUTOGEN,
+                    metadata={
+                        "project": "pepperpy",
+                        "domain": "AI development",
+                    },
+                )
 
-            reviewer_config = AgentConfig(
-                name="reviewer",
-                role=AgentRole.REVIEWER,
-                metadata={
-                    "ai_config": client.config.to_dict(),
-                    "instructions": "Review code for quality and improvements",
-                },
-            )
+                # Create agent configurations
+                agent_configs = [
+                    AgentConfig(
+                        name="architect",
+                        role=AgentRole.DEVELOPER,
+                        metadata={"specialty": "architecture"},
+                    ),
+                    AgentConfig(
+                        name="researcher",
+                        role=AgentRole.RESEARCHER,
+                        metadata={"specialty": "technical research"},
+                    ),
+                    AgentConfig(
+                        name="reviewer",
+                        role=AgentRole.REVIEWER,
+                        metadata={"specialty": "code review"},
+                    ),
+                ]
 
-            qa_config = AgentConfig(
-                name="qa",
-                role=AgentRole.QA,
-                metadata={
-                    "ai_config": client.config.to_dict(),
-                    "instructions": "Ensure quality through comprehensive testing",
-                },
-            )
+                # Create team
+                team = await team_manager.create_team(
+                    config=team_config,
+                    agent_configs=agent_configs,
+                    ai_client=client,
+                )
 
-            # Create agents using factory
-            factory = AgentFactory()
-            architect = factory.create_agent(
-                client=client,
-                config=architect_config,
-                role=AgentRole.ARCHITECT,
-            )
+                try:
+                    # Execute team tasks
+                    await console.info("Starting team tasks...")
 
-            developer = factory.create_agent(
-                client=client,
-                config=developer_config,
-                role=AgentRole.DEVELOPER,
-            )
+                    tasks = [
+                        "Design system architecture",
+                        "Research best practices",
+                        "Review implementation",
+                    ]
 
-            reviewer = factory.create_agent(
-                client=client,
-                config=reviewer_config,
-                role=AgentRole.REVIEWER,
-            )
+                    for task in tasks:
+                        await console.info(f"Executing task: {task}")
+                        result = await team.execute_task(task)
+                        await console.info("Task completed:", content=result.content)
 
-            qa = factory.create_agent(
-                client=client,
-                config=qa_config,
-                role=AgentRole.QA,
-            )
+                finally:
+                    await team.cleanup()
 
-            # Demonstrate team collaboration
-            await console.info("Starting team collaboration...")
-
-            # Architect designs solution
-            design: AIResponse = await architect.execute(
-                "Design a scalable microservices architecture"
-            )
-            await console.info("Architect's Design:", content=design.content)
-
-            # Developer implements solution
-            implementation: AIResponse = await developer.execute(
-                f"Implement this design: {design.content}"
-            )
-            await console.info("Developer's Implementation:", content=implementation.content)
-
-            # Reviewer reviews code
-            review: AIResponse = await reviewer.execute(
-                f"Review this code: {implementation.content}"
-            )
-            await console.info("Reviewer's Feedback:", content=review.content)
-
-            # QA tests implementation
-            test_results: AIResponse = await qa.execute(
-                f"Test this implementation: {implementation.content}"
-            )
-            await console.info("QA Test Results:", content=test_results.content)
+            finally:
+                await team_manager.cleanup()
 
         finally:
             await client.cleanup()
 
     except Exception as e:
-        await console.error("Team collaboration failed", str(e))
+        await console.error("Team workflow failed", str(e))
 
 
 if __name__ == "__main__":
-    asyncio.run(demonstrate_team_collaboration())
+    asyncio.run(demonstrate_advanced_team())

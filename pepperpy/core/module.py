@@ -1,93 +1,59 @@
-"""Base module implementation"""
+"""Base module implementations"""
 
 from abc import ABC, abstractmethod
-from enum import Enum, auto
 from typing import Generic, TypeVar
 
-from .types import JsonDict
+from pydantic import BaseModel
 
-ConfigT = TypeVar("ConfigT")
-
-
-class ModuleStatus(Enum):
-    """Module status"""
-
-    UNINITIALIZED = auto()
-    INITIALIZING = auto()
-    INITIALIZED = auto()
-    ERROR = auto()
-    TERMINATED = auto()
+T = TypeVar("T", bound=BaseModel)
 
 
-class BaseModule(ABC, Generic[ConfigT]):
-    """Base module class"""
+class InitializableModule(ABC):
+    """Base class for modules that require initialization"""
 
-    def __init__(self, config: ConfigT) -> None:
-        """Initialize module.
-
-        Args:
-            config: Module configuration
-        """
-        self._status = ModuleStatus.UNINITIALIZED
+    def __init__(self) -> None:
         self._initialized = False
-        self._config = config
-        self._metadata: JsonDict = {}
 
     @property
-    def status(self) -> ModuleStatus:
-        """Get module status"""
-        return self._status
-
-    @property
-    def config(self) -> ConfigT:
-        """Get module configuration"""
-        if self._config is None:
-            raise ValueError("Module configuration not set")
-        return self._config
-
-    @property
-    def metadata(self) -> JsonDict:
-        """Get module metadata"""
-        return self._metadata
+    def is_initialized(self) -> bool:
+        """Check if module is initialized"""
+        return self._initialized
 
     async def initialize(self) -> None:
         """Initialize module"""
         if self._initialized:
             return
 
-        try:
-            self._status = ModuleStatus.INITIALIZING
-            await self._initialize()
-            self._status = ModuleStatus.INITIALIZED
-            self._initialized = True
-        except Exception as e:
-            self._status = ModuleStatus.ERROR
-            raise e
-
-    @abstractmethod
-    async def _initialize(self) -> None:
-        """Initialize module implementation"""
-        pass
+        await self._initialize()
+        self._initialized = True
 
     async def cleanup(self) -> None:
         """Cleanup module resources"""
         if not self._initialized:
             return
 
-        try:
-            await self._cleanup()
-            self._status = ModuleStatus.TERMINATED
-            self._initialized = False
-        except Exception as e:
-            self._status = ModuleStatus.ERROR
-            raise e
+        await self._cleanup()
+        self._initialized = False
+
+    @abstractmethod
+    async def _initialize(self) -> None:
+        """Implementation specific initialization"""
+        pass
 
     @abstractmethod
     async def _cleanup(self) -> None:
-        """Cleanup module implementation"""
+        """Implementation specific cleanup"""
         pass
 
-    @property
-    def is_initialized(self) -> bool:
-        """Check if module is initialized"""
-        return self._initialized
+    def _ensure_initialized(self) -> None:
+        """Ensure module is initialized"""
+        if not self._initialized:
+            raise RuntimeError(f"{self.__class__.__name__} not initialized")
+
+
+class BaseModule(InitializableModule, Generic[T]):
+    """Base module with configuration"""
+
+    def __init__(self, config: T) -> None:
+        super().__init__()
+        self.config = config

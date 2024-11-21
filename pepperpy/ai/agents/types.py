@@ -1,31 +1,21 @@
 """Agent type definitions"""
 
 from dataclasses import dataclass, field
-from enum import Enum
+from typing import Any
 
 from pepperpy.core.types import JsonDict
 
 
-class AgentRole(str, Enum):
-    """Agent roles"""
-
-    ARCHITECT = "architect"
-    DEVELOPER = "developer"
-    REVIEWER = "reviewer"
-    ANALYST = "analyst"
-    QA = "qa"
-    RESEARCHER = "researcher"
-    MANAGER = "manager"
-    INTEGRATION = "integration"
+@dataclass
+class AgentResponse:
+    """Agent response"""
+    content: str
+    metadata: JsonDict = field(default_factory=dict)
 
 
 @dataclass
-class AgentConfig:
-    """Agent configuration"""
-
-    name: str
-    role: AgentRole
-    enabled: bool = True
-    max_retries: int = 3
-    timeout: float = 60.0
+class AgentContext:
+    """Agent execution context"""
+    task: str
     metadata: JsonDict = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)

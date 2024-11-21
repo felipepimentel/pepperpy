@@ -1,28 +1,33 @@
 """Codebase configuration"""
 
-from dataclasses import dataclass, field
-from enum import Enum
+from pathlib import Path
+
+from pydantic import BaseModel, Field
 
 from pepperpy.core.types import JsonDict
 
 
-class ProviderType(str, Enum):
-    """Supported code analysis providers"""
+class CodebaseConfig(BaseModel):
+    """Codebase configuration"""
 
-    STATIC = "static"
-    HYBRID = "hybrid"
+    root_path: Path = Field(default=Path.cwd())
+    ignore_patterns: list[str] = Field(default_factory=lambda: [".*", "__pycache__", "*.pyc"])
+    max_file_size: int = Field(default=10 * 1024 * 1024)  # 10MB
+    index_path: Path = Field(default=Path.cwd() / ".index")
+    encoding: str = Field(default="utf-8")
+    metadata: JsonDict = Field(default_factory=dict)
 
+    class Config:
+        """Pydantic config"""
+        frozen = True
 
-@dataclass
-class CodebaseConfig:
-    """Configuration for code analysis"""
-
-    provider: ProviderType = ProviderType.STATIC
-    max_file_size: int = 1024 * 1024  # 1MB
-    ignore_patterns: list[str] = field(
-        default_factory=lambda: ["*.pyc", "__pycache__", "*.egg-info", "dist", "build"]
-    )
-    parse_docstrings: bool = True
-    track_dependencies: bool = True
-    analyze_complexity: bool = True
-    metadata: JsonDict = field(default_factory=dict)
+    @classmethod
+    def get_default(cls) -> "CodebaseConfig":
+        """Get default configuration"""
+        return cls(
+            root_path=Path.cwd(),
+            ignore_patterns=[".*", "__pycache__", "*.pyc"],
+            max_file_size=10 * 1024 * 1024,
+            index_path=Path.cwd() / ".index",
+            encoding="utf-8",
+        )

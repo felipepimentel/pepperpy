@@ -1,30 +1,16 @@
-"""Code analysis and indexing module for source code management"""
+"""Codebase module"""
 
 from .config import CodebaseConfig
 from .engine import CodebaseEngine
-from .indexer import CodeIndexer
-from .providers import get_provider
-from .types import (
-    CodeEntity,
-    CodeLocation,
-    EntityType,
-    IndexEntry,
-    RefactorSuggestion,
-    ReviewComment,
-    ScanResult,
-)
+from .providers import BaseProvider, ProviderType, StaticProvider
+from .types import CodeFile, CodeSearchResult
 
 __all__ = [
     "CodebaseConfig",
     "CodebaseEngine",
-    "CodeIndexer",
-    "get_provider",
-    # Types
-    "CodeEntity",
-    "CodeLocation",
-    "EntityType",
-    "IndexEntry",
-    "RefactorSuggestion",
-    "ReviewComment",
-    "ScanResult",
-] 
+    "BaseProvider",
+    "StaticProvider",
+    "ProviderType",
+    "CodeFile",
+    "CodeSearchResult",
+]

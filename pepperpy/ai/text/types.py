@@ -1,16 +1,25 @@
-"""Text analysis types"""
+"""Text processor types"""
 
 from dataclasses import dataclass, field
+from enum import Enum, auto
 
 from pepperpy.core.types import JsonDict
 
 
-@dataclass
+class FileType(Enum):
+    """File type enumeration"""
+
+    DOCUMENT = auto()
+    CODE = auto()
+    DATA = auto()
+
+
 class TextAnalysisResult:
     """Text analysis result"""
 
-    content: str
-    metadata: JsonDict = field(default_factory=dict)
+    def __init__(self, content: str, metadata: JsonDict | None = None) -> None:
+        self.content = content
+        self.metadata = metadata or {}
 
 
 @dataclass

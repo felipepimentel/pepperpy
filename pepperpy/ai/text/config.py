@@ -1,19 +1,35 @@
 """Text processor configuration"""
 
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 
-from pepperpy.core.types import JsonDict, ModuleConfig
+from pepperpy.core.types import JsonDict
 
 
-@dataclass
-class TextProcessorConfig(ModuleConfig):
+class TextProcessorConfig(BaseModel):
     """Text processor configuration"""
 
-    name: str
-    max_length: int | None = None
-    min_length: int | None = None
-    strip_html: bool = False
-    normalize_whitespace: bool = True
-    chunk_size: int = 1000
-    overlap: int = 0
-    metadata: JsonDict = field(default_factory=dict)
+    chunk_size: int = Field(default=1000, gt=0)
+    overlap: int = Field(default=200, ge=0)
+    encoding: str = Field(default="utf-8")
+    strip_html: bool = Field(default=True)
+    normalize_whitespace: bool = Field(default=True)
+    max_length: int = Field(default=100000, gt=0)
+    min_length: int = Field(default=10, ge=0)
+    metadata: JsonDict = Field(default_factory=dict)
+
+    class Config:
+        """Pydantic config"""
+        frozen = True
+
+    @classmethod
+    def get_default(cls) -> "TextProcessorConfig":
+        """Get default configuration"""
+        return cls(
+            chunk_size=1000,
+            overlap=200,
+            encoding="utf-8",
+            strip_html=True,
+            normalize_whitespace=True,
+            max_length=100000,
+            min_length=10,
+        )

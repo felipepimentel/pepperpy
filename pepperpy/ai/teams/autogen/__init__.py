@@ -1,5 +1,5 @@
-"""AutoGen team implementation"""
+"""Autogen team module"""
 
-from .team import AutoGenTeam
+from .team import AutogenTeam
 
-__all__ = ["AutoGenTeam"] 
+__all__ = ["AutogenTeam"] 

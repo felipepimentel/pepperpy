@@ -2,10 +2,13 @@
 
 import asyncio
 
-from pepperpy.ai import AIClient
-from pepperpy.ai.config import AIConfig
+from dotenv import load_dotenv  # Importing dotenv
+
+from pepperpy.ai import AIClient, AIConfig
 from pepperpy.ai.types import AIResponse
 from pepperpy.console import Console
+
+load_dotenv()  # Loading environment variables
 
 console = Console()
 
@@ -18,7 +21,7 @@ async def demonstrate_conversation() -> None:
         # Create AI configuration
         ai_config = AIConfig.get_default()
 
-        # Create AI client
+        # Create AI client with the obtained configuration
         client = AIClient(config=ai_config)
         await client.initialize()
 
@@ -53,8 +56,11 @@ async def demonstrate_streaming() -> None:
     try:
         await console.info("🤖 Initializing Streaming...")
 
-        # Create AI client
-        client = AIClient()
+        # Create AI configuration
+        ai_config = AIConfig.get_default()
+
+        # Create AI client with the obtained configuration
+        client = AIClient(config=ai_config)
         await client.initialize()
 
         try:

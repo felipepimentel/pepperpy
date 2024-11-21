@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .ai import AIClient
     from .console import Console
-    from .db import DatabaseConfig
+    from .db.config import DatabaseConfig
 
 __all__ = [
     "AIClient",

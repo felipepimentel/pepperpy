@@ -1,7 +1,9 @@
 """Team type definitions"""
 
-from dataclasses import dataclass, field
+from dataclasses import field
 from enum import Enum
+
+from pydantic import BaseModel
 
 from pepperpy.core.types import JsonDict
 
@@ -19,8 +21,7 @@ class TeamRole(str, Enum):
     MANAGER = "manager"
 
 
-@dataclass
-class TeamConfig:
+class TeamConfig(BaseModel):
     """Team configuration"""
 
     name: str
@@ -32,8 +33,7 @@ class TeamConfig:
     metadata: JsonDict = field(default_factory=dict)
 
 
-@dataclass
-class TeamResult:
+class TeamResult(BaseModel):
     """Team execution result"""
 
     success: bool

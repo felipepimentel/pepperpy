@@ -1,23 +1,46 @@
 """Team factory implementation"""
 
-from typing import Any, cast
+from typing import Sequence
 
-from pepperpy.ai.client import AIClient
+from pepperpy.ai.config.agent import AgentConfig
 
-from .interfaces import BaseTeam
-from .providers import get_provider
-from .types import TeamConfig
+from ..client import AIClient
+from .autogen.team import AutogenTeam
+from .base import BaseTeam
+from .config import TeamConfig, TeamFramework
+from .crew.team import CrewTeam
+from .langchain.team import LangchainTeam
 
 
 class TeamFactory:
-    """Factory for creating teams"""
+    """Factory for creating AI teams"""
 
-    @staticmethod
+    _teams = {
+        TeamFramework.AUTOGEN: AutogenTeam,
+        TeamFramework.CREW: CrewTeam,
+        TeamFramework.LANGCHAIN: LangchainTeam,
+    }
+
+    @classmethod
     async def create_team(
+        cls,
         config: TeamConfig,
-        ai_client: AIClient | None = None,
-        **kwargs: Any,
+        agent_configs: Sequence[AgentConfig],
+        ai_client: AIClient,
     ) -> BaseTeam:
-        """Create team instance based on configuration"""
-        provider = await get_provider(config.framework, config, ai_client, **kwargs)
-        return cast(BaseTeam, provider) 
+        """Create team instance"""
+        team_class = cls._teams.get(config.framework)
+        if not team_class:
+            raise ValueError(f"Unknown team framework: {config.framework}")
+
+        team = team_class(config, agent_configs, ai_client)
+        await team.initialize()
+        return team
+
+    @classmethod
+    def get_team_class(cls, framework: TeamFramework) -> type[BaseTeam]:
+        """Get team class for framework"""
+        team_class = cls._teams.get(framework)
+        if not team_class:
+            raise ValueError(f"Unknown team framework: {framework}")
+        return team_class

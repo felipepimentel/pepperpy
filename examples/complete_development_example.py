@@ -3,12 +3,12 @@
 import asyncio
 
 from pepperpy.ai import (
-    AgentConfig,
-    AgentRole,
     AIClient,
     AIConfig,
 )
 from pepperpy.ai.agents.development import DevelopmentAgent
+from pepperpy.ai.config.agent import AgentConfig
+from pepperpy.ai.roles import AgentRole
 from pepperpy.ai.types import AIResponse
 from pepperpy.console import Console
 
@@ -31,7 +31,7 @@ async def demonstrate_complete_development() -> None:
                 name="researcher",
                 role=AgentRole.RESEARCHER,
                 metadata={
-                    "ai_config": client.config.to_dict(),
+                    "ai_config": client.config.dict(),
                     "instructions": "Research and gather information on technical topics",
                 },
             )
@@ -40,7 +40,7 @@ async def demonstrate_complete_development() -> None:
                 name="analyst",
                 role=AgentRole.ANALYST,
                 metadata={
-                    "ai_config": client.config.to_dict(),
+                    "ai_config": client.config.dict(),
                     "instructions": "Analyze technical information and provide insights",
                 },
             )

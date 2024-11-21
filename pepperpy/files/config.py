@@ -1,25 +1,21 @@
-"""File handling configuration"""
+"""File manager configuration"""
 
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, ClassVar
 
-from pepperpy.core.types import JsonDict, ModuleConfig
+from pydantic import BaseModel, Field
+
+from pepperpy.core.types import JsonDict
 
 
-@dataclass
-class FileManagerConfig(ModuleConfig):
+class FileManagerConfig(BaseModel):
     """File manager configuration"""
 
-    name: str = "file_manager"
-    base_path: Path | None = None
-    handlers: dict[str, Any] = field(default_factory=dict)
-    metadata: JsonDict = field(default_factory=dict)
-    _instance: ClassVar[Any] = None
+    base_path: Path = Field(default=Path.cwd())
+    temp_path: Path = Field(default=Path.cwd() / "temp")
+    max_file_size: int = Field(default=10 * 1024 * 1024)  # 10MB
+    allowed_extensions: set[str] = Field(default_factory=lambda: {"txt", "pdf", "md"})
+    metadata: JsonDict = Field(default_factory=dict)
 
-    @classmethod
-    def get_default(cls) -> "FileManagerConfig":
-        """Get default configuration instance"""
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
+    class Config:
+        """Pydantic config"""
+        frozen = True

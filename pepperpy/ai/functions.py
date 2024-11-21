@@ -43,29 +43,3 @@ class TextEmbedding:
             return await self.client.get_embedding(text)
         except Exception as e:
             raise AIError(f"Text embedding failed: {e}", cause=e)
-
-
-class VectorSearch:
-    """Vector search functions"""
-
-    def __init__(self, client: AIClient) -> None:
-        """Initialize vector search"""
-        self.client = client
-
-    async def search(
-        self,
-        collection: str,
-        text: str,
-        limit: int = 10,
-        threshold: float = 0.8,
-    ) -> list[dict[str, Any]]:
-        """Search for similar vectors"""
-        try:
-            return await self.client.find_similar(
-                collection=collection,
-                text=text,
-                limit=limit,
-                threshold=threshold,
-            )
-        except Exception as e:
-            raise AIError(f"Vector search failed: {e}", cause=e)

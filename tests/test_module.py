@@ -1,80 +1,76 @@
-"""Test base module implementation"""
+"""Module tests"""
 
 import pytest
 
-from pepperpy.core.dev import AsyncTestCase, async_test
-from pepperpy.core.module import BaseModule, ModuleStatus
-from pepperpy.core.types import JsonDict
+from pepperpy.core.exceptions import PepperPyError
+from pepperpy.core.module import InitializableModule
 
 
-class TestConfig:
-    """Test configuration"""
+class TestModule(InitializableModule):
+    """Test module implementation"""
 
-    def __init__(self, name: str = "test") -> None:
-        self.name = name
-        self.metadata: JsonDict = {}
-
-
-class TestModuleImpl(BaseModule[TestConfig]):
-    """Concrete implementation for testing"""
-
-    def __init__(self) -> None:
-        super().__init__(TestConfig())
+    def __init__(self, should_fail: bool = False) -> None:
+        super().__init__()
+        self.should_fail = should_fail
+        self.initialized = False
+        self.cleaned_up = False
 
     async def _initialize(self) -> None:
-        """Initialize implementation"""
-        pass
+        """Initialize test module"""
+        if self.should_fail:
+            raise PepperPyError("Initialization failed")
+        self.initialized = True
 
     async def _cleanup(self) -> None:
-        """Cleanup implementation"""
-        pass
+        """Cleanup test module"""
+        if self.should_fail:
+            raise PepperPyError("Cleanup failed")
+        self.cleaned_up = True
 
 
-class ErrorModuleImpl(BaseModule[TestConfig]):
-    """Error module implementation"""
+@pytest.mark.asyncio
+async def test_module_initialization() -> None:
+    """Test module initialization"""
+    module = TestModule()
+    assert not module.is_initialized
+    assert not module.initialized
 
-    def __init__(self) -> None:
-        super().__init__(TestConfig())
+    await module.initialize()
+    assert module.is_initialized
+    assert module.initialized
 
-    async def _initialize(self) -> None:
-        """Initialize with error"""
-        raise ValueError("Test error")
-
-    async def _cleanup(self) -> None:
-        """Cleanup implementation"""
-        pass
+    await module.cleanup()
+    assert not module.is_initialized
+    assert module.cleaned_up
 
 
-class TestModule(AsyncTestCase):
-    """Test base module"""
-
-    @async_test
-    async def test_initialization(self) -> None:
-        """Test module initialization"""
-        module = TestModuleImpl()
-        assert module.status == ModuleStatus.UNINITIALIZED
-        assert not module.is_initialized
-
+@pytest.mark.asyncio
+async def test_module_initialization_failure() -> None:
+    """Test module initialization failure"""
+    module = TestModule(should_fail=True)
+    with pytest.raises(PepperPyError, match="Initialization failed"):
         await module.initialize()
-        assert module.status == ModuleStatus.INITIALIZED
-        assert module.is_initialized
 
-    @async_test
-    async def test_cleanup(self) -> None:
-        """Test module cleanup"""
-        module = TestModuleImpl()
-        await module.initialize()
-        assert module.status == ModuleStatus.INITIALIZED
+    assert not module.is_initialized
+    assert not module.initialized
 
+
+@pytest.mark.asyncio
+async def test_module_cleanup_failure() -> None:
+    """Test module cleanup failure"""
+    module = TestModule(should_fail=True)
+    with pytest.raises(PepperPyError, match="Cleanup failed"):
         await module.cleanup()
-        assert module.status == ModuleStatus.TERMINATED
-        assert not module.is_initialized
 
-    @async_test
-    async def test_error_handling(self) -> None:
-        """Test module error handling"""
-        module = ErrorModuleImpl()
-        with pytest.raises(ValueError):
-            await module.initialize()
-        assert module.status == ModuleStatus.ERROR
-        assert not module.is_initialized
+    assert not module.cleaned_up
+
+
+@pytest.mark.asyncio
+async def test_ensure_initialized() -> None:
+    """Test ensure initialized check"""
+    module = TestModule()
+    with pytest.raises(RuntimeError, match="TestModule not initialized"):
+        module._ensure_initialized()
+
+    await module.initialize()
+    module._ensure_initialized()  # Should not raise

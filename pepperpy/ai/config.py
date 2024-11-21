@@ -1,39 +1,26 @@
 """AI configuration"""
 
-import os
-from dataclasses import asdict, dataclass, field
-from typing import Any, ClassVar, Optional
+from typing import Any
 
-from pepperpy.core.db.vector import VectorConfig
-from pepperpy.core.types import JsonDict, ModuleConfig
+from pydantic import BaseModel, Field
+
+from pepperpy.core.types import JsonDict
 
 
-@dataclass
-class AIConfig(ModuleConfig):
+class AIConfig(BaseModel):
     """AI configuration"""
 
-    name: str = "ai"
-    provider: str = field(default_factory=lambda: os.getenv("AI_PROVIDER", "openrouter"))
-    model: str = field(default_factory=lambda: os.getenv("AI_MODEL", "openai/gpt-4-turbo"))
-    max_tokens: int = field(default_factory=lambda: int(os.getenv("AI_MAX_TOKENS", "1000")))
-    temperature: float = field(default_factory=lambda: float(os.getenv("AI_TEMPERATURE", "0.7")))
-    api_key: str = field(default="", repr=False)
-    vector_enabled: bool = False
-    vector_config: Optional[VectorConfig] = None
-    metadata: JsonDict = field(default_factory=dict)
-    _instance: ClassVar[Any] = None
+    provider: str
+    api_key: str
+    model: str = Field(default="gpt-3.5-turbo")
+    temperature: float = Field(default=0.7, ge=0.0, le=1.0)
+    max_tokens: int = Field(default=2048, gt=0)
+    timeout: float = Field(default=30.0, gt=0)
+    retry_attempts: int = Field(default=3, ge=0)
+    retry_delay: float = Field(default=1.0, ge=0)
+    metadata: JsonDict = Field(default_factory=dict)
+    provider_options: dict[str, Any] = Field(default_factory=dict)
 
-    @classmethod
-    def get_default(cls) -> "AIConfig":
-        """Get default configuration instance"""
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary"""
-        return {
-            k: v.to_dict() if hasattr(v, "to_dict") else v
-            for k, v in asdict(self).items()
-            if not k.startswith("_") and k != "api_key"
-        }
+    class Config:
+        """Pydantic config"""
+        frozen = True

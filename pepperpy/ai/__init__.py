@@ -1,31 +1,12 @@
 """AI module"""
 
-from .agents import (
-    AgentConfig,
-    AgentFactory,
-    AgentRole,
-    AnalysisAgent,
-    ArchitectAgent,
-    DevelopmentAgent,
-    QAAgent,
-    ResearchAgent,
-    ReviewerAgent,
-)
 from .client import AIClient
-from .config import AIConfig
+from .config.provider import ProviderConfig as AIConfig
+from .types import AIMessage, AIResponse
 
 __all__ = [
-    # Client
     "AIClient",
     "AIConfig",
-    # Agents
-    "AgentConfig",
-    "AgentFactory",
-    "AgentRole",
-    "AnalysisAgent",
-    "ArchitectAgent",
-    "DevelopmentAgent",
-    "QAAgent",
-    "ResearchAgent",
-    "ReviewerAgent",
+    "AIMessage",
+    "AIResponse",
 ]

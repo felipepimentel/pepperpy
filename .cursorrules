@@ -4,10 +4,11 @@
 rules:
   - name: "Type Safety"
     patterns:
-      - "from typing import *"
+      - "from typing import Any, AsyncGenerator, Protocol, Sequence"
       - "async def"
       - "-> None"
       - "-> Any"
+      - "-> AsyncGenerator[AIResponse, None]"
     message: "Ensure proper type hints and async patterns"
 
 # Module Structure
@@ -20,26 +21,65 @@ module_structure:
     - "console/: Terminal interface"
     - "ui/: User interface components"
 
+# Module Base Classes
+base_classes:
+  - name: "InitializableModule"
+    methods:
+      - "async def _initialize(self) -> None"
+      - "async def _cleanup(self) -> None"
+      - "def _ensure_initialized(self) -> None"
+    properties:
+      - "is_initialized: bool"
+
 # Provider Pattern
 providers:
   base_pattern:
     - "class {Name}Provider(AIProvider):"
-    - "async def initialize(self) -> None:"
-    - "async def cleanup(self) -> None:"
-    - "async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:"
-    - "async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:"
-    - "async def get_embedding(self, text: str) -> list[float]:"
+    - "async def _initialize(self) -> None"
+    - "async def _cleanup(self) -> None"
+    - "async def complete(self, prompt: str, **kwargs: Any) -> AIResponse"
+    - "async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]"
+    - "async def get_embedding(self, text: str) -> list[float]"
+
+# Team Pattern
+teams:
+  base_pattern:
+    - "class {Name}Team(BaseTeam):"
+    - "async def _initialize(self) -> None"
+    - "async def _cleanup(self) -> None"
+    - "async def execute_task(self, task: str, **kwargs: Any) -> AIResponse"
 
 # Factory Pattern
 factory_pattern:
   - "class {Name}Factory:"
   - "@staticmethod"
-  - "def create_{item}(config: {Name}Config) -> {Name}:"
+  - "def create_{item}(config: {Name}Config) -> {Name}"
 
-# Code Block Format
-code_blocks:
-  - format: "```{language_id}:{path/to/file}"
-  - example: "```python:pepperpy/ai/providers/base.py"
+# Configuration Pattern
+configuration:
+  base_pattern:
+    - "class {Name}Config(BaseModel):"
+    - "class Config:"
+    - "    frozen = True"
+  validation:
+    - "from pydantic import BaseModel, Field"
+    - "metadata: JsonDict = Field(default_factory=dict)"
+
+# Validation Pattern
+validation:
+  base_pattern:
+    - "class {Name}Validator(Validator[T, V])"
+    - "async def validate(self, value: V) -> ValidationResult[T]"
+    - "async def validate_many(self, values: Sequence[V]) -> Sequence[ValidationResult[T]]"
+
+# Error Handling
+error_handling:
+  pattern: |
+    try:
+        self._ensure_initialized()
+        # ... operation code ...
+    except Exception as e:
+        raise {Module}Error(f"Operation failed: {e}", cause=e)
 
 # Documentation
 documentation:
@@ -47,36 +87,13 @@ documentation:
   - "\"\"\"Class docstring\"\"\""
   - "\"\"\"Method docstring\"\"\""
 
-# Error Handling
-error_handling:
-  pattern: |
-    try:
-        ...
-    except Exception as e:
-        raise {Module}Error(f"Error message: {e}", cause=e)
-
-# Configuration
-configuration:
-  pattern: |
-    @dataclass
-    class {Name}Config(ModuleConfig):
-        name: str
-        metadata: JsonDict = field(default_factory=dict)
-        _instance: ClassVar[Any] = None
-
-# Provider Independence
-provider_independence:
-  - "No direct provider imports in consumer code"
-  - "Use factory pattern for provider creation"
-  - "Configure provider via environment variables"
-  - "Provider-specific code isolated in provider modules"
-
 # Testing Requirements
 testing:
   - "100% test coverage"
   - "Async test patterns"
   - "Mock external services"
   - "Test all error cases"
+  - "Test initialization/cleanup"
 
 # Quality Requirements
 quality:
@@ -84,6 +101,7 @@ quality:
   - "ruff linting"
   - "black formatting (line length: 100)"
   - "pre-commit hooks"
+  - "Protocol for interfaces"
 
 # Module Composition
 composition:
@@ -91,3 +109,11 @@ composition:
   - "Avoid circular dependencies"
   - "Clear module boundaries"
   - "Interface-based design"
+  - "Proper initialization order"
+
+# Resource Management
+resources:
+  - "Proper cleanup in _cleanup"
+  - "Resource validation in _initialize"
+  - "Connection pooling where applicable"
+  - "Proper error handling for resources"
