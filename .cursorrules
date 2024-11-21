@@ -1,160 +1,93 @@
-# AI Assistant Instructions
+# Cursor Rules for PepperPy Project
 
-You are an expert Python developer specializing in PepperPy framework development. Your responses must:
+# Type Safety and Async Patterns
+rules:
+  - name: "Type Safety"
+    patterns:
+      - "from typing import *"
+      - "async def"
+      - "-> None"
+      - "-> Any"
+    message: "Ensure proper type hints and async patterns"
 
-1. Follow strict type-safe, async-first patterns with Python 3.12+ features
-2. Generate code matching PepperPy's architectural style and standards
-3. Provide clear, English-language documentation with comprehensive docstrings
-4. Format responses in proper markdown with language-specific code blocks
+# Module Structure
+module_structure:
+  core:
+    - "core/: Framework foundation and shared utilities"
+    - "db/: All database operations (including vectors)"
+    - "ai/: AI/ML operations"
+    - "files/: File system operations"
+    - "console/: Terminal interface"
+    - "ui/: User interface components"
 
-## Code Generation Standards
+# Provider Pattern
+providers:
+  base_pattern:
+    - "class {Name}Provider(AIProvider):"
+    - "async def initialize(self) -> None:"
+    - "async def cleanup(self) -> None:"
+    - "async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:"
+    - "async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:"
+    - "async def get_embedding(self, text: str) -> list[float]:"
 
-### Core Requirements
-- Use strict type hints (from typing import *) and async/await patterns
-- Follow modular architecture with clear separation of concerns
-- Implement comprehensive error handling with module-specific exceptions
-- Write PEP-compliant docstrings with type information
-- Design for maintainability and extensibility
-- Ensure code passes ruff linting without warnings
+# Factory Pattern
+factory_pattern:
+  - "class {Name}Factory:"
+  - "@staticmethod"
+  - "def create_{item}(config: {Name}Config) -> {Name}:"
 
-### Module Structure
-1. Every module must have a properly structured __init__.py:
-   - Explicit exports using __all__
-   - Clear import organization
-   - Type-annotated public interfaces
-   - Version information when applicable
+# Code Block Format
+code_blocks:
+  - format: "```{language_id}:{path/to/file}"
+  - example: "```python:pepperpy/ai/providers/base.py"
 
-2. Module Integration:
-   - Use internal modules instead of direct implementations
-   - Example: Use files.handlers for file operations
-   - Example: Use db.engines for database operations
-   - Example: Use ai.agents for AI capabilities
+# Documentation
+documentation:
+  - "\"\"\"Module docstring\"\"\""
+  - "\"\"\"Class docstring\"\"\""
+  - "\"\"\"Method docstring\"\"\""
 
-3. Cross-Module Dependencies:
-   - Clearly document module dependencies
-   - Use proper import paths
-   - Maintain circular dependency prevention
-   - Follow dependency injection patterns
+# Error Handling
+error_handling:
+  pattern: |
+    try:
+        ...
+    except Exception as e:
+        raise {Module}Error(f"Error message: {e}", cause=e)
 
-### Module Composition Rules
-1. Core Module Responsibilities:
-   - core/: Framework foundation and shared utilities
-   - db/: All database operations (including vectors)
-   - ai/: AI/ML operations (using db when needed)
-   - files/: File system operations
-   - console/: Terminal interface
-   - ui/: User interface components
+# Configuration
+configuration:
+  pattern: |
+    @dataclass
+    class {Name}Config(ModuleConfig):
+        name: str
+        metadata: JsonDict = field(default_factory=dict)
+        _instance: ClassVar[Any] = None
 
-2. Module Independence:
-   - Each module must be independently usable
-   - Optional dependencies must be clearly documented
-   - Provide fallback behaviors when dependencies are missing
-   - Use dependency injection for cross-module features
+# Provider Independence
+provider_independence:
+  - "No direct provider imports in consumer code"
+  - "Use factory pattern for provider creation"
+  - "Configure provider via environment variables"
+  - "Provider-specific code isolated in provider modules"
 
-3. Feature Distribution:
-   - Database operations belong in db/ module
-   - Caching implementations belong in core/cache/
-   - Vector operations belong in db/vector/
-   - AI operations must use db/vector/ for vector features
+# Testing Requirements
+testing:
+  - "100% test coverage"
+  - "Async test patterns"
+  - "Mock external services"
+  - "Test all error cases"
 
-4. Extension Points:
-   - Define clear interfaces for extensibility
-   - Use Protocol classes for interface definitions
-   - Provide base classes for common patterns
-   - Document extension mechanisms
+# Quality Requirements
+quality:
+  - "mypy --strict mode"
+  - "ruff linting"
+  - "black formatting (line length: 100)"
+  - "pre-commit hooks"
 
-### Response Format
-1. Format responses in markdown
-2. For code edits:
-   - Show minimal context with "// ... existing code ..." comments
-   - Include full file paths in code blocks
-   - Provide concise explanations of changes
-3. For new files:
-   - Include complete file contents with proper headers
-4. Code block format:
-   - Edits: ```language_id:path/to/file
-   - New files: ```language_id:full/path/to/file
-   - Examples: ```language_id
-5. Match user's language preference in responses
-
-### Quality Requirements
-- mypy --strict mode compliance
-- ruff linting with strict rules
-- black code formatting (line length: 100)
-- 100% test coverage requirement
-- Pre-commit hooks enforcement
-- No direct file/network operations without proper handlers
-
-### Best Practices
-- Single Responsibility Principle adherence
-- Clear interface definitions with proper typing
-- Comprehensive error handling with custom exceptions
-- Performance optimization with async patterns
-- Consistent code style across modules
-- Use internal utilities instead of direct implementations
-- Follow established module integration patterns
-
-### Type Safety
-1. Generic Type Usage:
-   - Use TypeVar for generic type parameters
-   - Properly constrain generic types
-   - Use Protocol for interface definitions
-   - Implement proper type casting when needed
-
-2. Database Operations:
-   - Define strict types for query results
-   - Use TypedDict for row types
-   - Properly type vector operations
-   - Handle JSON/JSONB type conversions
-
-3. Vector Operations:
-   - Define proper numpy type hints
-   - Use appropriate vector type definitions
-   - Handle vector dimension validation
-   - Properly type similarity search results
-
-4. Cache Operations:
-   - Define generic cache types
-   - Properly type cache keys and values
-   - Handle TTL and expiration types
-   - Type metadata appropriately
-
-### Error Handling
-1. Exception Hierarchy:
-   - Module-specific base exceptions
-   - Detailed error types
-   - Proper error propagation
-   - Comprehensive error messages
-
-2. Recovery Mechanisms:
-   - Graceful degradation
-   - Fallback behaviors
-   - Resource cleanup
-   - State recovery
-
-### Module Organization Rules
-1. Framework Abstractions:
-   - Use abstraction layers for third-party frameworks
-   - Example: ai/teams/ for multi-agent frameworks
-   - Provide unified interfaces across implementations
-   - Allow runtime framework selection
-   - Support dependency injection for frameworks
-
-2. Framework Integration:
-   - Place framework-specific code in dedicated submodules
-   - Example: ai/teams/autogen/
-   - Example: ai/teams/crew/
-   - Example: ai/teams/langchain/
-   - Maintain consistent interfaces across implementations
-
-3. Framework Selection:
-   - Support configuration-based framework selection
-   - Allow runtime framework switching
-   - Provide fallback mechanisms
-   - Document framework-specific features
-
-4. Integration Guidelines:
-   - Create base protocols for common features
-   - Implement adapters for framework specifics
-   - Use factory patterns for framework instantiation
-   - Maintain framework isolation
+# Module Composition
+composition:
+  - "Use dependency injection"
+  - "Avoid circular dependencies"
+  - "Clear module boundaries"
+  - "Interface-based design"
