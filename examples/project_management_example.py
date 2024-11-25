@@ -6,8 +6,7 @@ from typing import cast
 from dotenv import load_dotenv  # Importing dotenv
 
 from pepperpy.ai import AIClient, AIConfig
-from pepperpy.ai.agents import AgentFactory
-from pepperpy.ai.agents.interfaces import ProjectManagerAgent, QAAgent
+from pepperpy.ai.agents import AgentFactory, ProjectManager, QAAgent
 from pepperpy.ai.config.agent import AgentConfig
 from pepperpy.ai.roles import AgentRole
 from pepperpy.core.logging import get_logger
@@ -27,7 +26,7 @@ async def demonstrate_project_management() -> None:
         await logger.info("🤖 Initializing Project Management...")
 
         # Create AI configuration
-        ai_config = AIConfig.get_default()
+        ai_config = AIConfig.model_validate({"name": "project-management"})
 
         # Create AI client with the obtained configuration
         client = AIClient(config=ai_config)
@@ -43,10 +42,8 @@ async def demonstrate_project_management() -> None:
         )
 
         # Create agents using factory with proper type casting
-        manager = cast(
-            ProjectManagerAgent, AgentFactory.create_agent("manager", client, manager_config)
-        )
-        qa = cast(QAAgent, AgentFactory.create_agent("qa", client, qa_config))
+        manager = cast(ProjectManager, AgentFactory.create_agent("manager", config=manager_config))
+        qa = cast(QAAgent, AgentFactory.create_agent("qa", config=qa_config))
 
         # Initialize agents
         await manager.initialize()

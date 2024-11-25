@@ -1,49 +1,64 @@
 """Media file handler implementation"""
 
-from ..exceptions import FileError
-from ..types import FileContent, FileType, MediaInfo, PathLike
-from .base import BaseFileHandler, FileHandler
+from pathlib import Path
+from typing import Any, Dict
+
+from pepperpy.files.exceptions import FileError
+from pepperpy.files.handlers.base import BaseFileHandler
+from pepperpy.files.types import FileContent, FileMetadata
 
 
-class MediaHandler(BaseFileHandler, FileHandler[bytes]):
-    """Handler for media files"""
+class MediaHandler(BaseFileHandler):
+    """Handler for media file operations"""
 
-    async def read(self, file: PathLike) -> FileContent[bytes]:
-        """Read media file"""
+    async def read(self, path: Path, **kwargs: Dict[str, Any]) -> FileContent:
+        """Read media file content"""
+        path = self._to_path(path)
+        
+        if not path.exists():
+            raise FileError(f"File does not exist: {path}")
+
         try:
-            path = self._to_path(file)
             with open(path, "rb") as f:
                 content = f.read()
 
-            # Create media info
-            media_info = MediaInfo(
-                duration=0.0,  # Implementar extração real
-                bitrate=0,
-                codec="",
-                format=path.suffix[1:],
+            return FileContent(
+                content=content,
+                metadata=FileMetadata(
+                    name=path.name,
+                    mime_type=self._get_mime_type(path),
+                    path=path,
+                    type="media",
+                    extension=path.suffix,
+                    format="binary",
+                    size=path.stat().st_size
+                )
             )
-
-            metadata = self._create_metadata(
-                path=path,
-                file_type=FileType.MEDIA,
-                mime_type=f"video/{path.suffix[1:]}",
-                format_str=path.suffix[1:],
-                extra={"media_info": media_info.to_dict()},
-            )
-
-            return FileContent(content=content, metadata=metadata)
         except Exception as e:
             raise FileError(f"Failed to read media file: {e}", cause=e)
 
-    async def write(self, content: bytes, output: PathLike) -> None:
-        """Write media file"""
+    async def write(self, path: Path, content: FileContent, **kwargs: Dict[str, Any]) -> None:
+        """Write media file content"""
+        path = self._to_path(path)
+
+        if not isinstance(content.content, bytes):
+            raise FileError("Invalid media content")
+
         try:
-            path = self._to_path(output)
             with open(path, "wb") as f:
-                f.write(content)
+                f.write(content.content)
         except Exception as e:
             raise FileError(f"Failed to write media file: {e}", cause=e)
 
-    async def cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
+    def _get_mime_type(self, path: Path) -> str:
+        """Get MIME type for media file"""
+        extension = path.suffix.lower()
+        mime_types = {
+            ".mp4": "video/mp4",
+            ".avi": "video/x-msvideo",
+            ".mov": "video/quicktime",
+            ".wmv": "video/x-ms-wmv",
+            ".flv": "video/x-flv",
+            ".mkv": "video/x-matroska",
+        }
+        return mime_types.get(extension, "application/octet-stream")

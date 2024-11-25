@@ -1,32 +1,51 @@
-"""Base AI provider implementation"""
+"""Base provider module"""
 
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Dict
 
-from pepperpy.core.module import InitializableModule
-
-from ..config.provider import ProviderConfig
-from ..types import AIResponse
+from pepperpy.ai.providers.config import ProviderConfig
+from pepperpy.ai.providers.types import AIResponse
 
 
-class AIProvider(InitializableModule, ABC):
+class AIProvider(ABC):
     """Base class for AI providers"""
 
     def __init__(self, config: ProviderConfig) -> None:
-        super().__init__()
-        self.config = config
+        """Initialize provider"""
+        self._config = config
+        self._initialized = False
+
+    @property
+    def config(self) -> ProviderConfig:
+        """Get provider configuration"""
+        return self._config
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if provider is initialized"""
+        return self._initialized
 
     @abstractmethod
-    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Complete a prompt and return the response"""
-        pass
+    async def initialize(self) -> None:
+        """Initialize provider"""
+        raise NotImplementedError
 
     @abstractmethod
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream completion of a prompt"""
-        pass
+    async def cleanup(self) -> None:
+        """Cleanup provider"""
+        raise NotImplementedError
 
     @abstractmethod
-    async def get_embedding(self, text: str) -> list[float]:
-        """Get text embedding"""
-        pass 
+    async def complete(self, prompt: str, **kwargs: Dict[str, Any]) -> AIResponse:
+        """Complete prompt"""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def stream(
+        self, prompt: str, **kwargs: Dict[str, Any]
+    ) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses"""
+        raise NotImplementedError
+
+
+BaseProvider = AIProvider  # Alias para compatibilidade

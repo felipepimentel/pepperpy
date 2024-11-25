@@ -1,19 +1,23 @@
-"""Provider-related exceptions"""
+"""Provider exceptions module"""
 
-from pepperpy.core.exceptions import PepperPyError
-
-
-class ProviderError(PepperPyError):
-    """Base provider error"""
+from typing import Optional
 
 
-class ProviderConfigError(ProviderError):
-    """Provider configuration error"""
+class ProviderError(Exception):
+    """Base exception for provider errors"""
 
+    def __init__(self, message: str, cause: Optional[Exception] = None) -> None:
+        """Initialize error"""
+        super().__init__(message)
+        self._message = message
+        self._cause = cause
 
-class ProviderConnectionError(ProviderError):
-    """Provider connection error"""
+    @property
+    def message(self) -> str:
+        """Get error message"""
+        return self._message
 
-
-class ProviderResponseError(ProviderError):
-    """Provider response error""" 
+    @property
+    def cause(self) -> Optional[Exception]:
+        """Get original exception"""
+        return self._cause 

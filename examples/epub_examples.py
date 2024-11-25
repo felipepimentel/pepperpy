@@ -2,72 +2,90 @@
 
 import asyncio
 from pathlib import Path
+from typing import cast
 
 from pepperpy.console import Console
 from pepperpy.files.handlers.epub import EPUBHandler
 from pepperpy.files.manager import FileManager
+from pepperpy.files.types import Book
 
 console = Console()
 
 
-async def demonstrate_epub_handling() -> None:
-    """Demonstrate EPUB file handling"""
+async def analyze_epub_content(epub_path: str | Path) -> None:
+    """Analyze EPUB content"""
+    file_manager = None
     try:
-        console.info("📚 Initializing EPUB Handler...")
+        console.info("📚 Analyzing EPUB content...")
 
-        # Initialize file manager and handler
+        # Initialize handlers
+        epub_handler = EPUBHandler()
         file_manager = FileManager()
         await file_manager.initialize()
+        file_manager.register_handler(".epub", epub_handler)
 
-        try:
-            # Register EPUB handler
-            epub_handler = EPUBHandler()
-            file_manager.register_handler(".epub", epub_handler)
+        # Convert to Path if string
+        path = Path(epub_path) if isinstance(epub_path, str) else epub_path
 
-            console.info("Reading EPUB file...")
+        # Read EPUB file
+        file_content = await file_manager.read_file(path)
 
-            # Example EPUB path
-            epub_path = Path("examples/data/sample.epub")
+        # Cast content to Book type
+        book: Book = cast(Book, file_content.content)
+        metadata = book.metadata
 
-            # Read EPUB content
-            book = await file_manager.read_file(str(epub_path))
+        # Basic analysis
+        console.info(
+            "Book Information:",
+            content=(
+                f"Title: {metadata.title}\n"
+                f"Authors: {', '.join(metadata.authors)}\n"
+                f"Language: {metadata.language}\n"
+                f"Chapters: {len(book.chapters)}\n"
+                f"Total Images: {len(book.images)}"
+            ),
+        )
 
-            # Display book information
+        # Analyze chapters
+        total_words = 0
+        total_chars = 0
+
+        for chapter in book.chapters:
+            # Simple analysis
+            words = len(chapter.content.split())
+            chars = len(chapter.content)
+            total_words += words
+            total_chars += chars
+
             console.info(
-                "Book Information:",
-                content=(
-                    f"Title: {book.metadata.title}\n"
-                    f"Authors: {', '.join(book.metadata.authors)}\n"
-                    f"Language: {book.metadata.language}\n"
-                    f"Chapters: {len(book.chapters)}\n"
-                    f"Total Images: {len(book.images)}"
-                ),
+                f"Chapter: {chapter.title}",
+                content=(f"Words: {words}\n" f"Characters: {chars}"),
             )
 
-            # Process chapters
-            for chapter in book.chapters:
-                console.info(
-                    f"Chapter: {chapter.title}",
-                    content=f"Content length: {len(chapter.content)} chars",
-                )
+        # Summary
+        console.success(
+            "Analysis Complete",
+            content=(
+                f"Total Words: {total_words}\n"
+                f"Total Characters: {total_chars}\n"
+                f"Average Words per Chapter: {total_words // len(book.chapters)}"
+            ),
+        )
 
-            console.success("EPUB processing complete!")
-
-        finally:
-            await file_manager.cleanup()
-
-    except FileNotFoundError:
-        console.error("EPUB file not found")
     except Exception as e:
-        console.error("EPUB handling failed", str(e))
+        console.error("Analysis failed", str(e))
+    finally:
+        if file_manager:
+            await file_manager.cleanup()
 
 
 async def main() -> None:
     """Run EPUB examples"""
     try:
-        await demonstrate_epub_handling()
-    except KeyboardInterrupt:
-        console.info("\nExamples finished! 👋")
+        epub_path = Path("examples/data/sample.epub")
+        await analyze_epub_content(epub_path)
+    except Exception as e:
+        console.error("Example failed", str(e))
 
 
 if __name__ == "__main__":

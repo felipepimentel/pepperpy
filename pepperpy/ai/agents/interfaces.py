@@ -1,61 +1,23 @@
-"""Agent interfaces"""
+"""AI agent interfaces"""
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
-from ..types import AIResponse
-
-
-class BaseAgentProtocol(Protocol):
-    """Base agent protocol"""
-
-    async def initialize(self) -> None:
-        """Initialize agent"""
-        ...
-
-    async def cleanup(self) -> None:
-        """Cleanup agent resources"""
-        ...
+from pepperpy.ai.types import AIResponse
 
 
-class AnalystAgent(BaseAgentProtocol):
-    """Analyst agent interface"""
-
-    async def analyze(self, task: str) -> AIResponse:
-        """Analyze task"""
-        ...
-
-
-class ResearchAgent(BaseAgentProtocol):
-    """Research agent interface"""
-
-    async def research(self, task: str) -> AIResponse:
-        """Research implementation"""
-        ...
-
-
-class ReviewerAgent(BaseAgentProtocol):
-    """Reviewer agent interface"""
-
-    async def review(self, code: str) -> AIResponse:
-        """Review code"""
-        ...
-
-    async def suggest(self, code: str) -> AIResponse:
-        """Suggest improvements"""
-        ...
-
-
-class ProjectManagerAgent(BaseAgentProtocol):
+@runtime_checkable
+class ProjectManagerAgent(Protocol):
     """Project manager agent interface"""
+    async def initialize(self) -> None: ...
+    async def cleanup(self) -> None: ...
+    async def plan(self, task: str) -> AIResponse: ...
+    async def coordinate(self, tasks: list[str]) -> AIResponse: ...
 
-    async def plan(self, task: str) -> AIResponse:
-        """Plan project tasks"""
-        ...
 
-
-class QAAgent(BaseAgentProtocol):
+@runtime_checkable
+class QAAgent(Protocol):
     """QA agent interface"""
-
-    async def plan_tests(self, task: str) -> AIResponse:
-        """Plan test strategy"""
-        ...
+    async def initialize(self) -> None: ...
+    async def cleanup(self) -> None: ...
+    async def test(self, code: str) -> AIResponse: ...
+    async def plan_tests(self, task: str) -> AIResponse: ...

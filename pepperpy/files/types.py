@@ -33,16 +33,31 @@ class FileType(str, Enum):
 class FileMetadata:
     """File metadata"""
 
-    path: str
     name: str
-    extension: str
-    type: str
     mime_type: str
+    path: Path
+    type: str
+    extension: str
     format: str
-    created_at: datetime = field(default_factory=datetime.now)
-    modified_at: datetime | None = None
-    size: int = 0
-    extra: dict[str, Any] = field(default_factory=dict)
+    size: int
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Validate metadata"""
+        if not self.name:
+            raise ValueError("Name cannot be empty")
+        if not self.mime_type:
+            raise ValueError("MIME type cannot be empty")
+        if not self.path:
+            raise ValueError("Path cannot be empty")
+        if not self.type:
+            raise ValueError("Type cannot be empty")
+        if not self.extension:
+            raise ValueError("Extension cannot be empty")
+        if not self.format:
+            raise ValueError("Format cannot be empty")
+        if self.size < 0:
+            raise ValueError("Size cannot be negative")
 
 
 @dataclass

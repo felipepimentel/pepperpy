@@ -1,35 +1,5 @@
-"""Core exceptions module"""
+"""Core exceptions package"""
 
-from .base import ModuleError, PepperPyError, ResourceError
-from .cache import CacheConnectionError, CacheError, CacheKeyError, CacheValueError
-from .config import (
-    ConfigError,
-    ConfigLoadError,
-    ConfigParseError,
-    ConfigValidationError,
-)
-from .validation import TypeValidationError, ValidationError, ValueValidationError
+from .base import ConfigError, CoreError, ModuleError, PepperPyError, ResourceError
 
-__all__ = [
-    # Base
-    "PepperPyError",
-    "ModuleError",
-    "ResourceError",
-    
-    # Config
-    "ConfigError",
-    "ConfigLoadError",
-    "ConfigParseError",
-    "ConfigValidationError",
-    
-    # Validation
-    "ValidationError",
-    "TypeValidationError",
-    "ValueValidationError",
-    
-    # Cache
-    "CacheError",
-    "CacheConnectionError",
-    "CacheKeyError",
-    "CacheValueError",
-] 
+__all__ = ["CoreError", "PepperPyError", "ModuleError", "ResourceError", "ConfigError"]

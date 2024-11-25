@@ -2,43 +2,51 @@
 
 from typing import Any, AsyncGenerator
 
-from pepperpy.core.module import InitializableModule
+from pepperpy.core.module import BaseModule
 
-from .config.provider import ProviderConfig
-from .providers.factory import AIProviderFactory
-from .types import AIResponse
+from .config.client import AIConfig
+from .types import AIMessage, AIResponse, MessageRole
 
 
-class AIClient(InitializableModule):
+class AIClient(BaseModule[AIConfig]):
     """AI client implementation"""
 
-    def __init__(self, config: ProviderConfig) -> None:
-        """Initialize client"""
-        super().__init__()
-        self.config = config
-        self._provider = AIProviderFactory.create_provider(config)
+    def __init__(self, config: AIConfig) -> None:
+        super().__init__(config)
+        self._provider = None
 
     async def _initialize(self) -> None:
         """Initialize client"""
-        await self._provider.initialize()
+        # Implementar inicialização real
+        pass
 
     async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        await self._provider.cleanup()
+        """Cleanup client resources"""
+        # Implementar limpeza real
+        pass
 
     async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Complete prompt using the provider"""
+        """Complete prompt"""
         self._ensure_initialized()
-        return await self._provider.complete(prompt, **kwargs)
+        # Implementar completação real
+        return AIResponse(
+            content="",
+            messages=[AIMessage(role=MessageRole.ASSISTANT, content="")]
+        )
 
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream completion using the provider"""
+    async def stream(
+        self, prompt: str, **kwargs: Any
+    ) -> AsyncGenerator[AIResponse, None]:
+        """Stream completions"""
         self._ensure_initialized()
-        generator = await self._provider.stream(prompt, **kwargs)
-        async for chunk in generator:
-            yield chunk
+        # Implementar streaming real
+        yield AIResponse(
+            content="",
+            messages=[AIMessage(role=MessageRole.ASSISTANT, content="")]
+        )
 
     async def get_embedding(self, text: str) -> list[float]:
         """Get text embedding"""
         self._ensure_initialized()
-        return await self._provider.get_embedding(text)
+        # Implementar embedding real
+        return []

@@ -6,10 +6,10 @@ from typing import Any, AsyncGenerator, TypedDict, cast
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
-from ..config.provider import ProviderConfig
 from ..exceptions import AIError
 from ..types import AIMessage, AIResponse, MessageRole
-from .base import AIProvider
+from .base import BaseProvider
+from .config import ProviderConfig
 
 
 class ChatMessage(TypedDict):
@@ -19,7 +19,7 @@ class ChatMessage(TypedDict):
     content: str
 
 
-class OpenAIProvider(AIProvider):
+class OpenAIProvider(BaseProvider):
     """OpenAI provider implementation"""
 
     def __init__(self, config: ProviderConfig) -> None:
@@ -146,3 +146,8 @@ class OpenAIProvider(AIProvider):
 
         except Exception as e:
             raise AIError(f"OpenAI embedding failed: {e}", cause=e)
+
+    def _ensure_initialized(self) -> None:
+        """Ensure provider is initialized"""
+        if not self._initialized:
+            raise RuntimeError("Provider is not initialized")

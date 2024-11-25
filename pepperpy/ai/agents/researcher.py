@@ -1,56 +1,63 @@
 """Researcher agent implementation"""
 
-from ..types import AIResponse
+from typing import Any
+
+from pepperpy.ai.types import AIResponse
+from pepperpy.core.exceptions import PepperPyError
+
 from .base import BaseAgent
-from .interfaces import ResearchAgent as ResearchAgentProtocol
 
 
-class ResearcherAgent(BaseAgent, ResearchAgentProtocol):
-    """Research agent implementation"""
+class ResearcherAgent(BaseAgent):
+    """Agent responsible for conducting research and gathering information"""
 
-    async def _initialize(self) -> None:
-        """Initialize agent"""
-        pass
+    async def research(self, topic: str, **kwargs: Any) -> AIResponse:
+        """Research a given topic.
 
-    async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
+        Args:
+            topic: Topic to research
+            **kwargs: Additional arguments for research customization
 
-    async def research(self, topic: str) -> AIResponse:
-        """Research a topic"""
+        Returns:
+            AIResponse: Research results
+
+        Raises:
+            PepperPyError: If research fails
+            RuntimeError: If agent is not initialized
+        """
+        self._ensure_initialized()
+
         prompt = (
-            f"As a research specialist with the role of {self.config.role}, "
-            f"please research this topic:\n\n{topic}\n\n"
+            f"As a technical researcher with the role of {self.config.role}, "
+            f"please research:\n\n{topic}\n\n"
             "Include:\n"
             "- Key findings\n"
-            "- Analysis\n"
-            "- Implications\n"
-            "- Recommendations"
+            "- Best practices\n"
+            "- Current trends\n"
+            "- Practical examples\n"
+            "- References"
         )
-        return await self._client.complete(prompt)
 
-    async def analyze(self, data: str) -> AIResponse:
-        """Analyze research data"""
-        prompt = (
-            f"As a research analyst with the role of {self.config.role}, "
-            f"please analyze this data:\n\n{data}\n\n"
-            "Include:\n"
-            "- Data analysis\n"
-            "- Key insights\n"
-            "- Patterns identified\n"
-            "- Conclusions"
-        )
-        return await self._client.complete(prompt)
+        if kwargs:
+            prompt += f"\n\nContext:\n{kwargs}"
 
-    async def summarize(self, content: str) -> AIResponse:
-        """Summarize research findings"""
-        prompt = (
-            f"As a research specialist with the role of {self.config.role}, "
-            f"please summarize these findings:\n\n{content}\n\n"
-            "Include:\n"
-            "- Key points\n"
-            "- Main conclusions\n"
-            "- Important implications\n"
-            "- Next steps"
-        )
-        return await self._client.complete(prompt)
+        try:
+            return await self._client.complete(prompt)
+        except Exception as e:
+            raise PepperPyError(f"Research failed: {e}", cause=e)
+
+    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute a research task.
+
+        Args:
+            task: Research task description
+            **kwargs: Additional arguments for task execution
+
+        Returns:
+            AIResponse: Research results
+
+        Raises:
+            PepperPyError: If execution fails
+            RuntimeError: If agent is not initialized
+        """
+        return await self.research(task, **kwargs)

@@ -7,7 +7,7 @@ repository = "https://github.com/felipepimentel/pepperpy"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.13"
+python = ">=3.9,<3.13"
 pydantic = "^2.9.2"
 python-dotenv = "^1.0.1"
 
@@ -36,7 +36,7 @@ torch = { version = "2.5.1", optional = true }
 redis = { version = "5.2.0", extras = ["hiredis"], optional = true }
 orjson = { version = "3.10.11", optional = true }
 websockets = { version = "14.1", optional = true }
-langdetect = { version = "1.0.9", optional = true }
+langid = { version = "^1.1.6", optional = true }
 typer = { extras = ["all"], version = "0.13.0", optional = true }
 msgpack = { version = "1.1.0", optional = true }
 aiosqlite = { version = "0.20.0", optional = true }
@@ -147,8 +147,8 @@ cache_full = ["redis", "hiredis", "msgpack"]
 
 system = ["psutil"]
 
-text_basic = ["langdetect"]
-text_full = ["langdetect", "markdown-it-py", "beautifulsoup4", "lxml"]
+text_basic = ["langid"]
+text_full = ["langid", "markdown-it-py", "beautifulsoup4", "lxml"]
 
 serialization = ["orjson", "msgpack", "toml", "pyyaml"]
 
@@ -213,7 +213,7 @@ all = [
     "redis",
     "hiredis",
     "psutil",
-    "langdetect",
+    "langid",
     "pypub3",
 ]
 
@@ -259,8 +259,8 @@ ignore = [
 
 [tool.black]
 line-length = 100
-target-version = ['py312']
-include = '\.pyi?$'
+target-version = ["py312"]
+include = '\\.pyi?$'
 
 [tool.mypy]
 python_version = "3.12"
@@ -275,6 +275,7 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_default_fixture_loop_scope = "function"
 addopts = "--cov=pepperpy --cov-report=term-missing"
+
 [tool.poetry.scripts]
 lint = "scripts.lint:run_linters"
 

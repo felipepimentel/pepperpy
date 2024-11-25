@@ -1,35 +1,42 @@
-"""Provider type definitions"""
+"""Provider types module"""
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any
+from enum import Enum
+from typing import Any, AsyncGenerator, Dict, Protocol, runtime_checkable
 
-from pepperpy.core.types import JsonDict
-
-
-@dataclass
-class ProviderResponse:
-    """Provider response"""
-
-    content: str
-    model: str
-    created_at: datetime = field(default_factory=datetime.now)
-    metadata: dict[str, Any] = field(default_factory=dict)
+from pepperpy.ai.types import AIResponse
 
 
-@dataclass
-class OpenRouterConfig:
-    """OpenRouter provider configuration"""
+class ProviderType(str, Enum):
+    """Provider types"""
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    OPENROUTER = "openrouter"
+    STACKSPOT = "stackspot"
 
-    name: str
-    api_key: str
-    model: str | None = None
-    enabled: bool = True
-    api_base: str = "https://openrouter.ai/api/v1"
-    site_url: str | None = None
-    site_name: str | None = None
-    route_prefix: str | None = None
-    timeout: float = 30.0
-    retry_attempts: int = 3
-    retry_delay: float = 1.0
-    metadata: JsonDict = field(default_factory=dict)
+
+@runtime_checkable
+class LLMProvider(Protocol):
+    """Protocol for LLM providers"""
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if provider is initialized"""
+        ...
+
+    async def initialize(self) -> None:
+        """Initialize provider"""
+        ...
+
+    async def cleanup(self) -> None:
+        """Cleanup provider"""
+        ...
+
+    async def complete(self, prompt: str, **kwargs: Dict[str, Any]) -> AIResponse:
+        """Complete prompt"""
+        ...
+
+    async def stream(
+        self, prompt: str, **kwargs: Dict[str, Any]
+    ) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses"""
+        ...

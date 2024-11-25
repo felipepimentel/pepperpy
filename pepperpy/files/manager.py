@@ -1,44 +1,56 @@
-"""File manager implementation"""
+"""File manager module"""
 
 from pathlib import Path
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Dict, Optional
 
-from pepperpy.core.module import InitializableModule
-
-T = TypeVar("T", covariant=True)
-
-
-class FileHandler(Protocol[T]):
-    """File handler protocol"""
-
-    async def read_file(self, path: str) -> T:
-        """Read file content"""
-        ...
+from pepperpy.files.config import FileHandlerConfig
+from pepperpy.files.exceptions import FileError
+from pepperpy.files.handlers.base import BaseFileHandler
+from pepperpy.files.types import FileContent
 
 
-class FileManager(InitializableModule, Generic[T]):
+class FileManager:
     """File manager implementation"""
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._handlers: dict[str, FileHandler[Any]] = {}
+    def __init__(self, config: Optional[FileHandlerConfig] = None) -> None:
+        """Initialize manager"""
+        self.config = config or FileHandlerConfig(
+            base_path=Path("."),
+            allowed_extensions=set(),
+            max_file_size=1024 * 1024 * 10,
+            metadata={}
+        )
+        self._handlers: Dict[str, BaseFileHandler] = {}
+        self._initialized = False
 
-    async def _initialize(self) -> None:
-        """Initialize file manager"""
-        pass
+    async def initialize(self) -> None:
+        """Initialize manager"""
+        for handler in self._handlers.values():
+            await handler.initialize()
+        self._initialized = True
 
-    async def _cleanup(self) -> None:
-        """Cleanup file manager"""
+    async def cleanup(self) -> None:
+        """Cleanup manager"""
+        for handler in self._handlers.values():
+            await handler.cleanup()
+        self._initialized = False
         self._handlers.clear()
 
-    def register_handler(self, extension: str, handler: FileHandler[Any]) -> None:
+    def register_handler(self, extension: str, handler: BaseFileHandler) -> None:
         """Register file handler"""
         self._handlers[extension] = handler
 
-    async def read_file(self, path: str) -> Any:
+    def _get_handler(self, path: Path) -> BaseFileHandler:
+        """Get handler for file extension"""
+        extension = path.suffix.lower()
+        if extension not in self._handlers:
+            raise FileError(f"No handler registered for extension: {extension}")
+        return self._handlers[extension]
+
+    async def read_file(self, path: Path) -> FileContent:
         """Read file content"""
-        ext = Path(path).suffix
-        handler = self._handlers.get(ext)
-        if not handler:
-            raise ValueError(f"No handler for extension: {ext}")
-        return await handler.read_file(path)
+        if not self._initialized:
+            raise RuntimeError("Manager not initialized")
+
+        handler = self._get_handler(path)
+        return await handler.read(path)

@@ -1,46 +1,26 @@
-"""Agent factory implementation"""
+"""Agent factory module"""
 
-from typing import TYPE_CHECKING, Any
+from typing import Any, Dict, Type, TypeVar
 
-from pepperpy.ai.config.agent import AgentConfig
-from pepperpy.ai.roles import AgentRole
+from pepperpy.ai.agents.base import BaseAgent
+from pepperpy.ai.agents.config import AgentConfig
 
-from .analysis import AnalysisAgent, DataAnalystAgent
-from .architect import ArchitectAgent
-from .base import BaseAgent
-from .development import DevelopmentAgent
-from .qa import QAAgent
-from .review import ReviewAgent
-
-if TYPE_CHECKING:
-    from pepperpy.ai.client import AIClient
+T = TypeVar("T", bound=BaseAgent)
 
 
 class AgentFactory:
     """Factory for creating agents"""
 
-    @staticmethod
-    def create_agent(
-        role: str | AgentRole,
-        client: AIClient,
-        config: AgentConfig,
-        **kwargs: Any,
-    ) -> BaseAgent:
+    _registry: Dict[str, Type[BaseAgent]] = {}
+
+    @classmethod
+    def register(cls, name: str, agent_class: Type[T]) -> None:
+        """Register agent class"""
+        cls._registry[name] = agent_class
+
+    @classmethod
+    def create_agent(cls, name: str, config: AgentConfig, **kwargs: Any) -> BaseAgent:
         """Create agent instance"""
-        if isinstance(role, str):
-            role = AgentRole(role)
-
-        agents = {
-            AgentRole.ARCHITECT: ArchitectAgent,
-            AgentRole.DEVELOPER: DevelopmentAgent,
-            AgentRole.REVIEWER: ReviewAgent,
-            AgentRole.ANALYST: AnalysisAgent,
-            AgentRole.QA: QAAgent,
-            AgentRole.RESEARCHER: DataAnalystAgent,
-        }
-
-        agent_class = agents.get(role)
-        if not agent_class:
-            raise ValueError(f"Unknown agent role: {role}")
-
-        return agent_class(client=client, config=config, **kwargs)
+        if name not in cls._registry:
+            raise ValueError(f"Unknown agent type: {name}")
+        return cls._registry[name](config, **kwargs)

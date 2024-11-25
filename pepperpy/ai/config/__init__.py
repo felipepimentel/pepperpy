@@ -1,7 +1,6 @@
 """AI configuration module"""
 
-from .provider import ProviderConfig
+from .agent import AgentConfig
+from .client import AIConfig
 
-__all__ = [
-    "ProviderConfig",
-] 
+__all__ = ["AgentConfig", "AIConfig"] 

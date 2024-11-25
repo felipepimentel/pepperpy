@@ -4,16 +4,17 @@ from typing import Any, AsyncGenerator
 
 import aiohttp
 
-from ..config.provider import ProviderConfig
 from ..exceptions import AIError
 from ..types import AIMessage, AIResponse, MessageRole
-from .base import AIProvider
+from .base import BaseProvider
+from .config import ProviderConfig
 
 
-class StackspotProvider(AIProvider):
+class StackspotProvider(BaseProvider):
     """Stackspot provider implementation"""
 
     def __init__(self, config: ProviderConfig) -> None:
+        """Initialize provider"""
         super().__init__(config)
         self._session: aiohttp.ClientSession | None = None
         self._base_url = "https://api.stackspot.com/v1"
@@ -38,7 +39,8 @@ class StackspotProvider(AIProvider):
 
     async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
         """Complete text"""
-        self._ensure_initialized()
+        if not self.is_initialized:
+            raise RuntimeError("Provider is not initialized")
         if not self._session:
             raise AIError("Session not initialized")
 
@@ -84,7 +86,8 @@ class StackspotProvider(AIProvider):
 
     async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
         """Stream text generation"""
-        self._ensure_initialized()
+        if not self.is_initialized:
+            raise RuntimeError("Provider is not initialized")
         if not self._session:
             raise AIError("Session not initialized")
 
@@ -133,7 +136,8 @@ class StackspotProvider(AIProvider):
 
     async def get_embedding(self, text: str) -> list[float]:
         """Get text embedding"""
-        self._ensure_initialized()
+        if not self.is_initialized:
+            raise RuntimeError("Provider is not initialized")
         if not self._session:
             raise AIError("Session not initialized")
 

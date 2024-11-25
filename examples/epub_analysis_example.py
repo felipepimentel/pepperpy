@@ -2,8 +2,10 @@
 
 import asyncio
 from pathlib import Path
+from typing import Any
 
 from pepperpy.console import Console
+from pepperpy.files import FileMetadata
 from pepperpy.files.handlers.epub import EPUBHandler
 from pepperpy.files.manager import FileManager
 
@@ -22,18 +24,25 @@ async def analyze_epub_content(epub_path: str | Path) -> None:
         await file_manager.initialize()
         file_manager.register_handler(".epub", epub_handler)
 
+        # Convert to Path if string
+        path = Path(epub_path) if isinstance(epub_path, str) else epub_path
+
         # Read EPUB file
-        book = await file_manager.read_file(str(epub_path))
+        file_content = await file_manager.read_file(path)
+
+        # Garantir que o tipo está correto
+        metadata: FileMetadata = file_content.metadata
+        content: Any = file_content.content  # Usando Any temporariamente até definir o tipo correto
 
         # Basic analysis
         console.info(
             "Book Information:",
             content=(
-                f"Title: {book.metadata.title}\n"
-                f"Authors: {', '.join(book.metadata.authors)}\n"
-                f"Language: {book.metadata.language}\n"
-                f"Chapters: {len(book.chapters)}\n"
-                f"Total Images: {len(book.images)}"
+                f"Title: {metadata.metadata.get('title', 'Unknown')}\n"
+                f"Authors: {metadata.metadata.get('authors', [])}\n"
+                f"Language: {metadata.metadata.get('language', 'Unknown')}\n"
+                f"Chapters: {len(content.chapters)}\n"
+                f"Total Images: {len(content.images)}"
             ),
         )
 
@@ -41,7 +50,7 @@ async def analyze_epub_content(epub_path: str | Path) -> None:
         total_words = 0
         total_chars = 0
 
-        for chapter in book.chapters:
+        for chapter in content.chapters:
             # Simple analysis
             words = len(chapter.content.split())
             chars = len(chapter.content)
@@ -59,7 +68,7 @@ async def analyze_epub_content(epub_path: str | Path) -> None:
             content=(
                 f"Total Words: {total_words}\n"
                 f"Total Characters: {total_chars}\n"
-                f"Average Words per Chapter: {total_words // len(book.chapters)}"
+                f"Average Words per Chapter: {total_words // len(content.chapters)}"
             ),
         )
 

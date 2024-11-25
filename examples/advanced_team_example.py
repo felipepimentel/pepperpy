@@ -18,8 +18,8 @@ async def demonstrate_advanced_team() -> None:
         console.info("🤖 Initializing Advanced Team...")
 
         # Create AI configuration and client
-        ai_config = AIConfig.get_default()
-        client = AIClient(config=ai_config)
+        config = AIConfig.model_validate({})
+        client = AIClient(config=config)
         await client.initialize()
 
         try:

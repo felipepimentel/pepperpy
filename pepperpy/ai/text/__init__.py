@@ -1,32 +1,16 @@
-"""Text processing module"""
+"""Text processing package initialization"""
 
 from .analyzer import TextAnalyzer
-from .chunker import TextChunker
-from .config import TextProcessorConfig
-from .epub import EPUBAnalyzer
-from .exceptions import (
-    AnalysisError,
-    ChunkingError,
-    ProcessingError,
-    TextError,
-    TextProcessorError,
-)
-from .types import TextAnalysisResult, TextChunk
+from .config import TextAnalyzerConfig, TextProcessorConfig
+from .exceptions import TextAnalysisError, TextError
+from .types import TextAnalysis, TextAnalysisResult
 
 __all__ = [
-    # Core
-    "TextAnalyzer",
-    "TextChunker",
-    "EPUBAnalyzer",
-    # Config
-    "TextProcessorConfig",
-    # Types
-    "TextAnalysisResult",
-    "TextChunk",
-    # Exceptions
-    "TextError",
-    "TextProcessorError",
-    "AnalysisError",
-    "ChunkingError",
-    "ProcessingError",
+    'TextAnalyzer',
+    'TextAnalyzerConfig',
+    'TextProcessorConfig',
+    'TextAnalysisError',
+    'TextError',
+    'TextAnalysis',
+    'TextAnalysisResult'
 ]

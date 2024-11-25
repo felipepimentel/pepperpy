@@ -1,23 +1,21 @@
-"""Embedding types"""
+"""Embedding types module"""
 
-from dataclasses import dataclass, field
-from typing import Sequence
+from dataclasses import dataclass
+from typing import List
 
-from pepperpy.core.types import JsonDict
+# Define o tipo para vetores de embedding
+EmbeddingVector = List[float]
 
 
 @dataclass
 class EmbeddingResult:
-    """Embedding result"""
+    """Result of embedding operation"""
 
-    embeddings: Sequence[float]
-    model: str
+    embeddings: EmbeddingVector
     dimensions: int
-    metadata: JsonDict = field(default_factory=dict)
+    text: str
+    model: str
 
-
-@dataclass
-class EmbeddingBatch:
-    """Batch of embeddings"""
-    vectors: list[Sequence[float]]
-    metadata: JsonDict = field(default_factory=dict)
+    def __len__(self) -> int:
+        """Get length of embeddings"""
+        return len(self.embeddings)

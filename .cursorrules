@@ -11,6 +11,26 @@ rules:
       - "-> AsyncGenerator[AIResponse, None]"
     message: "Ensure proper type hints and async patterns"
 
+# Async/Await Patterns
+async_patterns:
+  - name: "Async Generator Handling"
+    rules:
+      - "Use async for with AsyncGenerator[T, None]"
+      - "Don't await AsyncGenerator directly"
+      - "Yield chunks in stream methods"
+    examples:
+      - "async for chunk in generator:"
+      - "async def stream() -> AsyncGenerator[AIResponse, None]:"
+
+  - name: "Async Method Patterns"
+    rules:
+      - "Use await only for async methods"
+      - "Don't await synchronous methods (like logging)"
+      - "Handle cleanup in finally blocks"
+    examples:
+      - "await client.initialize()"
+      - "logger.info()  # No await for sync methods"
+
 # Module Structure
 module_structure:
   core:

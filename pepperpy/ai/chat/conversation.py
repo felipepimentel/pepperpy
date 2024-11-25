@@ -1,81 +1,111 @@
 """Chat conversation implementation"""
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Sequence
+from typing import Any
 
-from pepperpy.core.module import InitializableModule
+from pepperpy.ai.chat.types import ChatHistory, ChatMessage, ChatMetadata, ChatRole
+from pepperpy.ai.providers.base import AIProvider as BaseAIProvider
+from pepperpy.ai.types import AIResponse
+from pepperpy.core.exceptions import PepperPyError
 
-from ..types import AIMessage, AIResponse, MessageRole
 
-
-@dataclass
 class Conversation:
-    """Chat conversation"""
-
-    id: str
-    messages: list[AIMessage] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
-
-    async def add_message(self, message: AIMessage) -> None:
-        """Add message to conversation"""
-        self.messages.append(message)
-        self.updated_at = datetime.now()
-
-    async def get_messages(self) -> Sequence[AIMessage]:
-        """Get conversation messages"""
-        return self.messages
-
-    async def clear(self) -> None:
-        """Clear conversation messages"""
-        self.messages.clear()
-        self.updated_at = datetime.now()
-
-
-class ConversationManager(InitializableModule):
     """Chat conversation manager"""
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._conversations: dict[str, Conversation] = {}
+    def __init__(self, client: BaseAIProvider, metadata: ChatMetadata) -> None:
+        """Initialize conversation.
 
-    async def _initialize(self) -> None:
-        """Initialize conversation manager"""
-        pass
+        Args:
+            client: AI client
+            metadata: Chat metadata
+        """
+        self._client = client
+        self._metadata = metadata
+        self._history = ChatHistory(
+            messages=[],
+            metadata={
+                "session_id": metadata.session_id,
+                "user_id": metadata.user_id,
+                "context": metadata.context,
+                "settings": metadata.settings,
+            },
+        )
+        self._initialized = False
 
-    async def _cleanup(self) -> None:
-        """Cleanup conversation manager"""
-        self._conversations.clear()
+    @property
+    def is_initialized(self) -> bool:
+        """Check if conversation is initialized"""
+        return self._initialized
 
-    async def create(self, id_: str | None = None) -> Conversation:
-        """Create new conversation"""
-        self._ensure_initialized()
-        conv_id = id_ or self._generate_id()
-        conversation = Conversation(id=conv_id)
-        self._conversations[conv_id] = conversation
-        return conversation
+    @property
+    def history(self) -> ChatHistory:
+        """Get conversation history"""
+        return self._history
 
-    async def process_message(self, conversation: Conversation, message: str) -> AIResponse:
-        """Process message in conversation"""
-        self._ensure_initialized()
+    async def initialize(self) -> None:
+        """Initialize conversation"""
+        if not self._client.is_initialized:
+            await self._client.initialize()
+        self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup conversation resources"""
+        if self._client.is_initialized:
+            await self._client.cleanup()
+        self._initialized = False
+
+    def add_message(self, message: ChatMessage) -> None:
+        """Add message to history.
+
+        Args:
+            message: Message to add
+        """
+        self._history.add_message(message)
+
+    def clear_history(self) -> None:
+        """Clear conversation history"""
+        self._history.clear()
+
+    def get_history(self) -> ChatHistory:
+        """Get conversation history.
+
+        Returns:
+            ChatHistory: Current conversation history
+        """
+        return self._history
+
+    async def send(self, message: str, **kwargs: Any) -> AIResponse:
+        """Send message and get response.
+
+        Args:
+            message: Message content
+            **kwargs: Additional arguments for completion
+
+        Returns:
+            AIResponse: AI response
+
+        Raises:
+            PepperPyError: If sending fails
+            RuntimeError: If conversation is not initialized
+        """
+        if not self._initialized:
+            raise RuntimeError("Conversation is not initialized")
+
+        # Add user message to history
+        user_message = ChatMessage(
+            role=ChatRole.USER, content=message, metadata=kwargs.get("metadata", {})
+        )
+        self.add_message(user_message)
+
         try:
-            response = await self._generate_response(message)
-            await conversation.add_message(AIMessage(role=MessageRole.USER, content=message))
-            await conversation.add_message(AIMessage(role=MessageRole.ASSISTANT, content=response))
-            return AIResponse(
-                content=response,
-                messages=conversation.messages,
+            # Get AI response
+            response = await self._client.complete(message, **kwargs)
+
+            # Add assistant message to history
+            assistant_message = ChatMessage(
+                role=ChatRole.ASSISTANT, content=response.content, metadata=response.metadata
             )
+            self.add_message(assistant_message)
+
+            return response
         except Exception as e:
-            raise ValueError(f"Failed to process message: {e}")
-
-    async def _generate_response(self, message: str) -> str:
-        """Generate response for message"""
-        # Implementar geração real de resposta
-        return f"Echo: {message}"
-
-    def _generate_id(self) -> str:
-        """Generate unique conversation ID"""
-        return datetime.now().strftime("%Y%m%d%H%M%S")
+            raise PepperPyError(f"Failed to send message: {e}", cause=e)

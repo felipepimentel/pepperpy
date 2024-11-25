@@ -1,6 +1,12 @@
-"""Chat module for building conversations"""
+"""Chat module initialization"""
 
 from .conversation import Conversation
-from .types import ChatMessage, ChatRole
+from .types import ChatHistory, ChatMessage, ChatMetadata, ChatRole
 
-__all__ = ["Conversation", "ChatMessage", "ChatRole"]
+__all__ = [
+    'ChatMessage',
+    'ChatHistory', 
+    'ChatRole',
+    'ChatMetadata',
+    'Conversation'
+]

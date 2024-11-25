@@ -3,51 +3,118 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
-KT = TypeVar("KT")
-VT = TypeVar("VT")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
-class BaseCache(Generic[KT, VT], ABC):
-    """Base cache interface"""
+class BaseCache(ABC, Generic[K, V]):
+    """Base cache implementation"""
 
-    @abstractmethod
+    def __init__(self) -> None:
+        self._initialized = False
+
     async def initialize(self) -> None:
         """Initialize cache"""
-        raise NotImplementedError
+        if not self._initialized:
+            await self._initialize()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup cache"""
+        if self._initialized:
+            await self._cleanup()
+            self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if cache is initialized"""
+        return self._initialized
+
+    def _ensure_initialized(self) -> None:
+        """Ensure cache is initialized"""
+        if not self._initialized:
+            raise RuntimeError("Cache not initialized")
 
     @abstractmethod
-    async def set(self, key: KT, value: VT, **kwargs: Any) -> None:
-        """Set value in cache"""
-        raise NotImplementedError
+    async def _initialize(self) -> None:
+        """Initialize cache implementation"""
+        ...
 
-    async def get(self, key: KT) -> VT | None:
+    @abstractmethod
+    async def _cleanup(self) -> None:
+        """Cleanup cache implementation"""
+        ...
+
+    @abstractmethod
+    async def get(self, key: K) -> V | None:
         """Get value from cache"""
-        raise NotImplementedError
+        ...
+
+    @abstractmethod
+    async def set(self, key: K, value: V) -> None:
+        """Set value in cache"""
+        ...
+
+    @abstractmethod
+    async def delete(self, key: K) -> None:
+        """Delete value from cache"""
+        ...
 
     @abstractmethod
     async def clear(self) -> None:
         """Clear cache"""
-        raise NotImplementedError
-
-    async def delete(self, key: KT) -> None:
-        """Delete value from cache"""
-        raise NotImplementedError
+        ...
 
 
 class CacheProvider(ABC):
     """Cache provider interface"""
 
-    @abstractmethod
-    async def create_cache(self, name: str, **config: Any) -> BaseCache[Any, Any]:
-        """Create cache instance"""
-        raise NotImplementedError
+    def __init__(self) -> None:
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize provider"""
+        if not self._initialized:
+            await self._initialize()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup provider"""
+        if self._initialized:
+            await self._cleanup()
+            self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if provider is initialized"""
+        return self._initialized
+
+    def _ensure_initialized(self) -> None:
+        """Ensure provider is initialized"""
+        if not self._initialized:
+            raise RuntimeError("Provider not initialized")
 
     @abstractmethod
-    async def get_cache(self, name: str) -> BaseCache[Any, Any]:
-        """Get existing cache"""
-        raise NotImplementedError
+    async def _initialize(self) -> None:
+        """Initialize provider implementation"""
+        ...
+
+    @abstractmethod
+    async def _cleanup(self) -> None:
+        """Cleanup provider implementation"""
+        ...
+
+    @abstractmethod
+    async def create_cache(self, name: str) -> BaseCache[Any, Any]:
+        """Create cache instance"""
+        ...
 
     @abstractmethod
     async def delete_cache(self, name: str) -> None:
-        """Delete cache"""
-        raise NotImplementedError
+        """Delete cache instance"""
+        ...
+
+    @abstractmethod
+    def get_cache(self) -> BaseCache[Any, Any]:
+        """Get cache instance"""
+        ...

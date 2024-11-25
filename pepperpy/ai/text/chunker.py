@@ -1,63 +1,78 @@
 """Text chunking implementation"""
 
-from typing import AsyncGenerator
+from typing import List
 
-from pepperpy.core.module import BaseModule
-
+from ...core.exceptions import PepperPyError
+from ...core.module import BaseModule
 from .config import TextProcessorConfig
-from .exceptions import TextProcessorError
-from .types import TextChunk
 
 
 class TextChunker(BaseModule[TextProcessorConfig]):
     """Text chunker implementation"""
 
     def __init__(self, config: TextProcessorConfig) -> None:
+        """Initialize chunker.
+
+        Args:
+            config: Chunker configuration
+        """
         super().__init__(config)
-        self._chunk_size = config.chunk_size or 1000
-        self._overlap = config.overlap or 0
+        self._chunk_size = config.metadata.get("chunk_size", 1000)
+        self._overlap = config.metadata.get("overlap", 200)
+
+    def chunk_text(self, text: str) -> List[str]:
+        """Split text into chunks.
+
+        Args:
+            text: Text to split
+
+        Returns:
+            List[str]: List of text chunks
+
+        Raises:
+            PepperPyError: If chunking fails
+        """
+        try:
+            if not text:
+                return []
+
+            # Split text into sentences (simple implementation)
+            sentences = [s.strip() for s in text.split(".") if s.strip()]
+
+            chunks: List[str] = []
+            current_chunk = ""
+
+            for sentence in sentences:
+                # If adding this sentence would exceed chunk size
+                if len(current_chunk) + len(sentence) > self._chunk_size:
+                    # Save current chunk if not empty
+                    if current_chunk:
+                        chunks.append(current_chunk.strip())
+
+                    # Start new chunk with overlap from previous chunk
+                    if self._overlap > 0 and current_chunk:
+                        words = current_chunk.split()
+                        overlap_words = words[-min(len(words), self._overlap // 10) :]
+                        current_chunk = " ".join(overlap_words) + " " + sentence
+                    else:
+                        current_chunk = sentence
+                else:
+                    # Add sentence to current chunk
+                    current_chunk = (current_chunk + " " + sentence).strip()
+
+            # Add final chunk if not empty
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+
+            return chunks
+
+        except Exception as e:
+            raise PepperPyError(f"Failed to chunk text: {e}", cause=e)
 
     async def _initialize(self) -> None:
         """Initialize chunker"""
         pass
 
     async def _cleanup(self) -> None:
-        """Cleanup resources"""
+        """Cleanup chunker resources"""
         pass
-
-    async def chunk_text(self, text: str) -> AsyncGenerator[TextChunk, None]:
-        """Split text into chunks"""
-        if not self._initialized:
-            await self.initialize()
-
-        try:
-            # Split text into chunks with overlap
-            start = 0
-            index = 0
-
-            while start < len(text):
-                end = min(start + self._chunk_size, len(text))
-                
-                # Adjust end to not split words
-                if end < len(text):
-                    while end > start and not text[end].isspace():
-                        end -= 1
-                    if end == start:  # No space found
-                        end = min(start + self._chunk_size, len(text))
-
-                chunk = text[start:end]
-                yield TextChunk(
-                    content=chunk.strip(),
-                    index=index,
-                    metadata={
-                        "start": start,
-                        "end": end,
-                        "length": len(chunk)
-                    }
-                )
-
-                start = end - self._overlap
-                index += 1
-
-        except Exception as e:
-            raise TextProcessorError(f"Text chunking failed: {e}", cause=e)

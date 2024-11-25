@@ -1,12 +1,30 @@
 """Configuration handler implementation"""
 
+from pathlib import Path
+
 from ..exceptions import FileError
 from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler, FileHandler
+from .base import BaseFileHandler
 
 
-class ConfigHandler(BaseFileHandler, FileHandler[dict]):
+class ConfigHandler(BaseFileHandler[dict]):
     """Handler for configuration files"""
+
+    def _to_path(self, file: PathLike) -> Path:
+        """Convert PathLike to Path"""
+        return Path(file) if isinstance(file, str) else file
+
+    def _get_mime_type(self, path: Path) -> str:
+        """Get MIME type for file"""
+        return "application/x-python"
+
+    def _get_file_type(self, path: Path) -> str:
+        """Get file type"""
+        return FileType.CONFIG
+
+    def _get_format(self, path: Path) -> str:
+        """Get file format"""
+        return "py"
 
     async def read(self, file: PathLike) -> FileContent[dict]:
         """Read configuration file"""
@@ -17,9 +35,7 @@ class ConfigHandler(BaseFileHandler, FileHandler[dict]):
 
             metadata = self._create_metadata(
                 path=path,
-                file_type=FileType.CONFIG,
-                mime_type="application/x-python",
-                format_str="py",
+                size=len(str(content))  # Usando str() para obter um tamanho aproximado
             )
 
             return FileContent(content=content, metadata=metadata)

@@ -1,30 +1,24 @@
-"""AI type definitions"""
+"""AI types module"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Sequence
-
-from pepperpy.core.types import JsonDict
+from typing import Any, Dict, List, Optional
 
 
-class MessageRole(str, Enum):
+class Role(str, Enum):
     """Message role types"""
 
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
-    FUNCTION = "function"
 
 
 @dataclass
-class AIMessage:
+class Message:
     """AI message"""
 
-    role: MessageRole
+    role: Role
     content: str
-    timestamp: datetime = field(default_factory=datetime.now)
-    metadata: JsonDict = field(default_factory=dict)
 
 
 @dataclass
@@ -32,17 +26,39 @@ class AIResponse:
     """AI response"""
 
     content: str
-    messages: Sequence[AIMessage]
-    usage: JsonDict = field(default_factory=dict)
-    metadata: JsonDict = field(default_factory=dict)
+    role: Role = Role.ASSISTANT
+    model: str = "default"
+    usage: Dict[str, int] = field(default_factory=lambda: {"total_tokens": 0})
+    messages: Optional[List[Message]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
-class AIFunction:
-    """AI function definition"""
+class AIContext:
+    """AI context"""
 
-    name: str
-    description: str
-    parameters: dict[str, Any]
-    is_required: bool = False
-    metadata: JsonDict = field(default_factory=dict)
+    messages: List[Message]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class AIResult:
+    """AI result"""
+
+    response: AIResponse
+    context: AIContext
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class ProviderType(str, Enum):
+    """Provider types"""
+
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    OPENROUTER = "openrouter"
+    STACKSPOT = "stackspot"
+
+
+# Aliases for backward compatibility
+MessageRole = Role
+AIMessage = Message

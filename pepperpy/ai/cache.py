@@ -1,96 +1,76 @@
-"""AI module cache utilities"""
+"""AI cache implementation"""
 
+import hashlib
+import json
 from typing import Any
 
-from pepperpy.core.cache.base import BaseCache, CacheProvider
-from pepperpy.core.cache.vector import VectorCache
-from pepperpy.core.types import JsonDict
+from pepperpy.core.cache.base import BaseCache
+from pepperpy.core.exceptions import PepperPyError
 
-from .exceptions import AIError
+from .types import AIResponse
 
 
 class AICache:
-    """AI cache manager"""
+    """AI cache implementation"""
 
-    def __init__(self, provider: CacheProvider) -> None:
-        self.provider = provider
-        self._embeddings_cache: VectorCache | None = None
-        self._response_cache: BaseCache[str, Any] | None = None
+    def __init__(self, cache: BaseCache) -> None:
+        """Initialize cache"""
+        self._cache = cache
+        self._initialized = False
 
-    async def initialize(self, dimension: int = 1536) -> None:
-        """Initialize AI caches"""
+    async def initialize(self) -> None:
+        """Initialize cache"""
+        if not self._initialized:
+            await self._cache.initialize()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup cache"""
+        if self._initialized:
+            await self._cache.cleanup()
+            self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if cache is initialized"""
+        return self._initialized
+
+    def generate_key(self, prompt: str, **kwargs: Any) -> str:
+        """Generate cache key"""
+        # Combine prompt and kwargs into a string
+        key_data = {
+            "prompt": prompt,
+            **kwargs
+        }
+        key_str = json.dumps(key_data, sort_keys=True)
+        
+        # Generate hash
+        return hashlib.sha256(key_str.encode()).hexdigest()
+
+    async def get(self, key: str) -> AIResponse | None:
+        """Get value from cache"""
         try:
-            # Cache para embeddings
-            self._embeddings_cache = await self.provider.create_cache(
-                "ai_embeddings",
-                cache_type="vector",
-                dimension=dimension
-            )
-
-            # Cache para respostas
-            self._response_cache = await self.provider.create_cache(
-                "ai_responses",
-                cache_type="memory"
-            )
-
+            return await self._cache.get(key)
         except Exception as e:
-            raise AIError(f"Failed to initialize AI cache: {e}", cause=e)
+            raise PepperPyError("Cache operation failed", cause=e)
 
-    async def store_embedding(
-        self,
-        text: str,
-        embedding: list[float],
-        metadata: JsonDict | None = None
-    ) -> None:
-        """Store text embedding"""
-        if not self._embeddings_cache:
-            raise AIError("Embeddings cache not initialized")
-
+    async def set(self, key: str, value: AIResponse) -> None:
+        """Set value in cache"""
         try:
-            await self._embeddings_cache.set(text, embedding, metadata=metadata)
+            await self._cache.set(key, value)
         except Exception as e:
-            raise AIError(f"Failed to store embedding: {e}", cause=e)
+            raise PepperPyError("Cache operation failed", cause=e)
 
-    async def find_similar(
-        self,
-        embedding: list[float],
-        limit: int = 10,
-        threshold: float = 0.8
-    ) -> list[tuple[str, float, JsonDict]]:
-        """Find similar embeddings"""
-        if not self._embeddings_cache:
-            raise AIError("Embeddings cache not initialized")
-
+    async def delete(self, key: str) -> None:
+        """Delete value from cache"""
         try:
-            return await self._embeddings_cache.search_similar(
-                embedding,
-                limit=limit,
-                threshold=threshold
-            )
+            await self._cache.delete(key)
         except Exception as e:
-            raise AIError(f"Similarity search failed: {e}", cause=e)
+            raise PepperPyError("Cache operation failed", cause=e)
 
-    async def cache_response(
-        self,
-        key: str,
-        response: Any,
-        ttl: int | None = None
-    ) -> None:
-        """Cache AI response"""
-        if not self._response_cache:
-            raise AIError("Response cache not initialized")
-
+    async def clear(self) -> None:
+        """Clear cache"""
         try:
-            await self._response_cache.set(key, response, ttl=ttl)
+            await self._cache.clear()
         except Exception as e:
-            raise AIError(f"Failed to cache response: {e}", cause=e)
-
-    async def get_cached_response(self, key: str) -> Any | None:
-        """Get cached AI response"""
-        if not self._response_cache:
-            raise AIError("Response cache not initialized")
-
-        try:
-            return await self._response_cache.get(key)
-        except Exception as e:
-            raise AIError(f"Failed to get cached response: {e}", cause=e) 
+            raise PepperPyError("Cache operation failed", cause=e) 

@@ -1,34 +1,65 @@
 """Architect agent implementation"""
 
-from ..types import AIResponse
+from typing import Any
+
+from pepperpy.ai.types import AIResponse
+from pepperpy.core.exceptions import PepperPyError
+
 from .base import BaseAgent
-from .interfaces import BaseAgentProtocol
 
 
-class ArchitectAgent(BaseAgent, BaseAgentProtocol):
-    """Architecture design agent implementation"""
+class ArchitectAgent(BaseAgent):
+    """Agent responsible for system architecture design"""
 
-    async def _initialize(self) -> None:
-        """Initialize agent"""
-        pass
+    async def design_architecture(self, requirements: str, **kwargs: Any) -> AIResponse:
+        """Design system architecture based on requirements.
 
-    async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
+        Args:
+            requirements: System requirements
+            **kwargs: Additional arguments for architecture design
 
-    async def design(self, task: str) -> AIResponse:
-        """Design architecture"""
+        Returns:
+            AIResponse: Architecture design
+
+        Raises:
+            PepperPyError: If design fails
+            RuntimeError: If agent is not initialized
+        """
+        self._ensure_initialized()
+
         prompt = (
-            f"As a software architect with the role of {self.config.role}, "
-            f"please design a solution for:\n\n{task}\n\n"
-            "Provide a detailed architecture design including:\n"
+            f"As a system architect with the role of {self.config.role}, "
+            f"please design an architecture for:\n\n{requirements}\n\n"
+            "Include:\n"
             "- System components\n"
             "- Component interactions\n"
-            "- Key design decisions\n"
-            "- Technical considerations"
+            "- Data flow\n"
+            "- Technology stack\n"
+            "- Scalability considerations"
         )
-        return await self._client.complete(prompt)
 
-    async def execute(self, task: str) -> AIResponse:
-        """Execute architectural task"""
-        return await self.design(task)
+        if "constraints" in kwargs:
+            prompt += f"\n\nConstraints:\n{kwargs['constraints']}"
+        elif kwargs:
+            prompt += f"\n\nContext:\n{kwargs}"
+
+        try:
+            return await self._client.complete(prompt)
+        except Exception as e:
+            raise PepperPyError(f"Architecture design failed: {e}", cause=e)
+
+    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute an architecture design task.
+
+        Args:
+            task: Design task description
+            **kwargs: Additional arguments for task execution
+
+        Returns:
+            AIResponse: Architecture design
+
+        Raises:
+            PepperPyError: If execution fails
+            RuntimeError: If agent is not initialized
+        """
+        return await self.design_architecture(task, **kwargs)

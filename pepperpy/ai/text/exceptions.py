@@ -1,23 +1,30 @@
-"""Text processing exceptions"""
+"""Text analysis exceptions"""
 
-from pepperpy.core.types import CoreError
+from typing import Optional
+
+from pepperpy.core.exceptions import CoreError
 
 
 class TextError(CoreError):
-    """Base text error"""
+    """Base exception for text errors"""
+
+    pass
 
 
-class TextProcessorError(TextError):
-    """Text processor error"""
+class TextAnalysisError(TextError):
+    """Base exception for text analysis errors"""
 
+    def __init__(self, message: str, cause: Optional[Exception] = None) -> None:
+        super().__init__(message)
+        self._message = message
+        self._cause = cause
 
-class ChunkingError(TextError):
-    """Text chunking error"""
+    @property
+    def message(self) -> str:
+        """Get error message"""
+        return self._message
 
-
-class AnalysisError(TextError):
-    """Text analysis error"""
-
-
-class ProcessingError(TextError):
-    """Text processing error"""
+    @property
+    def cause(self) -> Optional[Exception]:
+        """Get original exception"""
+        return self._cause

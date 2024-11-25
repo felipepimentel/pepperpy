@@ -1,44 +1,24 @@
-"""Embedding configuration"""
+"""Embedding configuration module"""
 
-from enum import Enum
-from typing import Any
+from typing import Any, Dict
 
-from pydantic import BaseModel, Field
-
-from pepperpy.core.types import JsonDict
-
-
-class EmbeddingProvider(str, Enum):
-    """Embedding provider types"""
-
-    OPENAI = "openai"
-    HUGGINGFACE = "huggingface"
-    SENTENCE_TRANSFORMERS = "sentence-transformers"
-    CUSTOM = "custom"
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class EmbeddingConfig(BaseModel):
-    """Embedding configuration"""
+    """Configuration for embedding operations"""
 
-    provider: EmbeddingProvider = Field(default=EmbeddingProvider.SENTENCE_TRANSFORMERS)
-    model_name: str = Field(default="all-MiniLM-L6-v2")
-    dimension: int = Field(default=384, gt=0)
-    normalize: bool = Field(default=True)
-    batch_size: int = Field(default=32, gt=0)
-    provider_options: dict[str, Any] = Field(default_factory=dict)
-    metadata: JsonDict = Field(default_factory=dict)
+    model_config = ConfigDict(frozen=True, validate_assignment=True, extra="forbid")
 
-    class Config:
-        """Pydantic config"""
-        frozen = True
+    model_name: str = Field(..., description="Name of the model to use")
+    dimension: int = Field(..., gt=0, description="Embedding dimension")
+    provider_type: str = Field("sentence-transformers", description="Type of embedding provider")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
+    @field_validator("model_name")
     @classmethod
-    def get_default(cls) -> "EmbeddingConfig":
-        """Get default configuration"""
-        return cls(
-            provider=EmbeddingProvider.SENTENCE_TRANSFORMERS,
-            model_name="all-MiniLM-L6-v2",
-            dimension=384,
-            normalize=True,
-            batch_size=32,
-        )
+    def validate_model_name(cls, v: str) -> str:
+        """Validate model name"""
+        if not v:
+            raise ValueError("Model name cannot be empty")
+        return v

@@ -1,136 +1,128 @@
-"""Anthropic AI provider implementation"""
+"""Anthropic provider implementation"""
 
-import asyncio
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, cast
 
-import anthropic
-from tenacity import retry, stop_after_attempt, wait_exponential
+from anthropic import AI_PROMPT, HUMAN_PROMPT, AsyncAnthropic
 
-from ..config.provider import ProviderConfig
-from ..exceptions import AIError
-from ..types import AIMessage, AIResponse, MessageRole
-from .base import AIProvider
+from ...core.exceptions import PepperPyError
+from ..types import AIResponse
+from .base import BaseProvider
+from .config import ProviderConfig
 
 
-class AnthropicProvider(AIProvider):
+class AnthropicProvider(BaseProvider):
     """Anthropic provider implementation"""
 
     def __init__(self, config: ProviderConfig) -> None:
+        """Initialize provider.
+
+        Args:
+            config: Provider configuration
+        """
         super().__init__(config)
-        self._client: anthropic.AsyncAnthropic | None = None
-        self._semaphore = asyncio.Semaphore(10)  # Rate limiting
+        self._client: AsyncAnthropic | None = None
+
+    def _ensure_initialized(self) -> None:
+        """Ensure provider is initialized"""
+        if not self._initialized:
+            raise RuntimeError("Provider is not initialized")
 
     async def _initialize(self) -> None:
-        """Initialize provider"""
+        """Initialize provider resources"""
         try:
-            self._client = anthropic.AsyncAnthropic(api_key=self.config.api_key)
+            self._client = AsyncAnthropic(api_key=self.config.api_key)
         except Exception as e:
-            raise AIError(f"Failed to initialize Anthropic provider: {e}", cause=e)
+            raise PepperPyError(f"Failed to initialize Anthropic client: {e}", cause=e)
+
+    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
+        """Complete prompt.
+
+        Args:
+            prompt: Prompt to complete
+            **kwargs: Additional arguments for completion
+
+        Returns:
+            AIResponse: Completion response
+
+        Raises:
+            PepperPyError: If completion fails
+            RuntimeError: If provider is not initialized
+        """
+        self._ensure_initialized()
+        try:
+            client = cast(AsyncAnthropic, self._client)
+            completion = await client.completions.create(
+                model=self.config.model,
+                prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
+                max_tokens_to_sample=kwargs.get("max_tokens", 1000),
+                temperature=kwargs.get("temperature", 0.7),
+                top_p=kwargs.get("top_p", 1.0),
+                top_k=kwargs.get("top_k", -1),
+            )
+            return AIResponse(
+                content=completion.completion,
+                metadata={"model": self.config.model, "provider": "anthropic", **kwargs},
+            )
+        except Exception as e:
+            raise PepperPyError(f"Failed to complete prompt: {e}", cause=e)
+
+    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
+        """Stream completions.
+
+        Args:
+            prompt: Prompt to complete
+            **kwargs: Additional arguments for completion
+
+        Yields:
+            AIResponse: Completion response chunks
+
+        Raises:
+            PepperPyError: If streaming fails
+            RuntimeError: If provider is not initialized
+        """
+        self._ensure_initialized()
+        try:
+            client = cast(AsyncAnthropic, self._client)
+            stream = await client.completions.create(
+                model=self.config.model,
+                prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
+                max_tokens_to_sample=kwargs.get("max_tokens", 1000),
+                temperature=kwargs.get("temperature", 0.7),
+                top_p=kwargs.get("top_p", 1.0),
+                top_k=kwargs.get("top_k", -1),
+                stream=True,
+            )
+            async for completion in stream:
+                yield AIResponse(
+                    content=completion.completion,
+                    metadata={"model": self.config.model, "provider": "anthropic", **kwargs},
+                )
+        except Exception as e:
+            raise PepperPyError(f"Failed to stream completions: {e}", cause=e)
+
+    async def get_embedding(self, text: str) -> list[float]:
+        """Get text embedding.
+
+        Args:
+            text: Text to embed
+
+        Returns:
+            list[float]: Text embedding
+
+        Raises:
+            PepperPyError: If embedding fails
+            RuntimeError: If provider is not initialized
+        """
+        self._ensure_initialized()
+        try:
+            # Note: Anthropic doesn't currently support embeddings
+            # This is a placeholder for when they do
+            raise NotImplementedError("Embeddings not supported by Anthropic")
+        except Exception as e:
+            raise PepperPyError(f"Failed to get embedding: {e}", cause=e)
 
     async def _cleanup(self) -> None:
         """Cleanup provider resources"""
-        self._client = None
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        reraise=True,
-    )
-    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Complete text"""
-        self._ensure_initialized()
-        if not self._client:
-            raise AIError("Client not initialized")
-
-        try:
-            async with self._semaphore:
-                messages = [AIMessage(role=MessageRole.USER, content=prompt)]
-                
-                response = await self._client.messages.create(
-                    model=self.config.model,
-                    max_tokens=self.config.max_tokens,
-                    messages=[{"role": m.role, "content": m.content} for m in messages],
-                    temperature=self.config.temperature,
-                    **self.config.provider_options,
-                )
-
-                messages.append(
-                    AIMessage(
-                        role=MessageRole.ASSISTANT,
-                        content=response.content[0].text,
-                    )
-                )
-
-                return AIResponse(
-                    content=response.content[0].text,
-                    messages=messages,
-                    usage=response.usage,
-                    metadata={
-                        "provider": "anthropic",
-                        "model": response.model,
-                        "response_id": response.id,
-                    },
-                )
-
-        except Exception as e:
-            raise AIError(f"Anthropic completion failed: {e}", cause=e)
-
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream text generation"""
-        self._ensure_initialized()
-        if not self._client:
-            raise AIError("Client not initialized")
-
-        try:
-            async with self._semaphore:
-                messages = [AIMessage(role=MessageRole.USER, content=prompt)]
-                
-                stream = await self._client.messages.create(
-                    model=self.config.model,
-                    max_tokens=self.config.max_tokens,
-                    messages=[{"role": m.role, "content": m.content} for m in messages],
-                    temperature=self.config.temperature,
-                    stream=True,
-                    **self.config.provider_options,
-                )
-
-                current_content = ""
-                async for chunk in stream:
-                    if chunk.content:
-                        current_content += chunk.content[0].text
-                        messages.append(
-                            AIMessage(
-                                role=MessageRole.ASSISTANT,
-                                content=current_content,
-                            )
-                        )
-                        yield AIResponse(
-                            content=current_content,
-                            messages=messages,
-                            metadata={
-                                "provider": "anthropic",
-                                "model": chunk.model,
-                                "streaming": True,
-                            },
-                        )
-
-        except Exception as e:
-            raise AIError(f"Anthropic streaming failed: {e}", cause=e)
-
-    async def get_embedding(self, text: str) -> list[float]:
-        """Get text embedding"""
-        self._ensure_initialized()
-        if not self._client:
-            raise AIError("Client not initialized")
-
-        try:
-            async with self._semaphore:
-                response = await self._client.embeddings.create(
-                    model="claude-2.1",  # Anthropic's embedding model
-                    input=text,
-                    **self.config.provider_options,
-                )
-                return response.embeddings[0]
-
-        except Exception as e:
-            raise AIError(f"Anthropic embedding failed: {e}", cause=e) 
+        if self._client:
+            # No cleanup needed for Anthropic client
+            self._client = None

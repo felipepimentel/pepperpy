@@ -1,41 +1,15 @@
-"""File handling module"""
+"""File system operations"""
 
-from .config import FileManagerConfig
+from .config import FileHandlerConfig, FileManagerConfig
 from .exceptions import FileError
-from .handlers.base import BaseFileHandler, FileHandler
 from .manager import FileManager
-from .types import (
-    Book,
-    BookMetadata,
-    Chapter,
-    FileContent,
-    FileMetadata,
-    FileType,
-    ImageInfo,
-    MediaInfo,
-    PathLike,
-    ensure_path,
-)
+from .types import FileContent, FileMetadata
 
 __all__ = [
-    # Core
-    "FileManager",
+    "FileHandlerConfig",
     "FileManagerConfig",
-    # Handlers
-    "FileHandler",
-    "BaseFileHandler",
-    # Types
-    "Book",
-    "BookMetadata",
-    "Chapter",
+    "FileManager",
     "FileContent",
     "FileMetadata",
-    "FileType",
-    "ImageInfo",
-    "MediaInfo",
-    "PathLike",
-    # Utils
-    "ensure_path",
-    # Exceptions
     "FileError",
 ]

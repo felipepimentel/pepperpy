@@ -1,26 +1,29 @@
-"""AI configuration"""
+"""AI configuration module"""
 
-from typing import Any
+from typing import Any, ClassVar, Dict, Type, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
-from pepperpy.core.types import JsonDict
+T = TypeVar('T', bound='AIConfig')
 
 
 class AIConfig(BaseModel):
-    """AI configuration"""
+    """Base configuration for AI components"""
 
-    provider: str
-    api_key: str
-    model: str = Field(default="gpt-3.5-turbo")
-    temperature: float = Field(default=0.7, ge=0.0, le=1.0)
-    max_tokens: int = Field(default=2048, gt=0)
-    timeout: float = Field(default=30.0, gt=0)
-    retry_attempts: int = Field(default=3, ge=0)
-    retry_delay: float = Field(default=1.0, ge=0)
-    metadata: JsonDict = Field(default_factory=dict)
-    provider_options: dict[str, Any] = Field(default_factory=dict)
+    model_config = ConfigDict(frozen=True)
 
-    class Config:
-        """Pydantic config"""
-        frozen = True
+    name: str = Field(..., description="Component name")
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    _default_instance: ClassVar[Dict[str, Any]] = {}
+
+    @classmethod
+    def get_default(cls: Type[T]) -> T:
+        """Get default configuration instance"""
+        if cls.__name__ not in cls._default_instance:
+            cls._default_instance[cls.__name__] = cls(name="default")
+        return cls._default_instance[cls.__name__]
+
+    def dict(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return self.model_dump(*args, **kwargs)

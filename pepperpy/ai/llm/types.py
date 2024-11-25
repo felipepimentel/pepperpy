@@ -1,13 +1,23 @@
-"""LLM types and configurations"""
+"""LLM types module"""
 
-from dataclasses import dataclass, field
-from typing import Any, Literal, TypedDict
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict
 
 
-class Message(TypedDict):
+class Role(str, Enum):
+    """Message role types"""
+
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "assistant"
+
+
+@dataclass
+class Message:
     """Chat message"""
 
-    role: Literal["system", "user", "assistant"]
+    role: Role
     content: str
 
 
@@ -16,22 +26,9 @@ class LLMResponse:
     """LLM response"""
 
     content: str
+    role: Role
     model: str
-    usage: dict[str, Any] = field(default_factory=dict)
-    metadata: dict[str, Any] = field(default_factory=dict)
+    usage: Dict[str, int]
 
 
-@dataclass
-class LLMConfig:
-    """Base LLM configuration"""
-
-    provider: Literal["openrouter", "stackspot", "openai"]
-    api_key: str
-    model: str
-
-    def __post_init__(self) -> None:
-        """Validate configuration"""
-        if not self.api_key:
-            raise ValueError("API key is required")
-        if not self.provider:
-            raise ValueError("Provider is required")
+AIResponse = LLMResponse  # Alias para compatibilidade

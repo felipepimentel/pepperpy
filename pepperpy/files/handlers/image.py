@@ -1,14 +1,44 @@
 """Image file handler implementation"""
 
+from pathlib import Path
+
 from PIL import Image as PILImage
 
 from ..exceptions import FileError
-from ..types import FileContent, FileType, ImageInfo, PathLike
-from .base import BaseFileHandler, FileHandler
+from ..types import FileContent, FileMetadata, FileType, ImageInfo, PathLike
+from .base import BaseFileHandler
 
 
-class ImageHandler(BaseFileHandler, FileHandler[bytes]):
+class ImageHandler(BaseFileHandler[bytes]):
     """Handler for image files"""
+
+    def _to_path(self, file: PathLike) -> Path:
+        """Convert PathLike to Path"""
+        return Path(file) if isinstance(file, str) else file
+
+    def _get_mime_type(self, path: Path) -> str:
+        """Get MIME type for file"""
+        return f"image/{path.suffix[1:]}"
+
+    def _get_file_type(self, path: Path) -> str:
+        """Get file type"""
+        return FileType.IMAGE
+
+    def _get_format(self, path: Path) -> str:
+        """Get file format"""
+        return path.suffix[1:]
+
+    def _get_extra_metadata(self, path: Path) -> dict:
+        """Get extra metadata for image"""
+        with PILImage.open(path) as img:
+            image_info = ImageInfo(
+                width=img.width,
+                height=img.height,
+                channels=len(img.getbands()),
+                mode=img.mode,
+                format=img.format or path.suffix[1:],
+            )
+            return {"image_info": image_info.to_dict()}
 
     async def read(self, file: PathLike) -> FileContent[bytes]:
         """Read image file"""
@@ -17,22 +47,17 @@ class ImageHandler(BaseFileHandler, FileHandler[bytes]):
             with open(path, "rb") as f:
                 content = f.read()
 
-            # Extract image info
-            with PILImage.open(path) as img:
-                image_info = ImageInfo(
-                    width=img.width,
-                    height=img.height,
-                    channels=len(img.getbands()),
-                    mode=img.mode,
-                    format=img.format or path.suffix[1:],
-                )
+            base_metadata = self._create_metadata(path=path, size=len(content))
+            extra_metadata = self._get_extra_metadata(path)
 
-            metadata = self._create_metadata(
-                path=path,
-                file_type=FileType.IMAGE,
-                mime_type=f"image/{path.suffix[1:]}",
-                format_str=path.suffix[1:],
-                extra={"image_info": image_info.to_dict()},
+            # Criar um novo FileMetadata com os dados extras
+            metadata = FileMetadata(
+                path=base_metadata.path,
+                size=base_metadata.size,
+                type=base_metadata.type,
+                mime_type=base_metadata.mime_type,
+                format=base_metadata.format,
+                **extra_metadata,
             )
 
             return FileContent(content=content, metadata=metadata)

@@ -1,12 +1,21 @@
-"""AI module"""
+"""AI package initialization"""
 
 from .client import AIClient
-from .config.provider import ProviderConfig as AIConfig
-from .types import AIMessage, AIResponse
+from .config import AIConfig
+from .exceptions import AIError
+from .types import AIContext, AIResponse, AIResult, ProviderType, Role
+from .types import Message as AIMessage
+from .types import Role as MessageRole
 
 __all__ = [
     "AIClient",
     "AIConfig",
+    "AIError",
     "AIMessage",
     "AIResponse",
+    "AIContext",
+    "AIResult",
+    "MessageRole",
+    "ProviderType",
+    "Role",
 ]

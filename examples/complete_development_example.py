@@ -1,6 +1,7 @@
 """Complete development example"""
 
 import asyncio
+from typing import cast
 
 from pepperpy.ai import (
     AIClient,
@@ -8,6 +9,7 @@ from pepperpy.ai import (
 )
 from pepperpy.ai.agents.development import DevelopmentAgent
 from pepperpy.ai.config.agent import AgentConfig
+from pepperpy.ai.providers.base import AIProvider
 from pepperpy.ai.roles import AgentRole
 from pepperpy.ai.types import AIResponse
 from pepperpy.console import Console
@@ -21,7 +23,7 @@ async def demonstrate_complete_development() -> None:
         console.info("🤖 Initializing Development Team...")
 
         # Create AI configuration and client
-        ai_config = AIConfig.get_default()
+        ai_config = AIConfig.model_validate({})
         client = AIClient(config=ai_config)
         await client.initialize()
 
@@ -47,13 +49,13 @@ async def demonstrate_complete_development() -> None:
 
             # Create agents using DevelopmentAgent
             researcher = DevelopmentAgent(
-                client=client,
+                client=cast(AIProvider, client),
                 config=researcher_config,
             )
             await researcher.initialize()
 
             analyst = DevelopmentAgent(
-                client=client,
+                client=cast(AIProvider, client),
                 config=analyst_config,
             )
             await analyst.initialize()

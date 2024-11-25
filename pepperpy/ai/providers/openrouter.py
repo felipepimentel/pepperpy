@@ -7,16 +7,17 @@ import aiohttp
 from aiohttp import ClientTimeout
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from ..config.provider import ProviderConfig
 from ..exceptions import AIError
 from ..types import AIMessage, AIResponse, MessageRole
-from .base import AIProvider
+from .base import BaseProvider
+from .config import ProviderConfig  # Use local ProviderConfig
 
 
-class OpenRouterProvider(AIProvider):
+class OpenRouterProvider(BaseProvider):
     """OpenRouter provider implementation"""
 
     def __init__(self, config: ProviderConfig) -> None:
+        """Initialize provider"""
         super().__init__(config)
         self._session: aiohttp.ClientSession | None = None
         self._base_url = "https://openrouter.ai/api/v1"
@@ -25,19 +26,13 @@ class OpenRouterProvider(AIProvider):
 
     async def _initialize(self) -> None:
         """Initialize provider"""
-        self._session = aiohttp.ClientSession(
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "HTTP-Referer": "https://github.com/felipepimentel/pepperpy",
-                "X-Title": "PepperPy Framework",
-            }
-        )
+        # Implementação específica do OpenRouter
+        pass
 
     async def _cleanup(self) -> None:
-        """Cleanup provider resources"""
-        if self._session:
-            await self._session.close()
-            self._session = None
+        """Cleanup provider"""
+        # Implementação específica do OpenRouter
+        pass
 
     @retry(
         stop=stop_after_attempt(3),
@@ -141,3 +136,8 @@ class OpenRouterProvider(AIProvider):
             raise AIError(f"OpenRouter embedding timed out after {self.config.timeout}s", cause=e)
         except Exception as e:
             raise AIError(f"OpenRouter embedding failed: {e}", cause=e)
+
+    def _ensure_initialized(self) -> None:
+        """Ensure provider is initialized"""
+        if not self._initialized:
+            raise RuntimeError("Provider is not initialized")

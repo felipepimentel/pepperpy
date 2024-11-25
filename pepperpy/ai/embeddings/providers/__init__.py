@@ -1,30 +1,32 @@
 """Embedding providers module"""
 
-from typing import Type
+from typing import Dict, Type
 
-from ...exceptions import AIError
-from ..config import EmbeddingConfig, EmbeddingProvider
-from .base import EmbeddingProvider as BaseProvider
-from .huggingface import HuggingFaceProvider
-from .openai import OpenAIProvider
-from .sentence_transformers import SentenceTransformersProvider
+from pepperpy.ai.embeddings.base import BaseEmbeddingProvider
+from pepperpy.ai.embeddings.config import EmbeddingConfig
+from pepperpy.ai.embeddings.exceptions import EmbeddingError
 
-__all__ = [
-    "EmbeddingProvider",
-    "BaseProvider",
-    "create_provider",
-]
+from .sentence_transformers import SentenceTransformerProvider
 
-_PROVIDERS: dict[EmbeddingProvider, Type[BaseProvider]] = {
-    EmbeddingProvider.OPENAI: OpenAIProvider,
-    EmbeddingProvider.HUGGINGFACE: HuggingFaceProvider,
-    EmbeddingProvider.SENTENCE_TRANSFORMERS: SentenceTransformersProvider,
+# Mapping of provider names to provider classes
+PROVIDERS: Dict[str, Type[BaseEmbeddingProvider]] = {
+    "sentence-transformers": SentenceTransformerProvider,
 }
 
 
-def create_provider(config: EmbeddingConfig) -> BaseProvider:
-    """Create embedding provider instance"""
-    provider_class = _PROVIDERS.get(config.provider)
+def create_provider(config: EmbeddingConfig) -> BaseEmbeddingProvider:
+    """Create embedding provider from config
+
+    Args:
+        config: Provider configuration
+
+    Returns:
+        Embedding provider instance
+
+    Raises:
+        EmbeddingError: If provider type is not supported
+    """
+    provider_class = PROVIDERS.get(config.provider_type)
     if not provider_class:
-        raise AIError(f"Unknown embedding provider: {config.provider}")
-    return provider_class(config=config)
+        raise EmbeddingError(f"Unsupported provider type: {config.provider_type}")
+    return provider_class(config)

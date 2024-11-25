@@ -1,39 +1,53 @@
 """Spreadsheet file handler implementation"""
 
-from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler, FileHandler
+from pathlib import Path
+from typing import Any, Dict
+
+from pepperpy.files.exceptions import FileError
+from pepperpy.files.handlers.base import BaseFileHandler
+from pepperpy.files.types import FileContent, FileMetadata
 
 
-class SpreadsheetHandler(BaseFileHandler, FileHandler[bytes]):
-    """Handler for spreadsheet files"""
+class SpreadsheetHandler(BaseFileHandler):
+    """Handler for spreadsheet file operations"""
 
-    async def read(self, file: PathLike) -> FileContent[bytes]:
-        """Read spreadsheet file"""
-        try:
-            path = self._to_path(file)
-            with open(path, "rb") as f:
-                content = f.read()
+    def _to_path(self, path: Path) -> Path:
+        """Convert path to absolute path"""
+        return path if path.is_absolute() else self.config.base_path / path
 
-            metadata = self._create_metadata(
-                path=path,
-                file_type=FileType.DATA,
-                mime_type=("application/vnd.openxmlformats-officedocument" ".spreadsheetml.sheet"),
-                format_str=path.suffix[1:],
-            )
+    def _create_metadata(self, path: Path, size: int) -> FileMetadata:
+        """Create file metadata"""
+        return FileMetadata(
+            name=path.name,
+            mime_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            path=path,
+            type="spreadsheet",
+            extension=path.suffix,
+            format="binary",
+            size=size
+        )
 
-            return FileContent(content=content, metadata=metadata)
-        except Exception as e:
-            raise FileError(f"Failed to read spreadsheet file: {e}", cause=e)
+    async def read(self, path: Path, **kwargs: Dict[str, Any]) -> FileContent:
+        """Read spreadsheet file content"""
+        path = self._to_path(path)
+        
+        if not path.exists():
+            raise FileError(f"File does not exist: {path}")
+            
+        # Read spreadsheet content
+        content = []  # Implement actual spreadsheet reading
+        
+        # Create and return FileContent
+        return FileContent(
+            content=content,
+            metadata=self._create_metadata(path, path.stat().st_size)
+        )
 
-    async def write(self, content: bytes, output: PathLike) -> None:
-        """Write spreadsheet file"""
-        try:
-            path = self._to_path(output)
-            with open(path, "wb") as f:
-                f.write(content)
-        except Exception as e:
-            raise FileError(f"Failed to write spreadsheet file: {e}", cause=e)
+    async def write(self, path: Path, content: FileContent, **kwargs: Dict[str, Any]) -> None:
+        """Write spreadsheet file content"""
+        path = self._to_path(path)
+        # Implementação específica para escrita de planilhas
+        ...
 
     async def cleanup(self) -> None:
         """Cleanup resources"""

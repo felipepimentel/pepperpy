@@ -1,40 +1,54 @@
-"""Enhanced Markdown file handler implementation"""
+"""Enhanced markdown file handler implementation"""
 
-from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler, FileHandler
+from pathlib import Path
+from typing import Any, Dict
+
+from pepperpy.files.exceptions import FileError
+from pepperpy.files.handlers.base import BaseFileHandler
+from pepperpy.files.types import FileContent, FileMetadata
 
 
-class MarkdownEnhancedHandler(BaseFileHandler, FileHandler[str]):
-    """Handler for enhanced Markdown files"""
+class MarkdownEnhancedHandler(BaseFileHandler):
+    """Handler for enhanced markdown file operations"""
 
-    async def read(self, file: PathLike) -> FileContent[str]:
-        """Read enhanced Markdown file"""
+    async def read(self, path: Path, **kwargs: Dict[str, Any]) -> FileContent:
+        """Read markdown file content"""
+        path = self._to_path(path)
+        
+        if not path.exists():
+            raise FileError(f"File does not exist: {path}")
+
         try:
-            path = self._to_path(file)
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            metadata = self._create_metadata(
-                path=path,
-                file_type=FileType.TEXT,
-                mime_type="text/markdown",
-                format_str="md",
-                extra={"enhanced": True},
+            return FileContent(
+                content=content,
+                metadata=FileMetadata(
+                    name=path.name,
+                    mime_type="text/markdown",
+                    path=path,
+                    type="text",
+                    extension=path.suffix,
+                    format="utf-8",
+                    size=path.stat().st_size
+                )
             )
-
-            return FileContent(content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read enhanced Markdown file: {e}", cause=e)
+            raise FileError(f"Failed to read markdown file: {e}", cause=e)
 
-    async def write(self, content: str, output: PathLike) -> None:
-        """Write enhanced Markdown file"""
+    async def write(self, path: Path, content: FileContent, **kwargs: Dict[str, Any]) -> None:
+        """Write markdown file content"""
+        path = self._to_path(path)
+
+        if not isinstance(content.content, str):
+            raise FileError("Invalid markdown content")
+
         try:
-            path = self._to_path(output)
             with open(path, "w", encoding="utf-8") as f:
-                f.write(content)
+                f.write(content.content)
         except Exception as e:
-            raise FileError(f"Failed to write enhanced Markdown file: {e}", cause=e)
+            raise FileError(f"Failed to write markdown file: {e}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup resources"""

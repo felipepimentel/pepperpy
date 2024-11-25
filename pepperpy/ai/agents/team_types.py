@@ -1,41 +1,86 @@
 """Team type definitions"""
 
-from dataclasses import field
-from enum import Enum
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
-
-from pepperpy.core.types import JsonDict
-
-
-class TeamRole(str, Enum):
-    """Team member roles"""
-
-    ARCHITECT = "architect"
-    DEVELOPER = "developer"
-    REVIEWER = "reviewer"
-    ANALYST = "analyst"
-    QA = "qa"
-    DEVOPS = "devops"
-    SECURITY = "security"
-    MANAGER = "manager"
+from pepperpy.ai.roles import AgentRole
+from pepperpy.ai.types import AIResponse
 
 
-class TeamConfig(BaseModel):
-    """Team configuration"""
-
+@dataclass
+class TeamRole:
+    """Team role definition"""
     name: str
-    roles: list[TeamRole] = field(default_factory=list)
-    enabled: bool = True
-    parallel: bool = False
-    max_rounds: int = 10
-    timeout: float = 300.0  # 5 minutes
-    metadata: JsonDict = field(default_factory=dict)
+    description: str
+    responsibilities: List[str]
 
 
-class TeamResult(BaseModel):
-    """Team execution result"""
+@dataclass
+class TeamMember:
+    """Team member definition"""
+    name: str
+    role: TeamRole
+    agent_role: AgentRole
+    expertise: List[str]
 
-    success: bool
-    output: str | None = None
-    metadata: JsonDict = field(default_factory=dict)
+
+@dataclass
+class TeamConfig:
+    """Team configuration"""
+    name: str
+    description: str
+    roles: List[TeamRole]
+    members: List[TeamMember]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Validate configuration"""
+        if not self.name:
+            raise ValueError("Team name cannot be empty")
+
+
+@dataclass
+class TeamContext:
+    """Team context information"""
+    task_id: str
+    team_id: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    state: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class TeamTask:
+    """Team task definition"""
+    id: str
+    description: str
+    assignee: str
+    dependencies: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    context: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Validate task"""
+        if not self.id:
+            raise ValueError("Task ID cannot be empty")
+
+
+@dataclass
+class TeamResult:
+    """Team task result"""
+    task_id: str
+    status: str
+    success: bool = field(default=False)
+    output: Optional[AIResponse] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    errors: List[Dict[str, str]] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Validate result"""
+        if not self.task_id:
+            raise ValueError("Task ID cannot be empty")
+        if not self.status:
+            raise ValueError("Status cannot be empty")
+        if self.status == "completed" and not self.success:
+            self.success = True
+        elif self.status == "failed" and self.success:
+            self.success = False

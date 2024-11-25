@@ -19,7 +19,7 @@ async def demonstrate_conversation() -> None:
         console.info("🤖 Initializing AI Client...")
 
         # Create AI configuration
-        ai_config = AIConfig.get_default()
+        ai_config = AIConfig.model_validate({})
 
         # Create AI client with the obtained configuration
         client = AIClient(config=ai_config)
@@ -60,7 +60,7 @@ async def demonstrate_streaming() -> None:
         console.info("🤖 Initializing Streaming...")
 
         # Create AI configuration
-        ai_config = AIConfig.get_default()
+        ai_config = AIConfig.model_validate({})
 
         # Create AI client with the obtained configuration
         client = AIClient(config=ai_config)

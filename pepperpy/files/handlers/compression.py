@@ -2,14 +2,31 @@
 
 import gzip
 import zipfile
+from pathlib import Path
 
 from ..exceptions import FileError
 from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler, FileHandler
+from .base import BaseFileHandler
 
 
-class CompressionHandler(BaseFileHandler, FileHandler[bytes]):
+class CompressionHandler(BaseFileHandler[bytes]):
     """Handler for compressed files"""
+
+    def _to_path(self, file: PathLike) -> Path:
+        """Convert PathLike to Path"""
+        return Path(file) if isinstance(file, str) else file
+
+    def _get_mime_type(self, path: Path) -> str:
+        """Get MIME type for file"""
+        return f"application/{path.suffix[1:]}"
+
+    def _get_file_type(self, path: Path) -> str:
+        """Get file type"""
+        return FileType.ARCHIVE
+
+    def _get_format(self, path: Path) -> str:
+        """Get file format"""
+        return path.suffix[1:]
 
     async def read(self, file: PathLike) -> FileContent[bytes]:
         """Read compressed file"""
@@ -26,9 +43,7 @@ class CompressionHandler(BaseFileHandler, FileHandler[bytes]):
 
             metadata = self._create_metadata(
                 path=path,
-                file_type=FileType.ARCHIVE,
-                mime_type=f"application/{path.suffix[1:]}",
-                format_str=path.suffix[1:],
+                size=len(content)
             )
 
             return FileContent(content=content, metadata=metadata)

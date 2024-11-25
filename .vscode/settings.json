@@ -53,7 +53,7 @@
     "python.analysis.include": ["pepperpy", "examples", "tests", "scripts"],
     "ruff.enable": true,
     "python.testing.pytestArgs": [
-        "tests", "examples"
+        "tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,

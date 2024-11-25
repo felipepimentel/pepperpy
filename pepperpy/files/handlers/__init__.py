@@ -1,37 +1,25 @@
 """File handlers package"""
 
-from .audio import AudioHandler
-from .base import FileHandler
-from .compression import CompressionHandler
-from .document import DocumentHandler
-from .epub import EPUBHandler
-from .image import ImageHandler
-from .json import JSONHandler
-from .markdown import MarkdownHandler
-from .markdown_enhanced import MarkdownEnhancedHandler
-from .markup import MarkupHandler
-from .media import MediaHandler
-from .optimizer import FileOptimizer
-from .pdf import PDFHandler
-from .spreadsheet import SpreadsheetHandler
-from .yaml import YAMLHandler
+from .audio import AudioFileHandler
+from .base import BaseFileHandler
+from .binary import BinaryFileHandler
+from .csv import CSVFileHandler
+from .json import JSONFileHandler
+from .markdown import MarkdownFileHandler
+from .optimizer import FileOptimizerHandler
+from .pdf import PDFFileHandler
+from .text import TextFileHandler
+from .yaml import YAMLFileHandler
 
 __all__ = [
-    # Base
-    "FileHandler",
-    # Handlers
-    "AudioHandler",
-    "CompressionHandler",
-    "DocumentHandler",
-    "EPUBHandler",
-    "FileOptimizer",
-    "ImageHandler",
-    "JSONHandler",
-    "MarkdownHandler",
-    "MarkdownEnhancedHandler",
-    "MarkupHandler",
-    "MediaHandler",
-    "PDFHandler",
-    "SpreadsheetHandler",
-    "YAMLHandler",
+    "BaseFileHandler",
+    "TextFileHandler",
+    "JSONFileHandler",
+    "YAMLFileHandler",
+    "CSVFileHandler",
+    "BinaryFileHandler",
+    "AudioFileHandler",
+    "PDFFileHandler",
+    "MarkdownFileHandler",
+    "FileOptimizerHandler",
 ]

@@ -1,33 +1,63 @@
 """Reviewer agent implementation"""
 
-from ..types import AIResponse
+from typing import Any
+
+from pepperpy.ai.types import AIResponse
+from pepperpy.core.exceptions import PepperPyError
+
 from .base import BaseAgent
-from .interfaces import ReviewerAgent as ReviewerAgentProtocol
 
 
-class ReviewerAgent(BaseAgent, ReviewerAgentProtocol):
-    """Code reviewer agent implementation"""
+class ReviewerAgent(BaseAgent):
+    """Agent responsible for code review and quality assessment"""
 
-    async def _initialize(self) -> None:
-        """Initialize agent"""
-        pass
+    async def review(self, code: str, **kwargs: Any) -> AIResponse:
+        """Review code and provide feedback.
 
-    async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
+        Args:
+            code: Code to review
+            **kwargs: Additional arguments for review customization
 
-    async def review(self, code: str) -> AIResponse:
-        """Review code"""
+        Returns:
+            AIResponse: Review results
+
+        Raises:
+            PepperPyError: If review fails
+            RuntimeError: If agent is not initialized
+        """
+        self._ensure_initialized()
+
         prompt = (
             f"As a code reviewer with the role of {self.config.role}, "
-            f"please review the following code:\n\n{code}"
+            f"please review this code:\n\n{code}\n\n"
+            "Focus on:\n"
+            "- Code quality\n"
+            "- Best practices\n"
+            "- Potential issues\n"
+            "- Security concerns\n"
+            "- Performance implications"
         )
-        return await self._client.complete(prompt)
 
-    async def suggest(self, code: str) -> AIResponse:
-        """Suggest improvements"""
-        prompt = (
-            f"As a code reviewer with the role of {self.config.role}, "
-            f"please suggest improvements for the following code:\n\n{code}"
-        )
-        return await self._client.complete(prompt)
+        if kwargs:
+            prompt += f"\n\nContext:\n{kwargs}"
+
+        try:
+            return await self._client.complete(prompt)
+        except Exception as e:
+            raise PepperPyError(f"Code review failed: {e}", cause=e)
+
+    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute a code review task.
+
+        Args:
+            task: Code to review
+            **kwargs: Additional arguments for task execution
+
+        Returns:
+            AIResponse: Review results
+
+        Raises:
+            PepperPyError: If execution fails
+            RuntimeError: If agent is not initialized
+        """
+        return await self.review(task, **kwargs)

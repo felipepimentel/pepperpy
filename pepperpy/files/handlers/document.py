@@ -1,12 +1,30 @@
 """Document file handler implementation"""
 
+from pathlib import Path
+
 from ..exceptions import FileError
 from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler, FileHandler
+from .base import BaseFileHandler
 
 
-class DocumentHandler(BaseFileHandler, FileHandler[bytes]):
+class DocumentHandler(BaseFileHandler[bytes]):
     """Handler for document files"""
+
+    def _to_path(self, file: PathLike) -> Path:
+        """Convert PathLike to Path"""
+        return Path(file) if isinstance(file, str) else file
+
+    def _get_mime_type(self, path: Path) -> str:
+        """Get MIME type for file"""
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+    def _get_file_type(self, path: Path) -> str:
+        """Get file type"""
+        return FileType.DOCUMENT
+
+    def _get_format(self, path: Path) -> str:
+        """Get file format"""
+        return path.suffix[1:]
 
     async def read(self, file: PathLike) -> FileContent[bytes]:
         """Read document file"""
@@ -17,11 +35,7 @@ class DocumentHandler(BaseFileHandler, FileHandler[bytes]):
 
             metadata = self._create_metadata(
                 path=path,
-                file_type=FileType.DOCUMENT,
-                mime_type=(
-                    "application/vnd.openxmlformats-officedocument" ".wordprocessingml.document"
-                ),
-                format_str=path.suffix[1:],
+                size=len(content)
             )
 
             return FileContent(content=content, metadata=metadata)

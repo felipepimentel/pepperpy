@@ -1,57 +1,59 @@
 """Text processor implementation"""
 
-from pepperpy.core.module import BaseModule
+from typing import Any
 
+from ...core.exceptions import PepperPyError
+from ...core.module import BaseModule
 from .config import TextProcessorConfig
-from .exceptions import TextProcessorError
 
 
 class TextProcessor(BaseModule[TextProcessorConfig]):
     """Text processor implementation"""
 
     def __init__(self, config: TextProcessorConfig) -> None:
+        """Initialize processor.
+        
+        Args:
+            config: Processor configuration
+        """
         super().__init__(config)
+        self._normalize_whitespace = config.metadata.get("normalize_whitespace", True)
 
     async def _initialize(self) -> None:
         """Initialize processor"""
         pass
 
     async def _cleanup(self) -> None:
-        """Cleanup resources"""
+        """Cleanup processor resources"""
         pass
 
-    async def process(self, text: str) -> str:
-        """Process text"""
-        if not self._initialized:
-            await self.initialize()
-
+    def process_text(self, text: str, **kwargs: Any) -> str:
+        """Process text.
+        
+        Args:
+            text: Text to process
+            **kwargs: Additional processing options
+            
+        Returns:
+            str: Processed text
+            
+        Raises:
+            PepperPyError: If processing fails
+        """
         try:
-            # Apply configured transformations
-            result = text
+            if not text:
+                return ""
 
-            if self.config.strip_html:
-                result = self._strip_html(result)
+            processed = text
 
-            if self.config.normalize_whitespace:
-                result = self._normalize_whitespace(result)
+            # Normalize whitespace if enabled
+            if self._normalize_whitespace:
+                # Replace multiple spaces with single space
+                processed = " ".join(processed.split())
+                # Remove leading/trailing whitespace
+                processed = processed.strip()
 
-            if self.config.max_length:
-                result = result[: self.config.max_length]
+            return processed
 
-            if self.config.min_length and len(result) < self.config.min_length:
-                raise TextProcessorError(
-                    f"Text length {len(result)} is below minimum {self.config.min_length}"
-                )
-
-            return result
         except Exception as e:
-            raise TextProcessorError(f"Text processing failed: {e}", cause=e)
-
-    def _strip_html(self, text: str) -> str:
-        """Strip HTML tags from text"""
-        # Implement HTML stripping logic here
-        return text
-
-    def _normalize_whitespace(self, text: str) -> str:
-        """Normalize whitespace in text"""
-        return " ".join(text.split())
+            raise PepperPyError(f"Failed to process text: {e}", cause=e)

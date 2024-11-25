@@ -11,9 +11,6 @@ class AgentConfig(BaseModel):
 
     name: str
     role: AgentRole
-    enabled: bool = Field(default=True)
-    max_retries: int = Field(default=3, ge=0)
-    timeout: float = Field(default=60.0, gt=0)
     metadata: JsonDict = Field(default_factory=dict)
 
     class Config:
