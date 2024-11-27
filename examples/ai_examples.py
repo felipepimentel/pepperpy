@@ -3,7 +3,6 @@
 import asyncio
 
 from dotenv import load_dotenv  # Importing dotenv
-
 from pepperpy.ai import AIClient, AIConfig
 from pepperpy.ai.types import AIResponse
 from pepperpy.console import Console

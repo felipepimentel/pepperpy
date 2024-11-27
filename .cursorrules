@@ -55,11 +55,12 @@ base_classes:
 providers:
   base_pattern:
     - "class {Name}Provider(AIProvider):"
-    - "async def _initialize(self) -> None"
-    - "async def _cleanup(self) -> None"
+    - "async def initialize(self) -> None"
+    - "async def cleanup(self) -> None"
     - "async def complete(self, prompt: str, **kwargs: Any) -> AIResponse"
     - "async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]"
     - "async def get_embedding(self, text: str) -> list[float]"
+    - "async def validate_response(self, response: Any) -> AIResponse"
 
 # Team Pattern
 teams:
@@ -137,3 +138,77 @@ resources:
   - "Resource validation in _initialize"
   - "Connection pooling where applicable"
   - "Proper error handling for resources"
+
+# LLM Interaction Patterns
+llm_patterns:
+  - name: "Prompt Engineering"
+    rules:
+      - "Use structured prompts with clear sections"
+      - "Include role and context in prompts"
+      - "Specify expected output format"
+      - "Handle multi-turn conversations"
+    examples:
+      - |
+        f"As {role} with expertise in {domain}, analyze:\n\n{content}\n\n"
+        "Include:\n"
+        "- Key points\n"
+        "- Analysis\n"
+        "- Recommendations"
+
+  - name: "Error Handling"
+    rules:
+      - "Wrap LLM calls in try-except blocks"
+      - "Provide specific error messages"
+      - "Include original error cause"
+      - "Handle rate limits and timeouts"
+    pattern: |
+      try:
+          return await self._client.complete(prompt)
+      except Exception as e:
+          raise AIError(f"LLM operation failed: {e}", cause=e)
+
+  - name: "Response Processing"
+    rules:
+      - "Validate response structure"
+      - "Handle partial responses"
+      - "Process streaming chunks"
+      - "Implement retry logic"
+    examples:
+      - "async for chunk in response.stream():"
+      - "yield AIResponse(content=chunk, metadata=metadata)"
+
+# LLM Configuration
+llm_configuration:
+  base_pattern:
+    - "class {Name}Config(BaseModel):"
+    - "    model: str"
+    - "    temperature: float = 0.7"
+    - "    max_tokens: int | None = None"
+    - "    stop_sequences: list[str] | None = None"
+    - "    presence_penalty: float = 0.0"
+    - "    frequency_penalty: float = 0.0"
+    - "    metadata: dict[str, Any] = Field(default_factory=dict)"
+  validation:
+    - "from pydantic import BaseModel, Field, validator"
+    - "@validator('temperature')"
+    - "def validate_temperature(cls, v: float) -> float:"
+    - "    if not 0 <= v <= 2:"
+    - "        raise ValueError('Temperature must be between 0 and 2')"
+    - "    return v"
+
+# LLM Resource Management
+llm_resources:
+  - "Implement token counting"
+  - "Handle rate limiting"
+  - "Pool connections when possible"
+  - "Cleanup context after completion"
+  - "Monitor usage and costs"
+
+# LLM Testing
+llm_testing:
+  - "Mock LLM responses"
+  - "Test prompt templates"
+  - "Validate response parsing"
+  - "Test error scenarios"
+  - "Check token limits"
+  - "Verify streaming behavior"

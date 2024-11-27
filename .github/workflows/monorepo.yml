@@ -1,0 +1,62 @@
+name: PepperPy Monorepo CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Validate Dependencies
+        run: python scripts/manage_deps.py
+
+      - name: Check Migration Status
+        run: python scripts/validate_migration.py
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - pepperpy-core
+          - pepperpy-ai
+          - pepperpy-console
+          - pepperpy-ui
+          - pepperpy-files
+          - pepperpy-codebase
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Build Package
+        run: |
+          cd packages/${{ matrix.package }}
+          poetry install
+          poetry run pytest
+          poetry build

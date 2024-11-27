@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "pepperpy-ai"
+version = "0.1.0"
+description = "AI integration module for PepperPy framework"
+authors = [ "Felipe Pimentel <fpimentel88@gmail.com>",]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pepperpy-core = "*"
+openai = "*"
+aiohttp = "*"
+tenacity = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+pytest-cov = "^4.1.0"

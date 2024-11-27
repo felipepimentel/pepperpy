@@ -4,7 +4,6 @@ import asyncio
 from typing import cast
 
 from dotenv import load_dotenv  # Importing dotenv
-
 from pepperpy.ai import AIClient, AIConfig
 from pepperpy.ai.agents import AgentFactory, ProjectManager, QAAgent
 from pepperpy.ai.config.agent import AgentConfig
