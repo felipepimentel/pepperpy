@@ -1,4 +1,4 @@
-"""Base console module"""
+"""Base console functionality"""
 
 from .app import ConsoleApp
 from .config import ConsoleConfig

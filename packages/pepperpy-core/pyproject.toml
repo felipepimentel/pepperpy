@@ -1,40 +1,68 @@
 [tool.poetry]
 name = "pepperpy-core"
 version = "0.1.0"
-description = "Core functionality for PepperPy framework"
+description = "Core framework for PepperPy"
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 readme = "README.md"
-packages = [
-    { include = "pepperpy_core" },
-    { include = "examples" },
-]
+packages = [{include = "pepperpy_core"}]
+include = ["VERSION", "README.md", "CHANGELOG.md"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-pydantic = "^2.0.0"
-typing-extensions = "^4.0.0"
-redis = { version = "^4.0.0", optional = true }
+pydantic = "^2.5.3"
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = "^4.0.1"
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.5"
+pytest-cov = "^4.1.0"
+black = "^24.1.1"
+ruff = "^0.1.14"
+mypy = "^1.8.0"
 
-[tool.poetry.extras]
-redis = ["redis"]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 testpaths = ["tests"]
-python_files = ["test_*.py"]
-addopts = "-v --cov=pepperpy_core --cov-report=term-missing"
-filterwarnings = [
-    "ignore:Support for class-based.*:DeprecationWarning:pydantic",
+norecursedirs = [
+    "*.egg",
+    ".eggs",
+    "dist",
+    "build",
+    ".venv",
+    "venv"
 ]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[tool.coverage.run]
+source = ["pepperpy_core"]
+omit = [
+    ".venv/*",
+    "tests/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 100
+target-version = 'py39'
 
 [tool.mypy]
 python_version = "3.9"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = true
-check_untyped_defs = true
-implicit_reexport = true

@@ -3,15 +3,73 @@ name = "pepperpy-console"
 version = "0.1.0"
 description = "Terminal interface components for PepperPy framework"
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+readme = "README.md"
+packages = [{include = "pepperpy_console"}]
+include = ["VERSION", "README.md", "CHANGELOG.md"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-pepperpy-core = "*"
-rich = "*"
-prompt-toolkit = "*"
-pepperpy_core = { workspace = true }
+python = ">=3.9,<4.0"
+rich = "^13.7.0"
+typing-extensions = "^4.9.0"
+pepperpy-core = {path = "../pepperpy-core", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
-pytest-asyncio = "^0.23.0"
+pytest-asyncio = "^0.23.5"
 pytest-cov = "^4.1.0"
+black = "^24.1.1"
+ruff = "^0.1.14"
+mypy = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [
+    "*.egg",
+    ".eggs",
+    "dist",
+    "build",
+    ".venv",
+    "venv"
+]
+addopts = [
+    "--import-mode=importlib",
+    "--asyncio-mode=strict"
+]
+asyncio_mode = "strict"
+markers = [
+    "asyncio: mark test as async/await test",
+]
+
+[tool.coverage.run]
+source = ["pepperpy_console"]
+omit = [
+    ".venv/*",
+    "tests/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 100
+target-version = 'py39'
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+warn_return_any = true
+warn_unused_configs = true

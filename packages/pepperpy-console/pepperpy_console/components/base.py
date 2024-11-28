@@ -9,7 +9,7 @@ from ..styles import Style
 class Component(ABC):
     """Base UI component"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.style = Style()
         self._initialized = False
 

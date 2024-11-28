@@ -1,14 +1,9 @@
-"""Configuration module"""
+"""Configuration module for PepperPy Core"""
 
-from ..exceptions import ConfigError
-from .base import BaseConfig
-from .manager import ConfigManager, ConfigManagerConfig
-from .settings import Settings
+from pydantic import BaseModel
 
-__all__ = [
-    "BaseConfig",
-    "ConfigError",
-    "ConfigManager",
-    "ConfigManagerConfig",
-    "Settings",
-]
+
+class BaseConfig(BaseModel):
+    """Base configuration class"""
+
+    pass
