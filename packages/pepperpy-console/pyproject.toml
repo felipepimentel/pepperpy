@@ -2,13 +2,14 @@
 name = "pepperpy-console"
 version = "0.1.0"
 description = "Terminal interface components for PepperPy framework"
-authors = [ "Felipe Pimentel <fpimentel88@gmail.com>",]
+authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 pepperpy-core = "*"
 rich = "*"
 prompt-toolkit = "*"
+pepperpy_core = { workspace = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

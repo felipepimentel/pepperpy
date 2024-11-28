@@ -1,31 +1,22 @@
-"""Autogen examples"""
+"""Example demonstrating AutoGen team functionality"""
 
 import asyncio
 
-from pepperpy.ai import AIClient, AIConfig
-from pepperpy.ai.config.agent import AgentConfig
-from pepperpy.ai.roles import AgentRole
-from pepperpy.ai.teams.config import TeamConfig, TeamFramework
-from pepperpy.ai.teams.manager import TeamManager
-from pepperpy.console import Console
-
-console = Console()
+from pepperpy_ai import AIClient, AIConfig
+from pepperpy_ai.config.agent import AgentConfig
+from pepperpy_ai.roles import AgentRole
+from pepperpy_ai.teams.config import TeamConfig, TeamFramework
+from pepperpy_ai.teams.manager import TeamManager
 
 
 async def demonstrate_autogen() -> None:
     """Demonstrate autogen workflow"""
     try:
-        console.info("🤖 Initializing Autogen Team...")
+        print("🤖 Initializing AutoGen Team...")
 
         # Create AI configuration and client
-        ai_config = AIConfig(
-            provider="openai",
-            api_key="your-api-key",
-            model="gpt-3.5-turbo",
-            temperature=0.7,
-            max_tokens=2048,
-        )
-        client = AIClient(config=ai_config)
+        config = AIConfig.model_validate({})
+        client = AIClient(config=config)
         await client.initialize()
 
         try:
@@ -47,14 +38,14 @@ async def demonstrate_autogen() -> None:
                 # Create agent configurations
                 agent_configs = [
                     AgentConfig(
-                        name="architect",
-                        role=AgentRole.DEVELOPER,
-                        metadata={"specialty": "architecture"},
+                        name="planner",
+                        role=AgentRole.PLANNER,
+                        metadata={"specialty": "task planning"},
                     ),
                     AgentConfig(
-                        name="researcher",
-                        role=AgentRole.RESEARCHER,
-                        metadata={"specialty": "technical research"},
+                        name="executor",
+                        role=AgentRole.EXECUTOR,
+                        metadata={"specialty": "task execution"},
                     ),
                 ]
 
@@ -67,17 +58,17 @@ async def demonstrate_autogen() -> None:
 
                 try:
                     # Execute team tasks
-                    console.info("Starting team tasks...")
+                    print("Starting team tasks...")
 
                     tasks = [
-                        "Design system architecture",
-                        "Research best practices",
+                        "Plan project structure",
+                        "Implement core features",
                     ]
 
                     for task in tasks:
-                        console.info(f"Executing task: {task}")
+                        print(f"Executing task: {task}")
                         result = await team.execute_task(task)
-                        console.info("Task completed:", content=result.content)
+                        print("Task completed:", result.content)
 
                 finally:
                     await team.cleanup()
@@ -89,7 +80,7 @@ async def demonstrate_autogen() -> None:
             await client.cleanup()
 
     except Exception as e:
-        console.error("Autogen workflow failed", str(e))
+        print("AutoGen workflow failed:", str(e))
 
 
 if __name__ == "__main__":

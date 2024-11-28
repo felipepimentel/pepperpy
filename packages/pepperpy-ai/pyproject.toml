@@ -1,15 +1,19 @@
 [tool.poetry]
 name = "pepperpy-ai"
 version = "0.1.0"
-description = "AI integration module for PepperPy framework"
-authors = [ "Felipe Pimentel <fpimentel88@gmail.com>",]
+description = "AI functionality for PepperPy framework"
+authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = "pepperpy_ai" },
+    { include = "examples" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 pepperpy-core = "*"
-openai = "*"
-aiohttp = "*"
-tenacity = "*"
+openai = "^1.0.0"
+sentence-transformers = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

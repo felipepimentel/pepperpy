@@ -1,19 +1,19 @@
-"""Core module example"""
+"""Example demonstrating core module functionality"""
 
 import asyncio
-from dataclasses import dataclass
-from typing import Any
 
-from pepperpy_core.module import BaseModule
-from pepperpy_core.types import JsonDict
+from pepperpy_core.base.module import BaseModule
+from pepperpy_core.base.types import JsonDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
-@dataclass
-class ExampleConfig:
+class ExampleConfig(BaseModel):
     """Example configuration"""
 
-    name: str
-    settings: JsonDict
+    name: str = "example"
+    enabled: bool = True
+    metadata: JsonDict = Field(default_factory=dict)
+    model_config = ConfigDict(frozen=True)
 
 
 class ExampleModule(BaseModule[ExampleConfig]):
@@ -22,31 +22,30 @@ class ExampleModule(BaseModule[ExampleConfig]):
     async def _initialize(self) -> None:
         """Initialize module"""
         print(f"Initializing {self.config.name}...")
-        self._metadata["start_time"] = asyncio.get_event_loop().time()
+        self._metadata["initialized_at"] = "now"
 
     async def _cleanup(self) -> None:
         """Cleanup module"""
         print(f"Cleaning up {self.config.name}...")
-        end_time = asyncio.get_event_loop().time()
-        start_time = self._metadata.get("start_time", 0)
-        print(f"Module ran for {end_time - start_time:.2f} seconds")
+        self._metadata["cleaned_at"] = "now"
 
-    async def process(self, data: Any) -> Any:
+    async def process(self, data: str) -> str:
         """Process data"""
         self._ensure_initialized()
-        print(f"Processing data with {self.config.name}...")
-        return data
+        return f"Processed: {data}"
 
 
 async def main() -> None:
     """Run example"""
     # Create module
-    config = ExampleConfig(name="example", settings={"debug": True})
+    config = ExampleConfig(name="test_module")
     module = ExampleModule(config)
 
     try:
         # Initialize
         await module.initialize()
+        assert module.is_initialized
+        assert "initialized_at" in module.metadata
 
         # Process data
         result = await module.process("test data")
@@ -55,6 +54,8 @@ async def main() -> None:
     finally:
         # Cleanup
         await module.cleanup()
+        assert not module.is_initialized
+        assert "cleaned_at" in module.metadata
 
 
 if __name__ == "__main__":

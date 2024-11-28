@@ -1,21 +1,18 @@
-"""Advanced team example"""
+"""Example demonstrating advanced team functionality"""
 
 import asyncio
 
-from pepperpy.ai import AIClient, AIConfig
-from pepperpy.ai.config.agent import AgentConfig
-from pepperpy.ai.roles import AgentRole
-from pepperpy.ai.teams.config import TeamConfig, TeamFramework
-from pepperpy.ai.teams.manager import TeamManager
-from pepperpy.console import Console
-
-console = Console()
+from pepperpy_ai import AIClient, AIConfig
+from pepperpy_ai.config.agent import AgentConfig
+from pepperpy_ai.roles import AgentRole
+from pepperpy_ai.teams.config import TeamConfig, TeamFramework
+from pepperpy_ai.teams.manager import TeamManager
 
 
 async def demonstrate_advanced_team() -> None:
     """Demonstrate advanced team workflow"""
     try:
-        console.info("🤖 Initializing Advanced Team...")
+        print("🤖 Initializing Advanced Team...")
 
         # Create AI configuration and client
         config = AIConfig.model_validate({})
@@ -66,7 +63,7 @@ async def demonstrate_advanced_team() -> None:
 
                 try:
                     # Execute team tasks
-                    console.info("Starting team tasks...")
+                    print("Starting team tasks...")
 
                     tasks = [
                         "Design system architecture",
@@ -75,9 +72,9 @@ async def demonstrate_advanced_team() -> None:
                     ]
 
                     for task in tasks:
-                        console.info(f"Executing task: {task}")
+                        print(f"Executing task: {task}")
                         result = await team.execute_task(task)
-                        console.info("Task completed:", content=result.content)
+                        print("Task completed:", result.content)
 
                 finally:
                     await team.cleanup()
@@ -89,7 +86,7 @@ async def demonstrate_advanced_team() -> None:
             await client.cleanup()
 
     except Exception as e:
-        console.error("Team workflow failed", str(e))
+        print("Team workflow failed:", str(e))
 
 
 if __name__ == "__main__":

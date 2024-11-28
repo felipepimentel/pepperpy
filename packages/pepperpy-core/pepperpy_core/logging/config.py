@@ -29,3 +29,9 @@ class LogConfig(BaseModel):
     backup_count: int = Field(default=5)
     metadata: JsonDict = Field(default_factory=dict)
     model_config = ConfigDict(frozen=True)
+
+
+__all__ = [
+    "LogConfig",
+    "LogHandlerConfig",
+]
