@@ -1,13 +1,18 @@
-"""Task management module"""
+"""Task management module."""
 
-from .base import (
-    Task,
-    TaskManager,
-    TaskStatus,
-)
+from .base import BaseTask, TaskConfig
+from .exceptions import TaskError, TaskExecutionError, TaskNotFoundError
+from .manager import TaskManager
+from .queue import TaskQueue
+from .worker import TaskWorker
 
 __all__ = [
-    "Task",
+    "BaseTask",
+    "TaskConfig",
+    "TaskError",
+    "TaskExecutionError",
     "TaskManager",
-    "TaskStatus",
+    "TaskNotFoundError",
+    "TaskQueue",
+    "TaskWorker",
 ]

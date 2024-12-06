@@ -1,13 +1,14 @@
-"""Provider types module"""
+"""Provider types."""
 
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, AsyncGenerator, Dict, Protocol, runtime_checkable
+from typing import Any
 
-from bko.ai.types import AIResponse
+from ..types import JsonDict
 
 
 class ProviderType(str, Enum):
-    """Provider types"""
+    """Provider types."""
 
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
@@ -15,29 +16,30 @@ class ProviderType(str, Enum):
     STACKSPOT = "stackspot"
 
 
-@runtime_checkable
-class LLMProvider(Protocol):
-    """Protocol for LLM providers"""
+@dataclass
+class ProviderMetadata:
+    """Provider metadata."""
 
-    @property
-    def is_initialized(self) -> bool:
-        """Check if provider is initialized"""
-        ...
+    name: str
+    version: str
+    description: str | None = None
+    settings: JsonDict = field(default_factory=dict)
 
-    async def initialize(self) -> None:
-        """Initialize provider"""
-        ...
 
-    async def cleanup(self) -> None:
-        """Cleanup provider"""
-        ...
+@dataclass
+class ProviderResponse:
+    """Provider response."""
 
-    async def complete(self, prompt: str, **kwargs: Dict[str, Any]) -> AIResponse:
-        """Complete prompt"""
-        ...
+    content: str
+    metadata: JsonDict = field(default_factory=dict)
+    raw_response: Any | None = None
 
-    async def stream(
-        self, prompt: str, **kwargs: Dict[str, Any]
-    ) -> AsyncGenerator[AIResponse, None]:
-        """Stream responses"""
-        ...
+
+@dataclass
+class ProviderError:
+    """Provider error."""
+
+    message: str
+    code: str | None = None
+    details: JsonDict = field(default_factory=dict)
+    cause: Exception | None = None

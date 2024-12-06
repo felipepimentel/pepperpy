@@ -1,0 +1,25 @@
+{
+    "include": [
+        "."
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        ".git",
+        ".venv",
+        "venv",
+        "dist"
+    ],
+    "reportMissingImports": "warning",
+    "reportUnknownMemberType": "warning",
+    "reportUnknownParameterType": "warning",
+    "reportUnknownVariableType": "warning",
+    "reportUntypedFunctionDecorator": "warning",
+    "pythonVersion": "3.12",
+    "typeCheckingMode": "basic",
+    "venvPath": ".",
+    "extraPaths": [
+        ".venv/lib/python3.12/site-packages",
+        "packages"
+    ]
+} 

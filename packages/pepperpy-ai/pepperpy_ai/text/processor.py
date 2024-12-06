@@ -1,59 +1,94 @@
-"""Text processor implementation"""
+"""Text processor implementation."""
 
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Any, Generic, TypeVar
 
-from ...core.exceptions import PepperPyError
-from ...core.module import BaseModule
-from .config import TextProcessorConfig
+ConfigT = TypeVar("ConfigT")
 
 
-class TextProcessor(BaseModule[TextProcessorConfig]):
-    """Text processor implementation"""
+class BaseProcessor(Generic[ConfigT], ABC):
+    """Base text processor implementation."""
 
-    def __init__(self, config: TextProcessorConfig) -> None:
+    def __init__(self, config: ConfigT) -> None:
         """Initialize processor.
 
         Args:
             config: Processor configuration
         """
-        super().__init__(config)
-        self._normalize_whitespace = config.metadata.get("normalize_whitespace", True)
+        self.config = config
+        self._initialized = False
 
-    async def _initialize(self) -> None:
-        """Initialize processor"""
+    @property
+    def is_initialized(self) -> bool:
+        """Check if processor is initialized."""
+        return self._initialized
+
+    async def initialize(self) -> None:
+        """Initialize processor."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup processor resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
+
+    def _ensure_initialized(self) -> None:
+        """Ensure processor is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Processor not initialized")
+
+    @abstractmethod
+    async def _setup(self) -> None:
+        """Setup processor resources."""
         pass
 
-    async def _cleanup(self) -> None:
-        """Cleanup processor resources"""
+    @abstractmethod
+    async def _teardown(self) -> None:
+        """Teardown processor resources."""
         pass
 
-    def process_text(self, text: str, **kwargs: Any) -> str:
+    @abstractmethod
+    async def process(self, text: str, **kwargs: Any) -> str:
         """Process text.
 
         Args:
             text: Text to process
-            **kwargs: Additional processing options
+            **kwargs: Additional arguments
 
         Returns:
-            str: Processed text
+            Processed text
 
         Raises:
-            PepperPyError: If processing fails
+            ProcessingError: If processing fails
+            ValidationError: If validation fails
+            RuntimeError: If processor not initialized
         """
-        try:
-            if not text:
-                return ""
+        pass
 
-            processed = text
+    @abstractmethod
+    async def validate(self, text: str) -> None:
+        """Validate text.
 
-            # Normalize whitespace if enabled
-            if self._normalize_whitespace:
-                # Replace multiple spaces with single space
-                processed = " ".join(processed.split())
-                # Remove leading/trailing whitespace
-                processed = processed.strip()
+        Args:
+            text: Text to validate
 
-            return processed
+        Raises:
+            ValidationError: If validation fails
+            RuntimeError: If processor not initialized
+        """
+        pass
 
-        except Exception as e:
-            raise PepperPyError(f"Failed to process text: {e}", cause=e)
+    @abstractmethod
+    async def get_metadata(self) -> dict[str, Any]:
+        """Get processor metadata.
+
+        Returns:
+            Processor metadata
+
+        Raises:
+            RuntimeError: If processor not initialized
+        """
+        pass

@@ -1,13 +1,10 @@
-"""AI agents module"""
+"""Agent module exports."""
 
-from .base import BaseAgent
-from .factory import AgentFactory
-from .project_manager import ProjectManager
-from .qa import QAAgent
+from .factory import create_agent
+from .types import AgentConfig, AgentRole
 
 __all__ = [
-    "BaseAgent",
-    "AgentFactory",
-    "ProjectManager",
-    "QAAgent",
+    "create_agent",
+    "AgentConfig",
+    "AgentRole",
 ]

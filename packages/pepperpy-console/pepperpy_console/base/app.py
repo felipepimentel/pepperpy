@@ -3,8 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .config import ConsoleConfig
-from .console import Console
+from .console import Console, ConsoleConfig
 
 
 class ConsoleApp(ABC):

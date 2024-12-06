@@ -1,12 +1,9 @@
-"""Module-related exceptions"""
+"""Module exceptions."""
 
-from .base import PepperPyError
-
-
-class ModuleError(PepperPyError):
-    """Base module error"""
+from pepperpy_core.exceptions.base import PepperpyError
 
 
-__all__ = [
-    "ModuleError",
-]
+class ModuleError(PepperpyError):
+    """Module operation error."""
+
+    pass

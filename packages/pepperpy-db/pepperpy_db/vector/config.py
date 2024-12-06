@@ -1,21 +1,20 @@
-"""Vector database configuration"""
+"""Vector database configuration."""
 
-from bko.core.types import JsonDict
-from pydantic import BaseModel, Field
+from dataclasses import dataclass
 
-from ..config import DatabaseConfig
+from ..base import BaseEngineConfig
 
 
-class VectorConfig(BaseModel):
-    """Vector database configuration"""
+@dataclass(kw_only=True)
+class VectorConfig(BaseEngineConfig):
+    """Vector database configuration."""
 
-    db_config: DatabaseConfig
-    dimension: int = Field(default=1536, gt=0)
-    index_type: str = Field(default="ivfflat")
-    metric: str = Field(default="cosine")
-    metadata: JsonDict = Field(default_factory=dict)
-
-    class Config:
-        """Pydantic config"""
-
-        frozen = True
+    dimension: int
+    name: str = "vector"
+    host: str = "localhost"
+    port: int = 6333
+    collection: str = "vectors"
+    index_type: str = "flat"  # flat, ivf, hnsw etc
+    metric_type: str = "l2"  # l2, ip, cosine etc
+    nprobe: int | None = None  # for ivf
+    ef_search: int | None = None  # for hnsw

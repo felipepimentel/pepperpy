@@ -1,128 +1,98 @@
-"""Debugging utilities"""
+"""Debugger utilities."""
 
-import asyncio
-import functools
 import inspect
-import sys
-import traceback
-from collections.abc import Awaitable, Callable, Iterator
-from contextlib import contextmanager
-from typing import Any, TypeVar, cast
+from dataclasses import dataclass, field
+from typing import Any
 
-from bko.core.logging import get_logger
+from ..logging import BaseLogger
+from ..types import JsonDict
 
-T = TypeVar("T")
+
+@dataclass
+class DebugInfo:
+    """Debug information."""
+
+    name: str
+    module: str
+    function: str
+    line: int
+    message: str
+    metadata: JsonDict = field(default_factory=dict)
 
 
 class Debugger:
-    """Debug context manager"""
+    """Debug utility."""
 
-    def __init__(self, name: str):
+    def __init__(
+        self,
+        name: str,
+        logger: BaseLogger | None = None,
+        metadata: JsonDict | None = None,
+    ) -> None:
+        """Initialize debugger.
+
+        Args:
+            name: Debugger name
+            logger: Optional logger
+            metadata: Optional metadata
+        """
         self.name = name
-        self._logger = get_logger(__name__)
-        self._locals: dict[str, Any] = {}
+        self.logger = logger
+        self.metadata = metadata or {}
 
-    @contextmanager
-    def debug(self) -> Iterator[None]:
+    def get_caller_info(self, depth: int = 1) -> dict[str, Any]:
+        """Get caller information.
+
+        Args:
+            depth: Call stack depth
+
+        Returns:
+            Caller information
         """
-        Debug context
-
-        Yields:
-            Iterator[None]: Debug context
-
-        """
+        frame = inspect.currentframe()
         try:
-            frame = inspect.currentframe()
-            if frame is not None:
-                caller = frame.f_back
-                if caller is not None:
-                    self._locals = dict(caller.f_locals)
-            yield
-        except Exception:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            if exc_traceback is not None:
-                frames = traceback.extract_tb(exc_traceback)
-                for frame in frames:
-                    # Criar uma cópia local das informações do frame
-                    error_info = {
-                        "function": frame.name,
-                        "line": frame.line,
-                        "locals": self._locals.copy(),
-                    }
-                    # Usar uma função síncrona para logging
-                    self._log_error(
-                        f"Error in {frame.filename}:{frame.lineno}",
-                        error_info,
-                    )
-            raise
+            for _ in range(depth + 1):
+                if not frame:
+                    break
+                frame = frame.f_back
+
+            if not frame:
+                return {}
+
+            info = inspect.getframeinfo(frame)
+            return {
+                "module": info.filename,
+                "function": info.function,
+                "line": info.lineno,
+            }
         finally:
-            self._locals.clear()
+            del frame
 
-    def _log_error(self, message: str, error_info: dict[str, Any]) -> None:
-        """Log error synchronously"""
-        # Criar uma string formatada com todas as informações
-        error_msg = (
-            f"{message}\n"
-            f"Function: {error_info['function']}\n"
-            f"Line: {error_info['line']}\n"
-            f"Local variables: {error_info['locals']}"
+    def debug(
+        self,
+        message: str,
+        depth: int = 1,
+        metadata: JsonDict | None = None,
+    ) -> None:
+        """Log debug message.
+
+        Args:
+            message: Debug message
+            depth: Call stack depth
+            metadata: Optional metadata
+        """
+        info = self.get_caller_info(depth)
+        debug_info = DebugInfo(
+            name=self.name,
+            module=info.get("module", "unknown"),
+            function=info.get("function", "unknown"),
+            line=info.get("line", 0),
+            message=message,
+            metadata={**self.metadata, **(metadata or {})},
         )
-        print(error_msg, file=sys.stderr)
 
-
-def debug(name: str | None = None) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    """
-    Decorator for debugging functions
-
-    Args:
-        name: Debug context name
-
-    Returns:
-        Callable[[Callable[..., T]], Callable[..., T]]: Decorated function
-
-    """
-
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
-        debug_name = name or func.__name__
-
-        @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
-            debugger = Debugger(debug_name)
-            with debugger.debug():
-                return func(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
-
-
-def debug_async(
-    name: str | None = None,
-) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
-    """
-    Decorator for debugging async functions
-
-    Args:
-        name: Debug context name
-
-    Returns:
-        Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]: Decorated function
-
-    """
-
-    def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
-        debug_name = name or func.__name__
-
-        @functools.wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> T:
-            debugger = Debugger(debug_name)
-            with debugger.debug():
-                if asyncio.iscoroutinefunction(func):
-                    result = await func(*args, **kwargs)
-                    return cast(T, result)
-                result = func(*args, **kwargs)
-                return cast(T, result)
-
-        return wrapper
-
-    return decorator
+        if self.logger:
+            self.logger.debug(
+                f"{debug_info.module}:{debug_info.function}:{debug_info.line} - {message}",
+                debug=debug_info.__dict__,
+            )

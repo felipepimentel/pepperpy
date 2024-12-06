@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict
 
 
 class Role(str, Enum):
@@ -28,7 +27,7 @@ class LLMResponse:
     content: str
     role: Role
     model: str
-    usage: Dict[str, int]
+    usage: dict[str, int]
 
 
 AIResponse = LLMResponse  # Alias para compatibilidade

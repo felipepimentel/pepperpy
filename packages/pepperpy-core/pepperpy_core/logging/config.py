@@ -1,37 +1,20 @@
-"""Logging configuration"""
+"""Logging configuration."""
 
-from pathlib import Path
-from typing import Optional, Sequence
+from dataclasses import dataclass, field
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from ..base.types import JsonDict
+from pepperpy_core.logging.types import LogLevel
 
 
-class LogHandlerConfig(BaseModel):
-    """Log handler configuration"""
+@dataclass
+class LogConfig:
+    """Log configuration."""
 
-    type: str = Field(default="console")
-    level: str = Field(default="INFO")
-    format: str = Field(default="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    metadata: JsonDict = Field(default_factory=dict)
-    model_config = ConfigDict(frozen=True)
+    name: str
+    level: str = str(LogLevel.INFO.value)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-
-class LogConfig(BaseModel):
-    """Logging configuration"""
-
-    level: str = Field(default="INFO")
-    handlers: Sequence[LogHandlerConfig] = Field(default_factory=list)
-    log_dir: Optional[Path] = None
-    file_name: Optional[str] = None
-    max_bytes: int = Field(default=10 * 1024 * 1024)  # 10MB
-    backup_count: int = Field(default=5)
-    metadata: JsonDict = Field(default_factory=dict)
-    model_config = ConfigDict(frozen=True)
-
-
-__all__ = [
-    "LogConfig",
-    "LogHandlerConfig",
-]
+    def __post_init__(self) -> None:
+        """Post initialization."""
+        if self.metadata is None:
+            self.metadata = {}

@@ -1,7 +1,7 @@
 """Form component implementation"""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from .base import Component
 

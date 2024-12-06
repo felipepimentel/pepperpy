@@ -1,30 +1,18 @@
-"""Base type definitions"""
+"""Base type definitions."""
 
-from typing import Any, Dict, TypeAlias, Union
+from typing import Any
 
-# Basic type aliases
-JsonDict: TypeAlias = Dict[str, Any]
-JsonValue: TypeAlias = Union[str, int, float, bool, list, dict, None]
+JsonValue = str | int | float | bool | None | list["JsonValue"] | dict[str, "JsonValue"]
+JsonDict = dict[str, Any]
 
-# Module specific types
-ModuleId: TypeAlias = str
-ResourceId: TypeAlias = str
 
-# Configuration types
-ConfigKey: TypeAlias = str
-ConfigValue: TypeAlias = JsonValue
+class BaseConfigData:
+    """Base configuration data."""
 
-# Task types
-TaskId: TypeAlias = str
-TaskResult: TypeAlias = Any
+    def __init__(self, name: str) -> None:
+        """Initialize configuration data.
 
-__all__ = [
-    "JsonDict",
-    "JsonValue",
-    "ModuleId",
-    "ResourceId",
-    "ConfigKey",
-    "ConfigValue",
-    "TaskId",
-    "TaskResult",
-]
+        Args:
+            name: Configuration name
+        """
+        self.name = name

@@ -1,30 +1,27 @@
-"""Text analysis exceptions"""
+"""Text processing exceptions."""
 
-from typing import Optional
-
-from bko.core.exceptions import CoreError
+from ..exceptions import PepperpyError
 
 
-class TextError(CoreError):
-    """Base exception for text errors"""
+class TextProcessingError(PepperpyError):
+    """Base exception for text processing errors."""
 
     pass
 
 
-class TextAnalysisError(TextError):
-    """Base exception for text analysis errors"""
+class ChunkingError(TextProcessingError):
+    """Error during text chunking."""
 
-    def __init__(self, message: str, cause: Optional[Exception] = None) -> None:
-        super().__init__(message)
-        self._message = message
-        self._cause = cause
+    pass
 
-    @property
-    def message(self) -> str:
-        """Get error message"""
-        return self._message
 
-    @property
-    def cause(self) -> Optional[Exception]:
-        """Get original exception"""
-        return self._cause
+class ProcessingError(TextProcessingError):
+    """Error during text processing."""
+
+    pass
+
+
+class ValidationError(TextProcessingError):
+    """Error during text validation."""
+
+    pass

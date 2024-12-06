@@ -1,5 +1,22 @@
-"""Type definitions for PepperPy Core"""
+"""Type definitions module."""
 
-from typing import TypeVar
+from typing import Any, TypeVar
 
-ComponentType = TypeVar("ComponentType")
+from .json import JsonDict, JsonValue
+from .validation import ValidationResult
+
+# Type variable for generic types
+T = TypeVar("T")
+U = TypeVar("U")
+
+# Type alias for any callable
+AnyCallable = Any  # TODO: Make this more specific
+
+__all__ = [
+    "AnyCallable",
+    "JsonDict",
+    "JsonValue",
+    "T",
+    "U",
+    "ValidationResult",
+]

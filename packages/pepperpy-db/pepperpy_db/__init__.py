@@ -1,15 +1,15 @@
-"""Database module"""
+"""Database package exports."""
 
-from .config import DatabaseConfig
-from .engines.base import BaseEngine as DatabaseEngine
-from .engines.duckdb import DuckDBEngine
-from .engines.postgres import PostgresEngine
-from .engines.sqlite import SQLiteEngine
+from .base import BaseEngine, BaseEngineConfig, DatabaseError
+from .engine import DatabaseEngine, QueryResult
+from .engines import SQLEngine, SQLEngineConfig
 
 __all__ = [
+    "BaseEngine",
+    "BaseEngineConfig",
     "DatabaseEngine",
-    "DuckDBEngine",
-    "PostgresEngine",
-    "SQLiteEngine",
-    "DatabaseConfig",
+    "DatabaseError",
+    "QueryResult",
+    "SQLEngine",
+    "SQLEngineConfig",
 ]

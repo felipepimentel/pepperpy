@@ -1,16 +1,26 @@
 """Network configuration"""
 
-from pydantic import BaseModel, ConfigDict, Field
+from dataclasses import dataclass, field
 
-from ..base.types import JsonDict
+from ..base import BaseData
+from ..types import JsonDict
 
 
-class NetworkConfig(BaseModel):
+@dataclass
+class NetworkConfig(BaseData):
     """Network configuration"""
 
-    timeout: float = Field(default=30.0, gt=0)
-    max_retries: int = Field(default=3, ge=0)
-    retry_delay: float = Field(default=1.0, ge=0)
-    verify_ssl: bool = Field(default=True)
-    metadata: JsonDict = Field(default_factory=dict)
-    model_config = ConfigDict(frozen=True)
+    timeout: float = 30.0
+    max_retries: int = 3
+    retry_delay: float = 1.0
+    verify_ssl: bool = True
+    metadata: JsonDict = field(default_factory=dict)
+
+    def validate(self) -> None:
+        """Validate configuration."""
+        if self.timeout <= 0:
+            raise ValueError("Timeout must be positive")
+        if self.max_retries < 0:
+            raise ValueError("Max retries must be non-negative")
+        if self.retry_delay < 0:
+            raise ValueError("Retry delay must be non-negative")

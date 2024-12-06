@@ -1,20 +1,36 @@
-"""Project manager agent module"""
+"""Project manager agent implementation."""
 
-from typing import List
+from typing import Any
 
-from bko.ai.agents.base import BaseAgent
-from bko.ai.types import AIResponse
+from ..ai_types import AIMessage, AIResponse
+from .base import BaseAgent
+from .types import AgentConfig, AgentRole
 
 
-class ProjectManager(BaseAgent):
-    """Project manager agent implementation"""
+class ProjectManagerAgent(BaseAgent):
+    """Project manager agent implementation."""
 
-    async def plan(self, task: str) -> AIResponse:
-        """Plan project task"""
-        # Implementation here
-        ...
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent."""
+        super().__init__(config)
 
-    async def coordinate(self, tasks: List[str]) -> AIResponse:
-        """Coordinate project tasks"""
-        # Implementation here
-        ...
+    async def _setup(self) -> None:
+        """Setup agent resources."""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources."""
+        pass
+
+    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute project management task."""
+        self._ensure_initialized()
+        return AIResponse(
+            content=f"Project management task: {task}",
+            messages=[AIMessage(role=AgentRole.PLANNER, content=task)],
+        )
+
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized."""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")

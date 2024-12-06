@@ -1,78 +1,97 @@
-"""Text chunking implementation"""
+"""Text chunker implementation."""
 
-from typing import List
+from abc import ABC, abstractmethod
+from typing import Any, Generic, TypeVar
 
-from ...core.exceptions import PepperPyError
-from ...core.module import BaseModule
-from .config import TextProcessorConfig
+ConfigT = TypeVar("ConfigT")
 
 
-class TextChunker(BaseModule[TextProcessorConfig]):
-    """Text chunker implementation"""
+class BaseChunker(Generic[ConfigT], ABC):
+    """Base text chunker implementation."""
 
-    def __init__(self, config: TextProcessorConfig) -> None:
+    def __init__(self, config: ConfigT) -> None:
         """Initialize chunker.
 
         Args:
             config: Chunker configuration
         """
-        super().__init__(config)
-        self._chunk_size = config.metadata.get("chunk_size", 1000)
-        self._overlap = config.metadata.get("overlap", 200)
+        self.config = config
+        self._initialized = False
 
-    def chunk_text(self, text: str) -> List[str]:
+    @property
+    def is_initialized(self) -> bool:
+        """Check if chunker is initialized."""
+        return self._initialized
+
+    async def initialize(self) -> None:
+        """Initialize chunker."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup chunker resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
+
+    def _ensure_initialized(self) -> None:
+        """Ensure chunker is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Chunker not initialized")
+
+    @abstractmethod
+    async def _setup(self) -> None:
+        """Setup chunker resources."""
+        pass
+
+    @abstractmethod
+    async def _teardown(self) -> None:
+        """Teardown chunker resources."""
+        pass
+
+    @abstractmethod
+    async def chunk(self, text: str, **kwargs: Any) -> list[str]:
         """Split text into chunks.
 
         Args:
-            text: Text to split
+            text: Text to chunk
+            **kwargs: Additional arguments
 
         Returns:
-            List[str]: List of text chunks
+            List of text chunks
 
         Raises:
-            PepperPyError: If chunking fails
+            ChunkingError: If chunking fails
+            RuntimeError: If chunker not initialized
         """
-        try:
-            if not text:
-                return []
-
-            # Split text into sentences (simple implementation)
-            sentences = [s.strip() for s in text.split(".") if s.strip()]
-
-            chunks: List[str] = []
-            current_chunk = ""
-
-            for sentence in sentences:
-                # If adding this sentence would exceed chunk size
-                if len(current_chunk) + len(sentence) > self._chunk_size:
-                    # Save current chunk if not empty
-                    if current_chunk:
-                        chunks.append(current_chunk.strip())
-
-                    # Start new chunk with overlap from previous chunk
-                    if self._overlap > 0 and current_chunk:
-                        words = current_chunk.split()
-                        overlap_words = words[-min(len(words), self._overlap // 10) :]
-                        current_chunk = " ".join(overlap_words) + " " + sentence
-                    else:
-                        current_chunk = sentence
-                else:
-                    # Add sentence to current chunk
-                    current_chunk = (current_chunk + " " + sentence).strip()
-
-            # Add final chunk if not empty
-            if current_chunk:
-                chunks.append(current_chunk.strip())
-
-            return chunks
-
-        except Exception as e:
-            raise PepperPyError(f"Failed to chunk text: {e}", cause=e)
-
-    async def _initialize(self) -> None:
-        """Initialize chunker"""
         pass
 
-    async def _cleanup(self) -> None:
-        """Cleanup chunker resources"""
+    @abstractmethod
+    async def merge(self, chunks: list[str], **kwargs: Any) -> str:
+        """Merge chunks back into text.
+
+        Args:
+            chunks: Text chunks to merge
+            **kwargs: Additional arguments
+
+        Returns:
+            Merged text
+
+        Raises:
+            ChunkingError: If merging fails
+            RuntimeError: If chunker not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def get_metadata(self) -> dict[str, Any]:
+        """Get chunker metadata.
+
+        Returns:
+            Chunker metadata
+
+        Raises:
+            RuntimeError: If chunker not initialized
+        """
         pass

@@ -1,28 +1,19 @@
-"""Team configuration module"""
+"""Team configuration."""
 
-from enum import Enum
+from dataclasses import dataclass, field
 
-from bko.core.types import JsonDict
-from pydantic import BaseModel, Field
-
-
-class TeamFramework(str, Enum):
-    """Enumeration for team frameworks"""
-
-    AUTOGEN = "autogen"
-    CREW = "crew"
-    LANGCHAIN = "langchain"
+from .base import BaseConfigData, JsonDict
 
 
-class TeamConfig(BaseModel):
-    """Configuration for AI Teams"""
+@dataclass
+class TeamConfig(BaseConfigData):
+    """Team configuration."""
 
+    # Required fields first (no defaults)
     name: str
-    framework: TeamFramework
-    metadata: JsonDict = Field(default_factory=dict)
-    enabled: bool = Field(default=True)
+    members: list[str]
+    roles: dict[str, str]
 
-    class Config:
-        """Pydantic configuration"""
-
-        frozen = True
+    # Optional fields (with defaults)
+    metadata: JsonDict = field(default_factory=dict)
+    settings: JsonDict = field(default_factory=dict)

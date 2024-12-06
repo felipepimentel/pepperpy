@@ -1,104 +1,87 @@
-"""Base file handler implementation"""
+"""Base file handler implementation."""
 
 from abc import ABC, abstractmethod
-from datetime import datetime
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import Any
 
-from pydantic import BaseModel
-
-from ..core.module import BaseModule
-from .config import FileHandlerConfig
-from .exceptions import FileError
-from .types import FileContent, FileMetadata, FileType, PathLike
-
-T = TypeVar("T", bound=BaseModel)
+from .types import FileContent
 
 
-class BaseFileHandler(Generic[T], BaseModule[FileHandlerConfig], ABC):
-    """Base file handler implementation"""
+@dataclass
+class FileHandlerConfig:
+    """File handler configuration."""
+
+    allowed_extensions: set[str] = field(default_factory=set)
+    base_path: Path = field(default_factory=lambda: Path("."))
+    max_file_size: int = 10 * 1024 * 1024  # 10MB
+    encoding: str = "utf-8"
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class BaseHandler(ABC):
+    """Base file handler implementation."""
+
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler.
+
+        Args:
+            config: Handler configuration
+        """
+        self.config = config or FileHandlerConfig()
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize handler."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup handler."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
     @abstractmethod
-    async def read(self, file: PathLike) -> FileContent[T]:
-        """
-        Abstract method to read a file.
-
-        Args:
-            file (PathLike): Path to the file.
-
-        Returns:
-            FileContent[T]: Parsed file content.
-        """
-        ...
+    async def _setup(self) -> None:
+        """Setup handler."""
+        pass
 
     @abstractmethod
-    async def write(self, content: T, output: PathLike) -> None:
-        """
-        Abstract method to write content to a file.
+    async def _teardown(self) -> None:
+        """Teardown handler."""
+        pass
+
+    @abstractmethod
+    async def read(self, path: str | Path) -> FileContent:
+        """Read file content.
 
         Args:
-            content (T): Content to be written.
-            output (PathLike): Path to the output file.
-        """
-        ...
-
-    def __init__(self, config: FileHandlerConfig) -> None:
-        """
-        Initialize handler with configuration.
-
-        Args:
-            config (FileHandlerConfig): Configuration for the file handler.
-        """
-        super().__init__(config)
-
-    def _create_metadata(
-        self,
-        path: Path,
-        file_type: FileType,
-        mime_type: str,
-        format_str: str,
-    ) -> FileMetadata:
-        """
-        Create metadata for the given file.
-
-        Args:
-            path (Path): Path to the file.
-            file_type (FileType): Type of the file.
-            mime_type (str): MIME type of the file.
-            format_str (str): File format string.
+            path: File path
 
         Returns:
-            FileMetadata: Metadata for the file.
-
-        Raises:
-            FileError: If metadata creation fails.
+            File content
         """
-        try:
-            stat = path.stat()
-            return FileMetadata(
-                path=path,
-                size=stat.st_size,
-                name=path.name,
-                mime_type=mime_type,
-                type=file_type,
-                extension=path.suffix,
-                format=format_str,
-                metadata={
-                    "created": datetime.fromtimestamp(stat.st_ctime),
-                    "modified": datetime.fromtimestamp(stat.st_mtime),
-                },
-            )
-        except Exception as e:
-            raise FileError(f"Failed to create metadata: {e}", cause=e)
+        pass
 
-    def _to_path(self, path: PathLike) -> Path:
-        """
-        Convert a path-like object to a Path object.
+    @abstractmethod
+    async def write(self, content: Any, output: str | Path) -> None:
+        """Write file content.
 
         Args:
-            path (PathLike): Path-like object.
+            content: Content to write
+            output: Output path
+        """
+        pass
+
+    def _convert_extensions(self, extensions: list[str]) -> set[str]:
+        """Convert list of extensions to set.
+
+        Args:
+            extensions: List of file extensions
 
         Returns:
-            Path: Path object.
+            Set of file extensions
         """
-        return Path(path) if isinstance(path, str) else path
+        return set(extensions)

@@ -1,63 +1,81 @@
-"""Reviewer agent implementation"""
+"""Reviewer agent implementation."""
 
 from typing import Any
 
-from bko.ai.types import AIResponse
-from bko.core.exceptions import PepperPyError
-
+from ..ai_types import AIMessage, AIResponse
 from .base import BaseAgent
+from .types import AgentConfig, AgentRole
 
 
 class ReviewerAgent(BaseAgent):
-    """Agent responsible for code review and quality assessment"""
+    """Reviewer agent implementation."""
 
-    async def review(self, code: str, **kwargs: Any) -> AIResponse:
-        """Review code and provide feedback.
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent."""
+        super().__init__(config)
+
+    async def _setup(self) -> None:
+        """Setup agent resources."""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources."""
+        pass
+
+    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute review task."""
+        self._ensure_initialized()
+        return AIResponse(
+            content=f"Review task: {task}",
+            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
+        )
+
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized."""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")
+
+    async def review_code(self, code: str) -> AIResponse:
+        """Review code.
 
         Args:
             code: Code to review
-            **kwargs: Additional arguments for review customization
 
         Returns:
-            AIResponse: Review results
-
-        Raises:
-            PepperPyError: If review fails
-            RuntimeError: If agent is not initialized
+            Review response
         """
         self._ensure_initialized()
-
-        prompt = (
-            f"As a code reviewer with the role of {self.config.role}, "
-            f"please review this code:\n\n{code}\n\n"
-            "Focus on:\n"
-            "- Code quality\n"
-            "- Best practices\n"
-            "- Potential issues\n"
-            "- Security concerns\n"
-            "- Performance implications"
+        return AIResponse(
+            content=f"Code review: {code}",
+            messages=[AIMessage(role=AgentRole.REVIEWER, content=code)],
         )
 
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Code review failed: {e}", cause=e)
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute a code review task.
+    async def review_pr(self, pr_description: str) -> AIResponse:
+        """Review pull request.
 
         Args:
-            task: Code to review
-            **kwargs: Additional arguments for task execution
+            pr_description: Pull request description
 
         Returns:
-            AIResponse: Review results
-
-        Raises:
-            PepperPyError: If execution fails
-            RuntimeError: If agent is not initialized
+            Review response
         """
-        return await self.review(task, **kwargs)
+        self._ensure_initialized()
+        return AIResponse(
+            content=f"PR review: {pr_description}",
+            messages=[AIMessage(role=AgentRole.REVIEWER, content=pr_description)],
+        )
+
+    async def review_design(self, design_doc: str) -> AIResponse:
+        """Review design document.
+
+        Args:
+            design_doc: Design document to review
+
+        Returns:
+            Review response
+        """
+        self._ensure_initialized()
+        return AIResponse(
+            content=f"Design review: {design_doc}",
+            messages=[AIMessage(role=AgentRole.REVIEWER, content=design_doc)],
+        )

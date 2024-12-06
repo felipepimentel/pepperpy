@@ -1,9 +1,14 @@
-"""File handling exceptions"""
+"""File handling exceptions."""
 
 
 class FileError(Exception):
-    """Base exception for file operations"""
+    """Base exception for file operations."""
 
-    def __init__(self, message: str, cause: Exception | None = None) -> None:
-        super().__init__(message)
-        self.cause = cause
+    def __init__(self, message: str, *args: object) -> None:
+        """Initialize exception.
+
+        Args:
+            message: Error message
+            *args: Additional arguments
+        """
+        super().__init__(message, *args)

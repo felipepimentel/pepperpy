@@ -1,129 +1,80 @@
-"""Health check utilities"""
+"""Health check module."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import Any, Protocol, runtime_checkable
+from typing import Any
 
-from bko.core.exceptions import PepperPyError
-
-
-class HealthError(PepperPyError):
-    """Health check error"""
-
-
-class Status(Enum):
-    """Health check status"""
-
-    UP = "up"
-    DOWN = "down"
-    DEGRADED = "degraded"
-
-
-@runtime_checkable
-class HealthCheck(Protocol):
-    """Health check protocol"""
-
-    name: str
-    description: str
-
-    def check(self) -> Status: ...
+from ..module import BaseModule
+from .config import TelemetryConfig
 
 
 @dataclass
-class HealthResult:
-    """Health check result"""
+class HealthStatus:
+    """Health status data."""
 
-    status: Status
-    timestamp: datetime = field(default_factory=datetime.now)
+    name: str
+    status: str
+    message: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
 
 
-class HealthMonitor:
-    """System health monitor"""
+class HealthChecker(BaseModule[TelemetryConfig]):
+    """Health checker implementation."""
 
-    def __init__(self):
-        self._checks: dict[str, HealthCheck] = {}
-        self._results: dict[str, HealthResult] = {}
+    def __init__(self) -> None:
+        """Initialize health checker."""
+        config = TelemetryConfig(name="health-checker")
+        super().__init__(config)
+        self._checks: dict[str, HealthStatus] = {}
 
-    def register_check(self, check: HealthCheck) -> None:
-        """
-        Register health check
+    async def _setup(self) -> None:
+        """Setup health checker."""
+        self._checks.clear()
+
+    async def _teardown(self) -> None:
+        """Teardown health checker."""
+        self._checks.clear()
+
+    async def register_check(self, check: HealthStatus) -> None:
+        """Register health check.
 
         Args:
-            check: Health check to register
-
+            check: Health check status
         """
+        if not self.is_initialized:
+            await self.initialize()
         self._checks[check.name] = check
 
-    def remove_check(self, name: str) -> None:
-        """
-        Remove health check
+    async def get_check(self, name: str) -> HealthStatus | None:
+        """Get health check status.
 
         Args:
-            name: Name of check to remove
-
-        """
-        if name in self._checks:
-            del self._checks[name]
-            if name in self._results:
-                del self._results[name]
-
-    def check_health(self, name: str | None = None) -> dict[str, HealthResult]:
-        """
-        Run health checks
-
-        Args:
-            name: Optional name of specific check to run
+            name: Check name
 
         Returns:
-            Dict[str, HealthResult]: Health check results
-
+            Health check status if found, None otherwise
         """
-        try:
-            if name:
-                if name not in self._checks:
-                    raise HealthError(f"Health check not found: {name}")
-                check = self._checks[name]
-                result = HealthResult(status=check.check())
-                self._results[name] = result
-                return {name: result}
+        if not self.is_initialized:
+            await self.initialize()
+        return self._checks.get(name)
 
-            results = {}
-            for check_name, check in self._checks.items():
-                try:
-                    status = check.check()
-                    result = HealthResult(status=status)
-                except Exception as e:
-                    result = HealthResult(
-                        status=Status.DOWN,
-                        details={"error": str(e)},
-                    )
-                results[check_name] = result
-                self._results[check_name] = result
-
-            return results
-
-        except Exception as e:
-            raise HealthError(f"Health check failed: {e!s}", cause=e)
-
-    def get_results(self, name: str | None = None) -> dict[str, HealthResult]:
-        """
-        Get health check results
-
-        Args:
-            name: Optional name of specific check result to get
+    async def get_stats(self) -> dict[str, Any]:
+        """Get health checker statistics.
 
         Returns:
-            Dict[str, HealthResult]: Health check results
-
+            Health checker statistics
         """
-        if name:
-            if name not in self._results:
-                raise HealthError(f"Health check result not found: {name}")
-            return {name: self._results[name]}
-        return self._results.copy()
+        if not self.is_initialized:
+            await self.initialize()
 
+        healthy_count = sum(
+            1 for check in self._checks.values() if check.status == "healthy"
+        )
 
-# Global health monitor instance
-monitor = HealthMonitor()
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "total_checks": len(self._checks),
+            "healthy_checks": healthy_count,
+            "unhealthy_checks": len(self._checks) - healthy_count,
+            "check_names": list(self._checks.keys()),
+        }

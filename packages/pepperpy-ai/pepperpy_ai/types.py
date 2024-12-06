@@ -1,64 +1,38 @@
-"""AI types module"""
+"""Common type definitions."""
 
-from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+JsonDict = dict[str, Any]
 
 
-class Role(str, Enum):
-    """Message role types"""
+class MessageRole(str, Enum):
+    """Message role types."""
 
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
+    FUNCTION = "function"
 
 
-@dataclass
-class Message:
-    """AI message"""
+class AIMessage:
+    """AI message type."""
 
-    role: Role
-    content: str
+    def __init__(self, role: MessageRole | str, content: str) -> None:
+        """Initialize message.
 
+        Args:
+            role: Message role
+            content: Message content
+        """
+        self.role = role if isinstance(role, MessageRole) else MessageRole(role)
+        self.content = content
 
-@dataclass
-class AIResponse:
-    """AI response"""
+    def to_dict(self) -> JsonDict:
+        """Convert to dictionary."""
+        return {"role": self.role.value, "content": self.content}
 
-    content: str
-    role: Role = Role.ASSISTANT
-    model: str = "default"
-    usage: Dict[str, int] = field(default_factory=lambda: {"total_tokens": 0})
-    messages: Optional[List[Message]] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class AIContext:
-    """AI context"""
-
-    messages: List[Message]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class AIResult:
-    """AI result"""
-
-    response: AIResponse
-    context: AIContext
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-class ProviderType(str, Enum):
-    """Provider types"""
-
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
-    OPENROUTER = "openrouter"
-    STACKSPOT = "stackspot"
-
-
-# Aliases for backward compatibility
-MessageRole = Role
-AIMessage = Message
+    @classmethod
+    def from_dict(cls, data: JsonDict) -> "AIMessage":
+        """Create from dictionary."""
+        return cls(role=data["role"], content=data["content"])

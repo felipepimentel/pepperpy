@@ -1,109 +1,103 @@
-"""Team agent implementations"""
+"""Team agent implementations."""
 
-from typing import Any, List, Optional
+from typing import Any
 
-from bko.ai.types import AIResponse
-from bko.core.exceptions import PepperPyError
-
+from ..ai_types import AIMessage, AIResponse
 from .base import BaseAgent
+from .team_types import TeamConfig, TeamMessage
+from .types import AgentConfig, AgentRole
 
 
 class TeamAgent(BaseAgent):
-    """Base class for team agents"""
+    """Team agent implementation."""
+
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent."""
+        super().__init__(config)
+        self._team_config: TeamConfig | None = None
+
+    async def _setup(self) -> None:
+        """Setup agent resources."""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources."""
+        pass
 
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute team task.
-
-        Args:
-            task: Task to execute
-            **kwargs: Additional arguments for task execution
-
-        Returns:
-            AIResponse: Task execution results
-
-        Raises:
-            PepperPyError: If task execution fails
-            RuntimeError: If agent is not initialized
-        """
+        """Execute team task."""
         self._ensure_initialized()
-        prompt = (
-            f"As a team member with role {self.config.role}, "
-            f"please execute this task:\n\n{task}\n\n"
-            "Include:\n"
-            "- Task breakdown\n"
-            "- Dependencies\n"
-            "- Timeline\n"
-            "- Expected results"
+        return AIResponse(
+            content=f"Team task: {task}",
+            messages=[AIMessage(role=AgentRole.PLANNER, content=task)],
         )
 
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized."""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")
 
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Team task failed: {e}", cause=e)
+    async def coordinate(self, messages: list[TeamMessage]) -> AIResponse:
+        """Coordinate team communication.
+
+        Args:
+            messages: Team messages to coordinate
+
+        Returns:
+            Coordination response
+        """
+        self._ensure_initialized()
+        return AIResponse(
+            content="Team coordination",
+            messages=[
+                AIMessage(role=AgentRole.PLANNER, content=msg.content)
+                for msg in messages
+            ],
+        )
 
 
 class TeamCoordinator(BaseAgent):
-    """Agent responsible for team coordination"""
+    """Team coordinator implementation."""
+
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize coordinator."""
+        super().__init__(config)
+        self._team_config: TeamConfig | None = None
+
+    async def _setup(self) -> None:
+        """Setup coordinator resources."""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown coordinator resources."""
+        pass
 
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute coordination task"""
-        if isinstance(task, list):
-            return await self.coordinate_team(task, **kwargs)
-        return await self.coordinate_team([task], **kwargs)
-
-    async def coordinate_team(
-        self,
-        tasks: List[str],
-        team_size: Optional[int] = None,
-        deadline: Optional[str] = None,
-        priority: Optional[str] = None,
-        **kwargs: Any,
-    ) -> AIResponse:
-        """Coordinate team tasks.
-
-        Args:
-            tasks: List of tasks to coordinate
-            team_size: Optional team size
-            deadline: Optional deadline
-            priority: Optional priority level
-            **kwargs: Additional arguments for coordination
-
-        Returns:
-            AIResponse: Coordination results
-
-        Raises:
-            PepperPyError: If coordination fails
-            RuntimeError: If agent is not initialized
-        """
+        """Execute coordination task."""
         self._ensure_initialized()
-
-        tasks_str = "\n".join(f"- {task}" for task in tasks)
-        prompt = (
-            f"As a team coordinator with role {self.config.role}, "
-            f"please coordinate these tasks:\n\n{tasks_str}\n\n"
-            "Include:\n"
-            "- Task assignments\n"
-            "- Dependencies\n"
-            "- Timeline\n"
-            "- Communication plan"
+        return AIResponse(
+            content=f"Coordination task: {task}",
+            messages=[AIMessage(role=AgentRole.PLANNER, content=task)],
         )
 
-        context = {}
-        if team_size is not None:
-            context["team_size"] = team_size
-        if deadline is not None:
-            context["deadline"] = deadline
-        if priority is not None:
-            context["priority"] = priority
-        context.update(kwargs)
+    def _ensure_initialized(self) -> None:
+        """Ensure coordinator is initialized."""
+        if not self.is_initialized:
+            raise RuntimeError("Coordinator not initialized")
 
-        if context:
-            prompt += f"\n\nContext:\n{context}"
+    async def assign_tasks(self, tasks: list[str]) -> AIResponse:
+        """Assign tasks to team members.
 
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Team coordination failed: {e}", cause=e)
+        Args:
+            tasks: Tasks to assign
+
+        Returns:
+            Task assignment response
+        """
+        self._ensure_initialized()
+        return AIResponse(
+            content="Task assignments",
+            messages=[
+                AIMessage(role=AgentRole.PLANNER, content=task) for task in tasks
+            ],
+        )

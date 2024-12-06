@@ -1,63 +1,94 @@
-"""Example of a progress tracker using pepperpy-console"""
+"""Progress tracker example."""
 
 import asyncio
 import random
-from typing import AsyncGenerator
 
-from pepperpy_console.base import Console
-from pepperpy_console.components import Layout, Panel, ProgressBar, Table
-from pepperpy_console.components.panel import PanelConfig
+from pepperpy_console import (
+    Layout,
+    LayoutConfig,
+    Panel,
+    PanelConfig,
+    ProgressBar,
+    ProgressConfig,
+)
 
 
-class DownloadSimulator:
-    """Simulates a download process"""
+async def simulate_task(progress: ProgressBar) -> None:
+    """Simulate a task with progress updates.
 
-    async def run(self) -> AsyncGenerator[float, None]:
-        """Run download simulation"""
-        progress = 0.0
-        while progress < 100:
-            progress += random.uniform(1, 5)
-            progress = min(progress, 100)
-            yield progress
-            await asyncio.sleep(0.1)
+    Args:
+        progress: Progress bar to update
+    """
+    total_steps = progress.config.total
+    for step in range(total_steps + 1):
+        progress.update(step)
+        await asyncio.sleep(random.uniform(0.1, 0.3))
 
 
 async def main() -> None:
-    """Run progress tracker example"""
-    console = Console()
-    progress_bar = ProgressBar(100)
-
-    # Create table for task details
-    table = Table()
-    table.add_column("Task")
-    table.add_column("Status")
-    table.add_column("Progress")
-
-    # Create layout with panels
-    layout = Layout()
-    await layout.split(
-        Panel(progress_bar, PanelConfig(title="Download Progress")),
-        Panel(table, PanelConfig(title="Task Details")),
-        direction="vertical",
-        ratios=[0.3, 0.7],
+    """Run progress tracker example."""
+    # Create layout
+    main_layout = Layout(
+        config=LayoutConfig(
+            direction="vertical",
+            spacing=1,
+        )
     )
 
-    # Create and run download simulation
-    download = DownloadSimulator()
-    try:
-        async for progress in download.run():
-            progress_bar.set_progress(int(progress))
-            table.add_row(
-                "Download", "In Progress" if progress < 100 else "Complete", f"{progress:.1f}%"
-            )
-            await layout.render()
+    # Create progress bars
+    task1_progress = ProgressBar(
+        config=ProgressConfig(
+            total=50,
+            description="Task 1",
+            style="blue",
+        )
+    )
 
-    except Exception as e:
-        console.error(f"Task failed: {e}")
+    task2_progress = ProgressBar(
+        config=ProgressConfig(
+            total=30,
+            description="Task 2",
+            style="green",
+        )
+    )
+
+    # Create panels
+    task1_panel = Panel(
+        config=PanelConfig(
+            title="Task 1 Progress",
+            border_style="rounded",
+        )
+    )
+
+    task2_panel = Panel(
+        config=PanelConfig(
+            title="Task 2 Progress",
+            border_style="rounded",
+        )
+    )
+
+    # Initialize components
+    await main_layout.initialize()
+    await task1_progress.initialize()
+    await task2_progress.initialize()
+
+    # Split layout
+    await main_layout.split(task1_panel, task2_panel)
+
+    # Start tasks
+    task1 = asyncio.create_task(simulate_task(task1_progress))
+    task2 = asyncio.create_task(simulate_task(task2_progress))
+
+    # Update display while tasks run
+    try:
+        while not (task1.done() and task2.done()):
+            await main_layout.render()
+            await asyncio.sleep(0.1)
     finally:
-        if "progress" in locals() and progress >= 100:
-            console.success("Download complete!")
-        await layout.cleanup()
+        # Cleanup
+        await main_layout.cleanup()
+        await task1_progress.cleanup()
+        await task2_progress.cleanup()
 
 
 if __name__ == "__main__":

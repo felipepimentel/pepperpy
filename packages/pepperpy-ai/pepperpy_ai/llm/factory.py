@@ -1,55 +1,37 @@
-"""LLM factory implementation"""
-
-from typing import Any
-
-from .client import LLMClient
-from .config import LLMConfig, LLMProvider
-from .exceptions import LLMError
+"""LLM client factory."""
 
 
-class LLMFactory:
-    """Factory for creating LLM clients"""
+from ..exceptions import ConfigError
+from .base import LLMClient
+from .config import LLMConfig
 
-    @staticmethod
-    def create_client(config: LLMConfig, **kwargs: Any) -> LLMClient:
-        """Create LLM client instance.
+# Import providers conditionally to handle optional dependencies
+PROVIDERS: dict[str, type[LLMClient]] = {}
 
-        Args:
-            config: LLM configuration
-            **kwargs: Additional arguments
+# Optional Anthropic provider
+try:
+    from ..providers.anthropic import AnthropicProvider
 
-        Returns:
-            LLMClient: Configured LLM client
+    PROVIDERS["anthropic"] = AnthropicProvider
+except ImportError:
+    pass
 
-        Raises:
-            LLMError: If provider is not supported
-        """
-        try:
-            return LLMClient(config)
-        except Exception as e:
-            raise LLMError(f"Failed to create LLM client: {e}", cause=e)
+# Optional OpenAI provider
+try:
+    from ..providers.openai import OpenAIProvider
 
-    @staticmethod
-    def create_config(
-        name: str, provider: str | LLMProvider, model: str, **kwargs: Any
-    ) -> LLMConfig:
-        """Create LLM configuration.
+    PROVIDERS["openai"] = OpenAIProvider
+except ImportError:
+    pass
 
-        Args:
-            name: Configuration name
-            provider: LLM provider name or enum
-            model: Model name
-            **kwargs: Additional configuration options
 
-        Returns:
-            LLMConfig: LLM configuration
+def create_llm_client(config: LLMConfig) -> LLMClient:
+    """Create LLM client from config."""
+    provider_class = PROVIDERS.get(config.provider)
+    if provider_class is None:
+        raise ConfigError(
+            f"Unsupported LLM provider: {config.provider}. "
+            f"Supported providers: {', '.join(PROVIDERS.keys())}"
+        )
 
-        Raises:
-            LLMError: If provider is not supported
-        """
-        try:
-            if isinstance(provider, str):
-                provider = LLMProvider(provider)
-            return LLMConfig(name=name, provider=provider, model=model, **kwargs)
-        except Exception as e:
-            raise LLMError(f"Failed to create LLM config: {e}", cause=e)
+    return provider_class(config)

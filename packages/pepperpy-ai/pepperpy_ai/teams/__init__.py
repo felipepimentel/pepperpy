@@ -1,18 +1,13 @@
-"""Multi-agent teams module"""
+"""Teams module exports."""
 
-from .config import TeamConfig, TeamFramework
-from .factory import TeamFactory
-from .interfaces import BaseTeam, TeamAgent, TeamTool
-from .manager import TeamManager
-from .types import TeamResult
+from .base import BaseTeam, BaseTeamProvider
+from .config import TeamConfig, TeamResult
+from .types import AgentRole
 
 __all__ = [
-    "TeamConfig",
-    "TeamFramework",
-    "TeamFactory",
+    "AgentRole",
     "BaseTeam",
-    "TeamAgent",
-    "TeamTool",
-    "TeamManager",
+    "BaseTeamProvider",
+    "TeamConfig",
     "TeamResult",
 ]

@@ -1,111 +1,77 @@
-"""Base task management implementation"""
+"""Base task implementation."""
 
-import asyncio
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import Any, Callable, Dict, Optional
-from uuid import UUID, uuid4
+from typing import Any
 
-from ..base.types import JsonDict
-from ..utils.datetime import utc_now
-
-
-class TaskStatus(str, Enum):
-    """Task status"""
-
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+from ..base import BaseConfigData
+from ..module import BaseModule
 
 
 @dataclass
-class Task:
-    """Task definition"""
+class TaskConfig(BaseConfigData):
+    """Task configuration."""
 
-    id: UUID = field(default_factory=uuid4)
-    name: str = ""
-    status: TaskStatus = TaskStatus.PENDING
-    created_at: datetime = field(default_factory=utc_now)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    result: Any = None
-    error: Optional[Exception] = None
-    metadata: JsonDict = field(default_factory=dict)
+    # Required fields (herdado de BaseConfigData)
+    name: str
+
+    # Optional fields
+    enabled: bool = True
+    max_retries: int = 3
+    timeout: float = 60.0
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def validate(self) -> None:
+        """Validate configuration."""
+        if self.max_retries < 0:
+            raise ValueError("max_retries must be non-negative")
+        if self.timeout <= 0:
+            raise ValueError("timeout must be greater than 0")
 
 
-class TaskManager:
-    """Task manager implementation"""
+class BaseTask(BaseModule[TaskConfig], ABC):
+    """Base task implementation."""
 
     def __init__(self) -> None:
-        self._tasks: Dict[UUID, Task] = {}
-        self._running: Dict[UUID, asyncio.Task[Any]] = {}
+        """Initialize task."""
+        config = TaskConfig(name="base-task")
+        super().__init__(config)
+        self._result: Any = None
 
-    async def create_task(self, name: str, func: Callable[..., Any], **metadata: Any) -> Task:
-        """Create new task"""
-        task = Task(name=name, metadata=metadata)
-        self._tasks[task.id] = task
-        return task
+    async def _setup(self) -> None:
+        """Setup task resources."""
+        self._result = None
 
-    async def start_task(self, task_id: UUID) -> None:
-        """Start task execution"""
-        task = self._tasks.get(task_id)
-        if not task:
-            raise ValueError(f"Task {task_id} not found")
+    async def _teardown(self) -> None:
+        """Teardown task resources."""
+        self._result = None
 
-        if task.status != TaskStatus.PENDING:
-            raise ValueError(f"Task {task_id} already started")
+    @abstractmethod
+    async def execute(self, *args: Any, **kwargs: Any) -> Any:
+        """Execute task.
 
-        task.status = TaskStatus.RUNNING
-        task.started_at = utc_now()
+        Args:
+            *args: Task arguments
+            **kwargs: Task keyword arguments
 
-    async def complete_task(
-        self, task_id: UUID, result: Any = None, error: Optional[Exception] = None
-    ) -> None:
-        """Complete task execution"""
-        task = self._tasks.get(task_id)
-        if not task:
-            raise ValueError(f"Task {task_id} not found")
+        Returns:
+            Task result
+        """
+        pass
 
-        task.completed_at = utc_now()
-        task.result = result
-        task.error = error
-        task.status = TaskStatus.COMPLETED if not error else TaskStatus.FAILED
+    async def get_stats(self) -> dict[str, Any]:
+        """Get task statistics.
 
-    async def cancel_task(self, task_id: UUID) -> None:
-        """Cancel task execution"""
-        task = self._tasks.get(task_id)
-        if not task:
-            raise ValueError(f"Task {task_id} not found")
+        Returns:
+            Task statistics
+        """
+        if not self.is_initialized:
+            await self.initialize()
 
-        if task.status == TaskStatus.RUNNING:
-            running = self._running.get(task_id)
-            if running:
-                running.cancel()
-                try:
-                    await running
-                except asyncio.CancelledError:
-                    pass
-
-        task.status = TaskStatus.CANCELLED
-        task.completed_at = utc_now()
-
-    def get_task(self, task_id: UUID) -> Optional[Task]:
-        """Get task by ID"""
-        return self._tasks.get(task_id)
-
-    def list_tasks(self, status: Optional[TaskStatus] = None) -> list[Task]:
-        """List all tasks"""
-        tasks = list(self._tasks.values())
-        if status:
-            tasks = [t for t in tasks if t.status == status]
-        return tasks
-
-
-__all__ = [
-    "Task",
-    "TaskManager",
-    "TaskStatus",
-]
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "max_retries": self.config.max_retries,
+            "timeout": self.config.timeout,
+            "has_result": self._result is not None,
+        }

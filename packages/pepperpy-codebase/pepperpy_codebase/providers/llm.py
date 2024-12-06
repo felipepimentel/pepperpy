@@ -1,62 +1,114 @@
-"""LLM-based codebase provider implementation"""
+"""LLM provider implementation."""
 
-from typing import Any, AsyncGenerator, Sequence
-
-from bko.ai.client import AIClient
+import logging
+from collections.abc import Sequence
+from typing import Any
 
 from ..config import CodebaseConfig
-from ..exceptions import CodebaseError
-from ..types import CodeFile, CodeSearchResult
-from .base import BaseProvider
+from ..types import FileContent
+from .base import BaseProvider, SearchResult
+
+logger = logging.getLogger(__name__)
 
 
-class LLMProvider(BaseProvider):
-    """LLM-based provider implementation"""
+class LLMProvider(BaseProvider[CodebaseConfig]):
+    """LLM-based provider implementation."""
 
-    def __init__(self, config: CodebaseConfig, ai_client: AIClient) -> None:
+    def __init__(self, config: CodebaseConfig) -> None:
+        """Initialize provider.
+
+        Args:
+            config: Provider configuration
+        """
         super().__init__(config)
-        self.ai_client = ai_client
+        self._client = None  # TODO: Initialize AI client
 
-    async def _initialize(self) -> None:
-        """Initialize provider"""
-        try:
-            if not self.ai_client.is_initialized:
-                await self.ai_client.initialize()
-        except Exception as e:
-            raise CodebaseError(f"Failed to initialize LLM provider: {e}", cause=e)
-
-    async def _cleanup(self) -> None:
-        """Cleanup provider resources"""
+    async def _setup(self) -> None:
+        """Setup provider resources."""
+        # TODO: Initialize AI client
         pass
 
-    async def search(self, query: str, **kwargs: Any) -> AsyncGenerator[CodeSearchResult, None]:
-        """Search codebase using LLM"""
-        try:
-            # TODO: Implementar busca usando LLM
-            yield CodeSearchResult(
-                file=CodeFile(path="", content=""),
-                score=1.0,
-                metadata={"provider": "llm"},
-            )
-        except Exception as e:
-            raise CodebaseError(f"LLM search failed: {e}", cause=e)
+    async def cleanup(self) -> None:
+        """Cleanup provider resources."""
+        if self._client and hasattr(self._client, "cleanup"):
+            try:
+                await self._client.cleanup()  # type: ignore
+            except Exception as e:
+                logger.error(f"Failed to cleanup client: {e}")
 
-    async def get_file(self, path: str) -> CodeFile:
-        """Get file content with LLM analysis"""
-        try:
-            # TODO: Implementar análise de arquivo usando LLM
-            return CodeFile(
-                path=path,
-                content="",
-                metadata={"provider": "llm"},
-            )
-        except Exception as e:
-            raise CodebaseError(f"Failed to get file: {e}", cause=e)
+    async def get_file(self, path: str) -> FileContent | None:
+        """Get file content."""
+        self._ensure_initialized()
+        # TODO: Implement file retrieval
+        return None
 
-    async def get_files(self, pattern: str) -> Sequence[CodeFile]:
-        """Get files matching pattern with LLM analysis"""
-        try:
-            # TODO: Implementar análise de múltiplos arquivos usando LLM
-            return []
-        except Exception as e:
-            raise CodebaseError(f"Failed to get files: {e}", cause=e)
+    async def search(self, query: str, **kwargs: Any) -> Sequence[SearchResult]:
+        """Search files using LLM.
+
+        Args:
+            query: Search query
+            **kwargs: Additional arguments
+
+        Returns:
+            Search results
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        self._ensure_initialized()
+
+        # TODO: Implement semantic search using LLM
+        # This could include:
+        # - Natural language query understanding
+        # - Code similarity analysis
+        # - Context-aware search
+
+        return []
+
+    async def analyze_file(self, file: FileContent) -> dict[str, Any]:
+        """Analyze file using LLM.
+
+        Args:
+            file: File to analyze
+
+        Returns:
+            Analysis results
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        self._ensure_initialized()
+
+        # TODO: Implement LLM-based analysis
+        # This could include:
+        # - Code quality assessment
+        # - Best practices suggestions
+        # - Security vulnerability detection
+        # - Documentation suggestions
+
+        return {
+            "quality": {
+                "score": 0.0,
+                "issues": [],
+                "suggestions": [],
+            },
+            "security": {
+                "score": 0.0,
+                "vulnerabilities": [],
+                "recommendations": [],
+            },
+            "documentation": {
+                "completeness": 0.0,
+                "suggestions": [],
+            },
+        }
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get provider statistics."""
+        self._ensure_initialized()
+        return {
+            "files_analyzed": 0,
+            "queries_processed": 0,
+            "suggestions_made": 0,
+            "token_usage": 0,
+        }

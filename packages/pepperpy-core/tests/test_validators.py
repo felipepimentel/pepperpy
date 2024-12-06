@@ -1,6 +1,7 @@
 """Test validators functionality"""
 
 import pytest
+
 from pepperpy_core.validation import ValidationLevel
 from pepperpy_core.validation.validators import (
     LengthValidator,
@@ -64,17 +65,17 @@ async def test_length_validation(length_validator: LengthValidator) -> None:
     # Too short
     result = await length_validator.validate("1")
     assert not result.valid
-    assert "below minimum" in result.message
+    assert result.message and "below minimum" in result.message
 
     # Too long
     result = await length_validator.validate("123456")
     assert not result.valid
-    assert "above maximum" in result.message
+    assert result.message and "above maximum" in result.message
 
     # Invalid type
     result = await length_validator.validate(123)
     assert not result.valid
-    assert "does not support length" in result.message
+    assert result.message and "does not support length" in result.message
 
 
 async def test_type_validation(type_validator: TypeValidator) -> None:
@@ -88,7 +89,7 @@ async def test_type_validation(type_validator: TypeValidator) -> None:
     # Invalid type
     result = await type_validator.validate(1.23)
     assert not result.valid
-    assert "Expected type" in result.message
+    assert result.message and "Expected type" in result.message
     assert "float" in result.metadata["actual_type"]
 
 

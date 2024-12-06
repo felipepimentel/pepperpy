@@ -1,15 +1,23 @@
 [tool.poetry]
 name = "pepperpy-files"
 version = "0.1.0"
-description = "File handling operations for PepperPy framework"
-authors = [ "Felipe Pimentel <fpimentel88@gmail.com>",]
+description = "File handling module for PepperPy Framework"
+authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-pepperpy-core = "*"
-aiofiles = "*"
+python = "^3.12"
+pepperpy-core = { path = "../pepperpy-core", develop = true }
+
+[tool.poetry.extras]
+epub = ["ebooklib", "beautifulsoup4"]
+image = ["Pillow"]
+yaml = ["pyyaml"]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-pytest-asyncio = "^0.23.0"
-pytest-cov = "^4.1.0"
+ebooklib = "^0.18.0"
+beautifulsoup4 = "^4.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

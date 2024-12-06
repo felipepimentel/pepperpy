@@ -1,37 +1,78 @@
-"""Base embedding provider implementation"""
+"""Base embedding provider implementation."""
 
 from abc import ABC, abstractmethod
-from typing import Generic, List, Sequence, TypeVar
+from dataclasses import dataclass, field
 
-from pydantic import BaseModel
-
-from ..base.module import BaseModule
-
-ConfigT = TypeVar("ConfigT", bound=BaseModel)
+from ..config.base import BaseConfigData, JsonDict
 
 
-class EmbeddingProvider(BaseModule[ConfigT], Generic[ConfigT], ABC):
-    """Base embedding provider interface"""
+@dataclass
+class EmbeddingConfig(BaseConfigData):
+    """Embedding configuration."""
+
+    # Required fields first (no defaults)
+    name: str
+    model: str
+    dimension: int
+
+    # Optional fields (with defaults)
+    metadata: JsonDict = field(default_factory=dict)
+    settings: JsonDict = field(default_factory=dict)
+
+
+class EmbeddingProvider(ABC):
+    """Base embedding provider."""
+
+    def __init__(self, config: EmbeddingConfig) -> None:
+        """Initialize provider."""
+        self.config = config
+        self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if provider is initialized."""
+        return self._initialized
+
+    async def initialize(self) -> None:
+        """Initialize provider."""
+        await self._setup()
+        self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup provider resources."""
+        await self._teardown()
+        self._initialized = False
 
     @abstractmethod
-    async def embed(self, text: str) -> List[float]:
-        """Get embedding for text"""
-        ...
+    async def _setup(self) -> None:
+        """Setup provider resources."""
+        pass
 
     @abstractmethod
-    async def embed_batch(self, texts: Sequence[str]) -> List[List[float]]:
-        """Get embeddings for multiple texts"""
-        ...
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
+        pass
 
-    async def _initialize(self) -> None:
-        """Initialize provider implementation"""
-        ...
+    @abstractmethod
+    async def embed(self, text: str) -> list[float]:
+        """Generate embedding for text.
 
-    async def _cleanup(self) -> None:
-        """Cleanup provider implementation"""
-        ...
+        Args:
+            text: Text to embed
 
+        Returns:
+            Embedding vector
+        """
+        pass
 
-__all__ = [
-    "EmbeddingProvider",
-]
+    @abstractmethod
+    async def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        """Generate embeddings for multiple texts.
+
+        Args:
+            texts: Texts to embed
+
+        Returns:
+            List of embedding vectors
+        """
+        pass

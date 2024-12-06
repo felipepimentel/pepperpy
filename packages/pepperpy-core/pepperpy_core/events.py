@@ -1,71 +1,108 @@
-"""Event system for inter-module communication"""
+"""Event system implementation."""
 
-import asyncio
 from collections.abc import Callable
-from dataclasses import dataclass
-from enum import IntEnum
+from dataclasses import dataclass, field
 from typing import Any
 
+from .exceptions import PepperpyError
 
-class Priority(IntEnum):
-    """Event handler priority"""
 
-    LOW = 0
-    NORMAL = 1
-    HIGH = 2
-    CRITICAL = 3
+class EventError(PepperpyError):
+    """Event system error."""
+
+    pass
 
 
 @dataclass
-class Handler:
-    """Event handler with priority"""
+class Event:
+    """Event data."""
 
-    callback: Callable
-    priority: Priority
-
-
-class EventBus:
-    """Event bus for pub/sub communication"""
-
-    def __init__(self):
-        self._handlers: dict[str, list[Handler]] = {}
-
-    async def publish(
-        self,
-        event: str,
-        data: Any = None,
-        priority: Priority | None = None,
-    ) -> None:
-        """Publish event"""
-        if event in self._handlers:
-            handlers = self._handlers[event]
-
-            # Filter by priority if specified
-            if priority is not None:
-                handlers = [h for h in handlers if h.priority >= priority]
-
-            # Sort by priority (high to low)
-            handlers.sort(key=lambda h: h.priority, reverse=True)
-
-            # Execute handlers
-            tasks = [handler.callback(data) for handler in handlers]
-            await asyncio.gather(*tasks)
-
-    def subscribe(
-        self,
-        event: str,
-        handler: Callable,
-        priority: Priority = Priority.NORMAL,
-    ) -> None:
-        """Subscribe to event with priority"""
-        if event not in self._handlers:
-            self._handlers[event] = []
-        self._handlers[event].append(Handler(handler, priority))
-
-    def unsubscribe(self, event: str, handler: Callable) -> None:
-        """Unsubscribe from event"""
-        if event in self._handlers:
-            self._handlers[event] = [h for h in self._handlers[event] if h.callback != handler]
+    name: str
+    data: Any
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
-events = EventBus()
+EventHandler = Callable[[Event], None]
+
+
+class EventManager:
+    """Event manager implementation."""
+
+    def __init__(self) -> None:
+        """Initialize event manager."""
+        self._handlers: dict[str, list[EventHandler]] = {}
+        self._initialized: bool = False
+
+    def initialize(self) -> None:
+        """Initialize event manager."""
+        if self._initialized:
+            return
+        self._initialized = True
+
+    def cleanup(self) -> None:
+        """Cleanup event manager."""
+        if not self._initialized:
+            return
+        self._handlers.clear()
+        self._initialized = False
+
+    def subscribe(self, event_name: str, handler: EventHandler | None = None) -> None:
+        """Subscribe to event.
+
+        Args:
+            event_name: Event name
+            handler: Event handler
+
+        Raises:
+            EventError: If event manager not initialized
+        """
+        if not self._initialized:
+            raise EventError("Event manager not initialized")
+
+        if event_name not in self._handlers:
+            self._handlers[event_name] = []
+
+        if handler:
+            self._handlers[event_name].append(handler)
+
+    def unsubscribe(self, event_name: str, handler: EventHandler | None = None) -> None:
+        """Unsubscribe from event.
+
+        Args:
+            event_name: Event name
+            handler: Event handler
+
+        Raises:
+            EventError: If event manager not initialized
+        """
+        if not self._initialized:
+            raise EventError("Event manager not initialized")
+
+        if event_name not in self._handlers:
+            return
+
+        if handler:
+            self._handlers[event_name].remove(handler)
+        else:
+            self._handlers[event_name].clear()
+
+    def emit(self, event: Event) -> None:
+        """Emit event.
+
+        Args:
+            event: Event data
+
+        Raises:
+            EventError: If event manager not initialized
+        """
+        if not self._initialized:
+            raise EventError("Event manager not initialized")
+
+        if event.name not in self._handlers:
+            return
+
+        for handler in self._handlers[event.name]:
+            try:
+                handler(event)
+            except Exception as e:
+                raise EventError(f"Event handler failed: {e}", cause=e)

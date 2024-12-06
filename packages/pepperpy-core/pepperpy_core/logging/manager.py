@@ -1,57 +1,51 @@
-"""Logging manager implementation"""
+"""Logging manager module."""
 
-from typing import Any, Optional
+from abc import ABC, abstractmethod
+from typing import Any
 
-from ..base.module import BaseModule
-from .base import LogConfig, StructuredLogger
+from .config import LogConfig
 
 
-class LogManager(BaseModule[LogConfig]):
-    """Logging manager implementation"""
+class LogManager(ABC):
+    """Abstract log manager."""
 
-    def __init__(self, config: Optional[LogConfig] = None) -> None:
-        super().__init__(config or LogConfig())
-        self._loggers: dict[str, StructuredLogger] = {}
-        self._default_logger: Optional[StructuredLogger] = None
+    def __init__(self, config: LogConfig) -> None:
+        """Initialize log manager.
 
-    async def _initialize(self) -> None:
-        """Initialize logging manager"""
-        self._loggers.clear()
+        Args:
+            config: Log configuration
+        """
+        self.config = config
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize log manager."""
+        if self._initialized:
+            return
         self._initialized = True
-        self._default_logger = StructuredLogger("default", self.config)
 
-    async def _cleanup(self) -> None:
-        """Cleanup logging manager"""
-        self._loggers.clear()
-        self._default_logger = None
+    async def cleanup(self) -> None:
+        """Cleanup log manager."""
+        if not self._initialized:
+            return
+        self._initialized = False
 
-    def get_logger(self, name: str) -> StructuredLogger:
-        """Get or create logger"""
-        self._ensure_initialized()
-        if name not in self._loggers:
-            self._loggers[name] = StructuredLogger(name, self.config)
-        return self._loggers[name]
+    @abstractmethod
+    def debug(self, message: str, **kwargs: Any) -> None:
+        """Log debug message."""
+        pass
 
-    def debug(self, msg: str, **kwargs: Any) -> None:
-        """Log debug message"""
-        self._ensure_initialized()
-        assert self._default_logger is not None
-        self._default_logger.debug(msg, **kwargs)
+    @abstractmethod
+    def info(self, message: str, **kwargs: Any) -> None:
+        """Log info message."""
+        pass
 
-    def info(self, msg: str, **kwargs: Any) -> None:
-        """Log info message"""
-        self._ensure_initialized()
-        assert self._default_logger is not None
-        self._default_logger.info(msg, **kwargs)
+    @abstractmethod
+    def warning(self, message: str, **kwargs: Any) -> None:
+        """Log warning message."""
+        pass
 
-    def warning(self, msg: str, **kwargs: Any) -> None:
-        """Log warning message"""
-        self._ensure_initialized()
-        assert self._default_logger is not None
-        self._default_logger.warning(msg, **kwargs)
-
-    def error(self, msg: str, **kwargs: Any) -> None:
-        """Log error message"""
-        self._ensure_initialized()
-        assert self._default_logger is not None
-        self._default_logger.error(msg, **kwargs)
+    @abstractmethod
+    def error(self, message: str, **kwargs: Any) -> None:
+        """Log error message."""
+        pass

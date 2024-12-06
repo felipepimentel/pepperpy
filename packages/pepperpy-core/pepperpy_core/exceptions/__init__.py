@@ -1,14 +1,31 @@
-"""Framework exceptions"""
+"""Exceptions module exports."""
 
-from .base import PepperPyError, ValidationError
-from .cache import CacheError
-from .config import ConfigError
-from .module import ModuleError
+from .base import (
+    ConfigError,
+    InitializationError,
+    PepperpyError,
+    ResourceError,
+    StateError,
+    ValidationError,
+)
+from .cache import (
+    CacheConnectionError,
+    CacheError,
+    CacheInitializationError,
+    CacheOperationError,
+)
 
 __all__ = [
-    "PepperPyError",
-    "ModuleError",
+    # Base exceptions
+    "PepperpyError",
     "ConfigError",
-    "CacheError",
     "ValidationError",
+    "ResourceError",
+    "StateError",
+    "InitializationError",
+    # Cache exceptions
+    "CacheError",
+    "CacheInitializationError",
+    "CacheConnectionError",
+    "CacheOperationError",
 ]

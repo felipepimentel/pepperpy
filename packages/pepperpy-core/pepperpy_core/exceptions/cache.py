@@ -1,12 +1,27 @@
-"""Cache-related exceptions"""
+"""Cache exceptions."""
 
-from .base import PepperPyError
-
-
-class CacheError(PepperPyError):
-    """Base cache error"""
+from .base import PepperpyError
 
 
-__all__ = [
-    "CacheError",
-]
+class CacheError(PepperpyError):
+    """Base cache error."""
+
+    pass
+
+
+class CacheInitializationError(CacheError):
+    """Cache initialization error."""
+
+    pass
+
+
+class CacheConnectionError(CacheError):
+    """Cache connection error."""
+
+    pass
+
+
+class CacheOperationError(CacheError):
+    """Cache operation error."""
+
+    pass

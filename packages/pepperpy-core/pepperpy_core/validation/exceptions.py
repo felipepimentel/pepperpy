@@ -1,15 +1,9 @@
-"""Validation exceptions"""
+"""Validation exceptions module."""
 
-from bko.core.exceptions import PepperPyError
-
-
-class ValidationError(PepperPyError):
-    """Base validation error"""
+from ..exceptions import PepperpyError
 
 
-class TypeValidationError(ValidationError):
-    """Type validation error"""
+class ValidationError(PepperpyError):
+    """Base validation error."""
 
-
-class ValueValidationError(ValidationError):
-    """Value validation error"""
+    pass

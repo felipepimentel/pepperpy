@@ -1,16 +1,23 @@
-"""Codebase module"""
+"""PepperPy Codebase package."""
 
-from .config import CodebaseConfig
-from .engine import CodebaseEngine
-from .providers import BaseProvider, ProviderType, StaticProvider
-from .types import CodeFile, CodeSearchResult
+from .types import (
+    ChangeType,
+    CodebaseChange,
+    CodebaseSnapshot,
+    FileChange,
+    FileContent,
+    FileMetadata,
+    FileType,
+    JsonDict,
+)
 
 __all__ = [
-    "CodebaseConfig",
-    "CodebaseEngine",
-    "BaseProvider",
-    "StaticProvider",
-    "ProviderType",
-    "CodeFile",
-    "CodeSearchResult",
+    "ChangeType",
+    "CodebaseChange",
+    "CodebaseSnapshot",
+    "FileChange",
+    "FileContent",
+    "FileMetadata",
+    "FileType",
+    "JsonDict",
 ]

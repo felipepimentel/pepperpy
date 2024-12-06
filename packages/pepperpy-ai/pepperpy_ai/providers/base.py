@@ -1,51 +1,60 @@
-"""Base provider module"""
+"""Base provider implementation."""
 
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Dict
+from collections.abc import AsyncGenerator
+from typing import Generic, TypeVar
 
-from bko.ai.providers.config import ProviderConfig
-from bko.ai.providers.types import AIResponse
+from ..ai_types import AIResponse
+from .config import ProviderConfig
+
+ConfigT = TypeVar("ConfigT", bound=ProviderConfig)
 
 
-class AIProvider(ABC):
-    """Base class for AI providers"""
+class BaseProvider(Generic[ConfigT], ABC):
+    """Base provider implementation."""
 
-    def __init__(self, config: ProviderConfig) -> None:
-        """Initialize provider"""
-        self._config = config
+    def __init__(self, config: ConfigT) -> None:
+        """Initialize provider.
+
+        Args:
+            config: Provider configuration
+        """
+        self.config = config
         self._initialized = False
 
     @property
-    def config(self) -> ProviderConfig:
-        """Get provider configuration"""
-        return self._config
-
-    @property
     def is_initialized(self) -> bool:
-        """Check if provider is initialized"""
+        """Check if provider is initialized."""
         return self._initialized
 
-    @abstractmethod
     async def initialize(self) -> None:
-        """Initialize provider"""
-        raise NotImplementedError
+        """Initialize provider."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
 
-    @abstractmethod
     async def cleanup(self) -> None:
-        """Cleanup provider"""
-        raise NotImplementedError
+        """Cleanup provider resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
     @abstractmethod
-    async def complete(self, prompt: str, **kwargs: Dict[str, Any]) -> AIResponse:
-        """Complete prompt"""
-        raise NotImplementedError
+    async def _setup(self) -> None:
+        """Setup provider resources."""
+        pass
 
     @abstractmethod
-    async def stream(
-        self, prompt: str, **kwargs: Dict[str, Any]
-    ) -> AsyncGenerator[AIResponse, None]:
-        """Stream responses"""
-        raise NotImplementedError
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
+        pass
 
+    @abstractmethod
+    async def complete(self, prompt: str) -> AIResponse:
+        """Complete prompt."""
+        pass
 
-BaseProvider = AIProvider  # Alias para compatibilidade
+    @abstractmethod
+    async def stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses."""
+        pass

@@ -1,4 +1,4 @@
-"""File system operations"""
+"""File handling package."""
 
 from .config import FileHandlerConfig, FileManagerConfig
 from .exceptions import FileError
@@ -8,8 +8,8 @@ from .types import FileContent, FileMetadata
 __all__ = [
     "FileHandlerConfig",
     "FileManagerConfig",
+    "FileError",
     "FileManager",
     "FileContent",
     "FileMetadata",
-    "FileError",
 ]

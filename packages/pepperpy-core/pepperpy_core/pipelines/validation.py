@@ -1,12 +1,16 @@
-"""Pipeline validation utilities"""
+"""Pipeline validation utilities."""
 
-from .types import PipelineConfig
+from .base import PipelineConfig
 
 
-async def validate_pipeline(config: PipelineConfig) -> bool:
-    """Validate pipeline configuration"""
-    try:
-        # Implement validation logic here
-        return True
-    except Exception:
-        return False
+def validate_config(config: PipelineConfig) -> None:
+    """Validate pipeline configuration.
+
+    Args:
+        config: Pipeline configuration to validate
+
+    Raises:
+        ValueError: If configuration is invalid
+    """
+    if not config.name:
+        raise ValueError("Pipeline name is required")

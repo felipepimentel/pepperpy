@@ -1,44 +1,67 @@
-"""Client for database operations"""
+"""Database client implementation."""
 
 from typing import Any
 
-from bko.core.module import InitializableModule
-from bko.core.validation import ValidatorFactory
+from pepperpy_core.base import BaseModule
 
 from .config import DatabaseConfig
-from .exceptions import DatabaseError
-from .types import QueryResult
 
 
-class DatabaseClient(InitializableModule):
-    """Database client implementation"""
+class DatabaseClient(BaseModule[DatabaseConfig]):
+    """Database client implementation."""
 
-    def __init__(self, config: DatabaseConfig):
-        super().__init__()
-        self.config = config
-        self._config_validator = ValidatorFactory.create_schema_validator(DatabaseConfig)
-        self._connection = None
+    def __init__(self) -> None:
+        """Initialize client."""
+        config = DatabaseConfig(name="database-client")
+        super().__init__(config)
+        self._connection: Any = None
 
-    async def _initialize(self) -> None:
-        """Initialize database connection"""
-        result = await self._config_validator.validate(self.config.model_dump())
-        if not result.is_valid:
-            raise DatabaseError(f"Invalid database configuration: {', '.join(result.errors)}")
-        await self.connect()
+    async def _setup(self) -> None:
+        """Setup database connection."""
+        # Implementar lógica de conexão
+        pass
 
-    async def _cleanup(self) -> None:
-        """Cleanup database resources"""
-        await self.disconnect()
+    async def _teardown(self) -> None:
+        """Teardown database connection."""
+        if self._connection:
+            await self._connection.close()
+            self._connection = None
 
-    async def connect(self) -> None:
-        """Establish database connection"""
-        raise NotImplementedError
+    async def execute(self, query: str, *args: Any) -> Any:
+        """Execute database query.
 
-    async def disconnect(self) -> None:
-        """Close database connection"""
-        raise NotImplementedError
+        Args:
+            query: SQL query
+            *args: Query parameters
 
-    async def execute_query(self, query: str, params: dict[str, Any] | None = None) -> QueryResult:
-        """Execute a database query"""
-        self._ensure_initialized()
-        raise NotImplementedError
+        Returns:
+            Query result
+
+        Raises:
+            RuntimeError: If client not initialized
+        """
+        if not self.is_initialized:
+            await self.initialize()
+
+        # Implementar lógica de execução
+        pass
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get client statistics.
+
+        Returns:
+            Client statistics
+        """
+        if not self.is_initialized:
+            await self.initialize()
+
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "connected": self._connection is not None,
+            "database": self.config.database,
+            "host": self.config.host,
+            "port": self.config.port,
+            "user": self.config.user,
+            "ssl": self.config.ssl,
+        }

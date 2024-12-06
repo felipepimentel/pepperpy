@@ -1,45 +1,42 @@
 """Langchain team provider implementation"""
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
-from ...types import AIResponse
-from .base import TeamProvider
+from ...ai_types import AIMessage, AIResponse
+from ...types import MessageRole
+from ..base import BaseTeamProvider
+from ..types import AgentRole
 
 
-class LangchainTeamProvider(TeamProvider):
+class LangchainTeamProvider(BaseTeamProvider):
     """Langchain team provider implementation"""
 
     async def _setup(self) -> None:
         """Setup provider resources"""
-        # Implementar configuração específica do Langchain
         pass
 
     async def _teardown(self) -> None:
         """Teardown provider resources"""
-        # Implementar limpeza específica do Langchain
         pass
 
     async def execute_task(self, task: str, **kwargs: Any) -> AIResponse:
         """Execute team task"""
         self._ensure_initialized()
-        # Implementar execução usando Langchain
         return AIResponse(
             content=f"Langchain team executing: {task}",
-            messages=[],
+            messages=[AIMessage(role=MessageRole.ASSISTANT, content=task)],
             metadata={"provider": "langchain"},
         )
 
     async def get_team_members(self) -> Sequence[str]:
-        """Get team member names"""
+        """Get team members"""
         self._ensure_initialized()
-        # Implementar obtenção de membros do Langchain
-        return ["langchain_member_1", "langchain_member_2"]
+        return ["langchain"]
 
     async def get_team_roles(self) -> dict[str, str]:
-        """Get team member roles"""
+        """Get team roles"""
         self._ensure_initialized()
-        # Implementar obtenção de papéis do Langchain
         return {
-            "langchain_member_1": "developer",
-            "langchain_member_2": "reviewer",
+            "langchain": AgentRole.ASSISTANT.value,
         }

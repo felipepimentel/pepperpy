@@ -1,37 +1,63 @@
-"""Test configuration management"""
-
-from pathlib import Path
+"""Test configuration manager."""
 
 import pytest
-from pepperpy_core.config import ConfigManager, ConfigManagerConfig
+from pydantic import BaseModel
+
+from pepperpy_core.config.manager import ConfigManager, ConfigManagerConfig
+
+
+class TestConfigModel(BaseModel):
+    """Test configuration model."""
+
+    key: str = "value"
 
 
 @pytest.fixture
-def config_dir(tmp_path: Path) -> Path:
-    """Provide temporary config directory"""
-    return tmp_path / "config"
+def config() -> ConfigManagerConfig:
+    """Create test configuration.
+
+    Returns:
+        Test configuration manager config
+    """
+    return ConfigManagerConfig(
+        name="test_config", config_path="/tmp/test_config", enabled=True
+    )
 
 
 @pytest.fixture
-async def config_manager(config_dir: Path) -> ConfigManager:
-    """Create config manager"""
-    config = ConfigManagerConfig(config_dir=config_dir)
+async def config_manager(config: ConfigManagerConfig) -> ConfigManager:
+    """Create test configuration manager.
+
+    Args:
+        config: Configuration manager config
+
+    Returns:
+        Initialized configuration manager
+    """
     manager = ConfigManager(config)
     await manager.initialize()
-    yield manager
-    await manager.cleanup()
+    return manager
 
 
-async def test_config_manager_initialization(config_manager: ConfigManager) -> None:
-    """Test config manager initialization"""
-    assert config_manager.is_initialized
-    config_dir = Path(config_manager.config.config_dir)
-    config_dir.mkdir(parents=True, exist_ok=True)
-    assert config_dir.exists()
+@pytest.mark.asyncio
+async def test_basic_operations(config_manager: ConfigManager) -> None:
+    """Test basic configuration operations."""
+    # Test initialization
+    assert config_manager._initialized  # Usando atributo interno
+    assert config_manager.config.config_path == "/tmp/test_config"
+
+    # Test get_config
+    config = await config_manager.get_config("test", TestConfigModel)
+    assert isinstance(config, TestConfigModel)
+    assert config.key == "value"
+
+    # Test missing config
+    config = await config_manager.get_config("missing", TestConfigModel)
+    assert config is None
 
 
-async def test_config_manager_settings(config_manager: ConfigManager) -> None:
-    """Test config manager settings"""
-    config_manager.set_config({"test_key": "test_value"})
-    assert config_manager.get_config("test_key") == "test_value"
-    assert config_manager.get_config("non_existent") is None
+@pytest.mark.asyncio
+async def test_cleanup(config_manager: ConfigManager) -> None:
+    """Test configuration manager cleanup."""
+    await config_manager.cleanup()
+    assert not config_manager._initialized

@@ -1,83 +1,38 @@
-"""State management utilities"""
+"""State management module."""
 
 from dataclasses import dataclass, field
 from typing import Any, Generic, TypeVar
 
-from pepperpy.core.exceptions import PepperPyError
-
-
-class StateError(PepperPyError):
-    """State management error"""
-
+from .exceptions import PepperpyError
 
 T = TypeVar("T")
 
 
 @dataclass
 class State(Generic[T]):
-    """Application state container"""
+    """State container."""
 
-    data: T
+    value: T
     metadata: dict[str, Any] = field(default_factory=dict)
-    version: int = 1
 
 
-class StateManager:
-    """State manager for handling application state"""
+class StateError(PepperpyError):
+    """State error."""
 
-    def __init__(self):
-        self._states: dict[str, State[Any]] = {}
-
-    def set_state(self, name: str, data: Any, metadata: dict[str, Any] | None = None) -> None:
-        """
-        Set state value
-
-        Args:
-            name: State name
-            data: State data
-            metadata: Optional state metadata
-
-        """
-        if name in self._states:
-            current = self._states[name]
-            version = current.version + 1
-        else:
-            version = 1
-
-        self._states[name] = State(
-            data=data,
-            metadata=metadata or {},
-            version=version,
-        )
-
-    def get_state(self, name: str) -> State[Any] | None:
-        """
-        Get state value
-
-        Args:
-            name: State name
-
-        Returns:
-            Optional[State[Any]]: State value if exists
-
-        """
-        return self._states.get(name)
-
-    def remove_state(self, name: str) -> None:
-        """
-        Remove state value
-
-        Args:
-            name: State name
-
-        """
-        if name in self._states:
-            del self._states[name]
-
-    def clear(self) -> None:
-        """Clear all state values"""
-        self._states.clear()
+    pass
 
 
-# Global state manager instance
-manager = StateManager()
+class StateManager(Generic[T]):
+    """State manager implementation."""
+
+    def __init__(self) -> None:
+        """Initialize state manager."""
+        self._state: State[T] | None = None
+
+    def get_state(self) -> State[T] | None:
+        """Get current state."""
+        return self._state
+
+    def set_state(self, value: T, **metadata: Any) -> None:
+        """Set current state."""
+        self._state = State(value=value, metadata=metadata)

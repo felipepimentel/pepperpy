@@ -11,7 +11,8 @@ from rich.text import Text
 class LegacyConsole:
     """Legacy console wrapper for backward compatibility"""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize legacy console."""
         self._console = RichConsole()
 
     def clear(self) -> None:
@@ -49,7 +50,9 @@ class LegacyConsole:
         """Print warning message"""
         self._console.print(f"⚠️ {escape(message)}", style="yellow bold")
 
-    def info(self, message: str, *, title: str | None = None, subtitle: str | None = None) -> None:
+    def info(
+        self, message: str, *, title: str | None = None, subtitle: str | None = None
+    ) -> None:
         """Print info message with optional title and subtitle"""
         if title or subtitle:
             text = Text()
@@ -61,3 +64,18 @@ class LegacyConsole:
             self._console.print(Panel(text, style="blue"))
         else:
             self._console.print(f"ℹ️ {escape(message)}", style="blue bold")
+
+    def print_message(
+        self, message: str, style: str | None = None, markup: bool | None = None
+    ) -> None:
+        """Print message."""
+
+    def format_text(
+        self, text: str, style: str | None = None, markup: bool | None = None
+    ) -> str:
+        """Format text."""
+        return text
+
+    def setup_legacy_console(self) -> None:
+        """Setup legacy console configuration."""
+        # ...

@@ -1,12 +1,9 @@
-"""Configuration-related exceptions"""
+"""Configuration exceptions."""
 
-from .base import PepperPyError
-
-
-class ConfigError(PepperPyError):
-    """Base configuration error"""
+from .base import PepperpyError
 
 
-__all__ = [
-    "ConfigError",
-]
+class ConfigError(PepperpyError):
+    """Configuration error."""
+
+    pass

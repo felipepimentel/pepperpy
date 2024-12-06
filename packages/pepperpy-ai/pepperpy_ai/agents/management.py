@@ -2,182 +2,122 @@
 
 from typing import Any
 
-from bko.ai.types import AIResponse
-from bko.core.exceptions import PepperPyError
-
+from ..ai_types import AIMessage, AIResponse
 from .base import BaseAgent
+from .types import AgentConfig, AgentRole
 
 
 class ProjectManagerAgent(BaseAgent):
     """Project manager agent implementation"""
 
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent"""
+        super().__init__(config)
+
+    async def _setup(self) -> None:
+        """Setup agent resources"""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources"""
+        pass
+
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
         """Execute project management task"""
-        return await self.coordinate(task, **kwargs)
-
-    async def coordinate(self, tasks: list[str] | str, **kwargs: Any) -> AIResponse:
-        """Coordinate project activities.
-
-        Args:
-            tasks: Tasks to coordinate
-            **kwargs: Additional arguments for coordination
-
-        Returns:
-            AIResponse: Coordination plan
-
-        Raises:
-            PepperPyError: If coordination fails
-            RuntimeError: If agent is not initialized
-        """
         self._ensure_initialized()
-
-        if isinstance(tasks, list):
-            tasks_str = "\n".join(f"- {task}" for task in tasks)
-        else:
-            tasks_str = tasks
-
-        prompt = (
-            f"As a project manager with the role of {self.config.role}, "
-            f"please coordinate these tasks:\n\n{tasks_str}\n\n"
-            "Provide:\n"
-            "- Task dependencies\n"
-            "- Resource assignments\n"
-            "- Timeline coordination\n"
-            "- Communication plan"
+        return AIResponse(
+            content=f"Project management task: {task}",
+            messages=[AIMessage(role=AgentRole.PLANNER, content=task)],
         )
 
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Project coordination failed: {e}", cause=e)
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized"""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")
 
 
 class QualityEngineerAgent(BaseAgent):
     """Quality engineer agent implementation"""
 
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent"""
+        super().__init__(config)
+
+    async def _setup(self) -> None:
+        """Setup agent resources"""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources"""
+        pass
+
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
         """Execute quality engineering task"""
-        return await self.assess_quality(task, **kwargs)
-
-    async def assess_quality(self, project: str, **kwargs: Any) -> AIResponse:
-        """Assess project quality.
-
-        Args:
-            project: Project to assess
-            **kwargs: Additional arguments for quality assessment
-
-        Returns:
-            AIResponse: Quality assessment
-
-        Raises:
-            PepperPyError: If assessment fails
-            RuntimeError: If agent is not initialized
-        """
         self._ensure_initialized()
-        prompt = (
-            f"As a quality engineer with the role of {self.config.role}, "
-            f"please assess the quality of:\n\n{project}\n\n"
-            "Include:\n"
-            "- Quality metrics\n"
-            "- Compliance assessment\n"
-            "- Areas for improvement\n"
-            "- Recommendations"
+        return AIResponse(
+            content=f"Quality engineering task: {task}",
+            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
         )
 
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Quality assessment failed: {e}", cause=e)
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized"""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")
 
 
 class DevOpsAgent(BaseAgent):
     """DevOps agent implementation"""
 
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent"""
+        super().__init__(config)
+
+    async def _setup(self) -> None:
+        """Setup agent resources"""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources"""
+        pass
+
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
         """Execute DevOps task"""
-        return await self.plan_deployment(task, **kwargs)
-
-    async def plan_deployment(self, project: str, **kwargs: Any) -> AIResponse:
-        """Plan project deployment.
-
-        Args:
-            project: Project to deploy
-            **kwargs: Additional arguments for deployment planning
-
-        Returns:
-            AIResponse: Deployment plan
-
-        Raises:
-            PepperPyError: If planning fails
-            RuntimeError: If agent is not initialized
-        """
         self._ensure_initialized()
-        prompt = (
-            f"As a DevOps engineer with the role of {self.config.role}, "
-            f"please create a deployment plan for:\n\n{project}\n\n"
-            "Include:\n"
-            "- Infrastructure requirements\n"
-            "- Deployment steps\n"
-            "- Monitoring setup\n"
-            "- Rollback procedures"
+        return AIResponse(
+            content=f"DevOps task: {task}",
+            messages=[AIMessage(role=AgentRole.EXECUTOR, content=task)],
         )
 
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Deployment planning failed: {e}", cause=e)
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized"""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")
 
 
 class ComplianceAgent(BaseAgent):
     """Compliance agent implementation"""
 
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent"""
+        super().__init__(config)
+
+    async def _setup(self) -> None:
+        """Setup agent resources"""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources"""
+        pass
+
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute compliance check task"""
-        return await self.check(task, **kwargs)
-
-    async def check(self, task: str, **kwargs: Any) -> AIResponse:
-        """Check compliance requirements.
-
-        Args:
-            task: Task to check
-            **kwargs: Additional arguments for compliance check
-
-        Returns:
-            AIResponse: Compliance check results
-
-        Raises:
-            PepperPyError: If compliance check fails
-            RuntimeError: If agent is not initialized
-        """
+        """Execute compliance task"""
         self._ensure_initialized()
-
-        prompt = (
-            f"As a compliance officer with the role of {self.config.role}, "
-            f"please check compliance for:\n\n{task}\n\n"
-            "Include:\n"
-            "- Regulatory requirements\n"
-            "- Policy compliance\n"
-            "- Risk assessment\n"
-            "- Recommendations\n"
-            "- Documentation needs"
+        return AIResponse(
+            content=f"Compliance task: {task}",
+            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
         )
 
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Compliance check failed: {e}", cause=e)
-
-    # Alias for backward compatibility
-    check_compliance = check
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized"""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")

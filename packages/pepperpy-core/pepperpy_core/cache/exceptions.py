@@ -1,19 +1,29 @@
-"""Cache-related exceptions"""
+"""Cache exceptions."""
 
-from bko.core.exceptions import PepperPyError
+from ..exceptions import PepperpyError
 
 
-class CacheError(PepperPyError):
-    """Base cache error"""
+class CacheError(PepperpyError):
+    """Base cache error."""
+
+    pass
 
 
 class CacheConnectionError(CacheError):
-    """Cache connection error"""
+    """Cache connection error."""
 
 
 class CacheKeyError(CacheError):
-    """Cache key error"""
+    """Cache key error."""
 
 
 class CacheValueError(CacheError):
-    """Cache value error"""
+    """Cache value error."""
+
+
+__all__ = [
+    "CacheError",
+    "CacheConnectionError",
+    "CacheKeyError",
+    "CacheValueError",
+]

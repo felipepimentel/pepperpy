@@ -1,73 +1,42 @@
-"""Embedding client module"""
+"""Embedding client implementation."""
 
-from typing import List, Sequence
 
-from bko.ai.embeddings.base import BaseEmbeddingProvider
-from bko.ai.embeddings.types import EmbeddingResult
+from .base import EmbeddingProvider
 
 
 class EmbeddingClient:
-    """Client for embedding operations"""
+    """Embedding client implementation."""
 
-    def __init__(self, provider: BaseEmbeddingProvider) -> None:
-        """Initialize client"""
+    def __init__(self, provider: EmbeddingProvider) -> None:
+        """Initialize client."""
         self._provider = provider
         self._initialized = False
 
     @property
-    def provider(self) -> BaseEmbeddingProvider:
-        """Get provider"""
-        return self._provider
-
-    @property
     def is_initialized(self) -> bool:
-        """Check if client is initialized"""
+        """Check if client is initialized."""
         return self._initialized
 
     async def initialize(self) -> None:
-        """Initialize client"""
-        await self._provider.initialize()
-        self._initialized = True
+        """Initialize client."""
+        if not self._initialized:
+            await self._provider.initialize()
+            self._initialized = True
 
     async def cleanup(self) -> None:
-        """Cleanup client"""
-        await self._provider.cleanup()
-        self._initialized = False
+        """Cleanup client resources."""
+        if self._initialized:
+            await self._provider.cleanup()
+            self._initialized = False
 
-    async def embed(self, text: str) -> EmbeddingResult:
-        """Get embedding for text"""
+    async def embed(self, text: str) -> list[float]:
+        """Generate embedding for text."""
         if not self._initialized:
             raise RuntimeError("Client not initialized")
+        return await self._provider.embed(text)
 
-        # Get raw embedding vector
-        raw_vector = await self._provider.embed(text)
-
-        # Create result with the raw vector
-        return EmbeddingResult(
-            embeddings=raw_vector,  # raw_vector is already List[float]
-            dimensions=len(raw_vector),
-            text=text,
-            model=self._provider.config.model_name,
-        )
-
-    async def embed_batch(
-        self, texts: Sequence[str], batch_size: int = 32
-    ) -> List[EmbeddingResult]:
-        """Get embeddings for multiple texts"""
+    async def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        """Generate embeddings for multiple texts."""
         if not self._initialized:
             raise RuntimeError("Client not initialized")
-
-        # Get raw embedding vectors
-        text_list = list(texts)
-        raw_vectors = await self._provider.embed_batch(text_list)
-
-        # Create results with raw vectors
-        return [
-            EmbeddingResult(
-                embeddings=vector,  # vector is already List[float]
-                dimensions=len(vector),
-                text=text,
-                model=self._provider.config.model_name,
-            )
-            for vector, text in zip(raw_vectors, text_list)
-        ]
+        return await self._provider.embed_batch(texts)

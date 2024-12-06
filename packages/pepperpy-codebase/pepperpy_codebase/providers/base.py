@@ -1,44 +1,109 @@
-"""Base codebase provider implementation"""
+"""Base provider implementation."""
 
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Protocol, Sequence
-
-from bko.core.module import BaseModule
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from typing import Any, Generic, TypeVar
 
 from ..config import CodebaseConfig
-from ..types import CodeFile, CodeSearchResult
+from ..types import FileContent
+
+ConfigT = TypeVar("ConfigT", bound=CodebaseConfig)
 
 
-class FileReader(Protocol):
-    """File reader protocol"""
+@dataclass
+class SearchResult:
+    """Search result."""
 
-    async def read_text(self, path: str) -> str:
-        """Read text file"""
-        ...
-
-    async def exists(self, path: str) -> bool:
-        """Check if file exists"""
-        ...
+    file: FileContent
+    matches: Sequence[str]
+    line_numbers: Sequence[int]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class BaseProvider(BaseModule[CodebaseConfig], ABC):
-    """Base codebase provider implementation"""
+class BaseProvider(Generic[ConfigT], ABC):
+    """Base provider implementation."""
 
-    def __init__(self, config: CodebaseConfig) -> None:
-        super().__init__(config)
-        self._file_reader: FileReader | None = None
+    def __init__(self, config: ConfigT) -> None:
+        """Initialize provider.
+
+        Args:
+            config: Provider configuration
+        """
+        self.config = config
+        self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if provider is initialized."""
+        return self._initialized
+
+    async def initialize(self) -> None:
+        """Initialize provider."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup provider resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
+
+    def _ensure_initialized(self) -> None:
+        """Ensure provider is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Provider not initialized")
 
     @abstractmethod
-    async def search(self, query: str, **kwargs: Any) -> AsyncGenerator[CodeSearchResult, None]:
-        """Search codebase"""
+    async def _setup(self) -> None:
+        """Setup provider resources."""
         pass
 
     @abstractmethod
-    async def get_file(self, path: str) -> CodeFile:
-        """Get file content"""
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
         pass
 
     @abstractmethod
-    async def get_files(self, pattern: str) -> Sequence[CodeFile]:
-        """Get files matching pattern"""
+    async def get_file(self, path: str) -> FileContent | None:
+        """Get file content.
+
+        Args:
+            path: File path
+
+        Returns:
+            File content if found, None otherwise
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def search(self, query: str, **kwargs: Any) -> Sequence[SearchResult]:
+        """Search files.
+
+        Args:
+            query: Search query
+            **kwargs: Additional arguments
+
+        Returns:
+            Search results
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def get_stats(self) -> dict[str, Any]:
+        """Get provider statistics.
+
+        Returns:
+            Provider statistics
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
         pass

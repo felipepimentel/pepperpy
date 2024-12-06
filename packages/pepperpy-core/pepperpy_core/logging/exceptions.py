@@ -1,19 +1,27 @@
-"""Logging-related exceptions"""
+"""Logging exceptions."""
 
-from bko.core.exceptions import PepperPyError
-
-
-class LogError(PepperPyError):
-    """Base logging error"""
+from ..exceptions import PepperpyError
 
 
-class LogHandlerError(LogError):
-    """Log handler error"""
+class LoggingError(PepperpyError):
+    """Base logging error."""
 
 
-class LogFormatterError(LogError):
-    """Log formatter error"""
+class LogConfigError(LoggingError):
+    """Logging configuration error."""
 
 
-class LogConfigError(LogError):
-    """Log configuration error"""
+class LogHandlerError(LoggingError):
+    """Logging handler error."""
+
+
+class LogFormatError(LoggingError):
+    """Logging format error."""
+
+
+__all__ = [
+    "LoggingError",
+    "LogConfigError",
+    "LogHandlerError",
+    "LogFormatError",
+]

@@ -20,7 +20,11 @@ class PromptTemplate:
 
     def _extract_variables(self) -> set[str]:
         """Extract variable names from template"""
-        return {fname for _, fname, _, _ in Formatter().parse(self.template) if fname is not None}
+        return {
+            fname
+            for _, fname, _, _ in Formatter().parse(self.template)
+            if fname is not None
+        }
 
     def validate_variables(self, **kwargs: Any) -> None:
         """Validate provided variables against template requirements"""
@@ -75,3 +79,12 @@ class TemplateRegistry:
             name: template.description or "No description"
             for name, template in cls._templates.items()
         }
+
+
+def load_template(
+    name: str, variables: dict[str, Any] | None = None, language: str | None = None
+) -> str:
+    """Load template."""
+    if not name:
+        raise ValueError("Template name is required")
+    return ""  # Add your implementation here

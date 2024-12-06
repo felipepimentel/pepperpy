@@ -1,6 +1,19 @@
 [virtualenvs]
-in-project = true
-path = ".venv"
+in-project = false
+create = false
+prefer-active-python = true
 
 [installer]
 parallel = true
+no-binary = []
+modern-installation = true
+
+[repositories]
+pypi = { url = "https://pypi.org/simple" }
+
+[build]
+generate-setup-file = true
+script = "build.py"
+
+[experimental]
+new-installer = true

@@ -1,87 +1,74 @@
-"""Benchmark utilities"""
+"""Benchmark utilities."""
 
 import time
-from dataclasses import dataclass
-from typing import Any, Callable
+from dataclasses import dataclass, field
+from typing import Any
 
-from bko.core.logging import get_logger
-
-logger = get_logger(__name__)
-
-
-@dataclass
-class BenchmarkConfig:
-    """Benchmark configuration"""
-
-    iterations: int = 1000
-    warmup: int = 100
-    debug: bool = False
+from ..logging import BaseLogger
+from ..types import JsonDict
 
 
 @dataclass
 class BenchmarkResult:
-    """Benchmark result"""
+    """Benchmark result."""
 
     name: str
+    duration: float
     iterations: int
-    total_time: float
-    avg_time: float
-    min_time: float
-    max_time: float
-    metadata: dict[str, Any]
+    metadata: JsonDict = field(default_factory=dict)
+
+    @property
+    def avg_duration(self) -> float:
+        """Get average duration per iteration."""
+        return self.duration / self.iterations if self.iterations > 0 else 0.0
 
 
-async def benchmark(
-    func: Callable[..., Any],
-    *args: Any,
-    config: BenchmarkConfig | None = None,
-    **kwargs: Any,
-) -> BenchmarkResult:
-    """Run benchmark on function"""
-    config = config or BenchmarkConfig()
+class Benchmark:
+    """Benchmark utility."""
 
-    try:
-        # Warmup
-        for _ in range(config.warmup):
-            await func(*args, **kwargs)
+    def __init__(
+        self,
+        name: str,
+        logger: BaseLogger | None = None,
+        metadata: JsonDict | None = None,
+    ) -> None:
+        """Initialize benchmark.
 
-        # Benchmark
-        times: list[float] = []
-        for _ in range(config.iterations):
-            start = time.perf_counter()
-            await func(*args, **kwargs)
-            end = time.perf_counter()
-            times.append(end - start)
+        Args:
+            name: Benchmark name
+            logger: Optional logger
+            metadata: Optional metadata
+        """
+        self.name = name
+        self.logger = logger
+        self.metadata = metadata or {}
+        self._start_time: float | None = None
+        self._iterations = 0
 
-        total_time = sum(times)
-        avg_time = total_time / len(times)
-        min_time = min(times)
-        max_time = max(times)
+    def __enter__(self) -> "Benchmark":
+        """Start benchmark."""
+        self._start_time = time.perf_counter()
+        return self
 
+    def __exit__(self, *args: Any) -> None:
+        """End benchmark."""
+        if not self._start_time:
+            return
+
+        duration = time.perf_counter() - self._start_time
         result = BenchmarkResult(
-            name=func.__name__,
-            iterations=config.iterations,
-            total_time=total_time,
-            avg_time=avg_time,
-            min_time=min_time,
-            max_time=max_time,
-            metadata={
-                "warmup": config.warmup,
-                "debug": config.debug,
-            },
+            name=self.name,
+            duration=duration,
+            iterations=self._iterations,
+            metadata=self.metadata,
         )
 
-        if config.debug:
-            await logger.debug(
-                f"Benchmark {func.__name__} completed",
-                result=result.__dict__,
+        if self.logger:
+            self.logger.info(
+                f"Benchmark {self.name}: {result.avg_duration:.6f}s per iteration",
+                benchmark=result.__dict__,
             )
 
-        return result
-
-    except Exception as e:
-        await logger.error(
-            f"Benchmark {func.__name__} failed",
-            error=str(e),
-        )
-        raise
+    def iteration(self) -> None:
+        """Record iteration."""
+        self._iterations += 1

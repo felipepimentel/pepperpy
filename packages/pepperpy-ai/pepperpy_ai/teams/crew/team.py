@@ -1,70 +1,100 @@
-"""Crew team implementation"""
+"""Crew team implementation."""
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
-from bko.ai.client import AIClient
-from bko.ai.config.agent import AgentConfig
-from bko.ai.types import AIMessage, AIResponse, MessageRole
-
+from ...ai_types import AIMessage, AIResponse
+from ...types import MessageRole
 from ..base import BaseTeam
-from ..config import TeamConfig
+from ..types import AgentRole
 
 
 class CrewTeam(BaseTeam):
-    """Crew team implementation"""
+    """Crew team implementation."""
 
-    def __init__(
-        self, config: TeamConfig, agent_configs: Sequence[AgentConfig], ai_client: AIClient
-    ) -> None:
+    def __init__(self, client: Any) -> None:
         """Initialize team.
 
         Args:
-            config: Team configuration
-            agent_configs: Agent configurations
-            ai_client: AI client
+            client: AI client instance
         """
-        super().__init__(config=config, agent_configs=agent_configs, ai_client=ai_client)
-        self.agent_configs = agent_configs
-        self._ai_client = ai_client
+        self._client = client
+        self._initialized = False
 
-    async def _initialize(self) -> None:
-        """Initialize team"""
-        if not self._ai_client.is_initialized:
-            await self._ai_client.initialize()
+    @property
+    def is_initialized(self) -> bool:
+        """Check if team is initialized."""
+        return self._initialized
 
-    async def _cleanup(self) -> None:
-        """Cleanup team resources"""
-        for agent in self.agent_configs:
-            await self._ai_client.complete(f"Finalizing {agent.name}'s tasks and saving context")
+    async def initialize(self) -> None:
+        """Initialize team."""
+        if not self._initialized:
+            if not self._client.is_initialized:
+                await self._client.initialize()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup team resources."""
+        if self._initialized:
+            await self._client.cleanup()
+            self._initialized = False
+
+    def _ensure_initialized(self) -> None:
+        """Ensure team is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Team not initialized")
 
     async def execute_task(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute team task"""
+        """Execute team task.
+
+        Args:
+            task: Task to execute
+            **kwargs: Additional arguments
+
+        Returns:
+            AI response
+
+        Raises:
+            RuntimeError: If team not initialized
+        """
         self._ensure_initialized()
 
-        messages = [AIMessage(role=MessageRole.USER, content=task)]
-
-        for agent in self.agent_configs:
-            agent_prompt = (
-                f"As {agent.name} with role {agent.role}, " f"analyze and contribute to: {task}"
-            )
-            agent_response = await self._ai_client.complete(agent_prompt)
-            messages.append(AIMessage(role=MessageRole.ASSISTANT, content=agent_response.content))
-
-        consolidation_prompt = (
-            "Review and consolidate all agent contributions into a final response:\n"
-            + "\n".join(f"- {m.content}" for m in messages if m.role == MessageRole.ASSISTANT)
-        )
-
-        final_response = await self._ai_client.complete(consolidation_prompt)
-        messages.append(AIMessage(role=MessageRole.ASSISTANT, content=final_response.content))
-
+        messages = [
+            AIMessage(role=MessageRole.USER, content=task),
+            AIMessage(
+                role=MessageRole.ASSISTANT, content=f"Crew team executing: {task}"
+            ),
+        ]
         return AIResponse(
-            content=final_response.content,
+            content=f"Crew team executing: {task}",
             messages=messages,
-            metadata={
-                "provider": "crew",
-                "agents": [a.name for a in self.agent_configs],
-                "task": task,
-                **kwargs,
-            },
+            metadata={"provider": "crew"},
         )
+
+    async def get_team_members(self) -> Sequence[str]:
+        """Get team members.
+
+        Returns:
+            List of team member names
+
+        Raises:
+            RuntimeError: If team not initialized
+        """
+        self._ensure_initialized()
+        return ["planner", "executor", "reviewer"]
+
+    async def get_team_roles(self) -> dict[str, str]:
+        """Get team roles.
+
+        Returns:
+            Dictionary mapping member names to roles
+
+        Raises:
+            RuntimeError: If team not initialized
+        """
+        self._ensure_initialized()
+        return {
+            "planner": AgentRole.PLANNER.value,
+            "executor": AgentRole.EXECUTOR.value,
+            "reviewer": AgentRole.REVIEWER.value,
+        }

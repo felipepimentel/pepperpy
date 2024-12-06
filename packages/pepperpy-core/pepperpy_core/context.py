@@ -1,49 +1,39 @@
-"""Global context management"""
+"""Context management module."""
 
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from typing import Any
+from contextvars import ContextVar
+from typing import Any, Generic, TypeVar, cast
+
+T = TypeVar("T")
 
 
-class GlobalContext:
-    """Global context manager"""
+class Context(Generic[T]):
+    """Context management class."""
 
     def __init__(self) -> None:
-        self._context: dict[str, Any] = {}
-        self._defaults: dict[str, Any] = {}
+        """Initialize context."""
+        self._data: dict[str, Any] = {}
+        self._context: ContextVar[T | None] = ContextVar("context", default=None)
 
-    def set(self, key: str, value: Any) -> None:
-        """Set context value"""
-        self._context[key] = value
+    def get(self, key: str, default: T | None = None) -> T | None:
+        """Get context value."""
+        value = self._data.get(key, default)
+        if value is None:
+            return None
+        return cast(T, value)
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get context value"""
-        return self._context.get(key, self._defaults.get(key, default))
+    def set(self, key: str, value: T) -> None:
+        """Set context value."""
+        self._data[key] = value
 
-    @asynccontextmanager
-    async def scope(self, **kwargs: Any) -> AsyncIterator["GlobalContext"]:
-        """
-        Create temporary context scope
+    def update(self, data: dict[str, T]) -> None:
+        """Update context with dictionary."""
+        for key, value in data.items():
+            self.set(key, value)
 
-        Args:
-            **kwargs: Context values to set for this scope
+    def get_context(self) -> T | None:
+        """Get current context value."""
+        return self._context.get()
 
-        Returns:
-            AsyncIterator[GlobalContext]: Context manager instance
-
-        """
-        old_values = {}
-        for key, value in kwargs.items():
-            old_values[key] = self._context.get(key)
-            self._context[key] = value
-        try:
-            yield self
-        finally:
-            for key, value in old_values.items():
-                if value is None:
-                    del self._context[key]
-                else:
-                    self._context[key] = value
-
-
-context = GlobalContext()
+    def set_context(self, value: T | None) -> None:
+        """Set current context value."""
+        self._context.set(value)

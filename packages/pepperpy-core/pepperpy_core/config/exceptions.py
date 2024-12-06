@@ -1,19 +1,27 @@
-"""Configuration-related exceptions"""
+"""Configuration-related exceptions."""
 
-from bko.core.exceptions import PepperPyError
+from ..exceptions import PepperpyError
 
 
-class ConfigError(PepperPyError):
-    """Base configuration error"""
+class ConfigError(PepperpyError):
+    """Base configuration error."""
 
 
 class ConfigLoadError(ConfigError):
-    """Configuration loading error"""
+    """Configuration loading error."""
 
 
 class ConfigValidationError(ConfigError):
-    """Configuration validation error"""
+    """Configuration validation error."""
 
 
-class ConfigParseError(ConfigError):
-    """Configuration parsing error"""
+class ConfigNotFoundError(ConfigError):
+    """Configuration not found error."""
+
+
+__all__ = [
+    "ConfigError",
+    "ConfigLoadError",
+    "ConfigValidationError",
+    "ConfigNotFoundError",
+]

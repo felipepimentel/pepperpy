@@ -1,11 +1,11 @@
 """File operations module"""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
-from bko.files.exceptions import FileError
-from bko.files.handlers.base import BaseFileHandler
-from bko.files.types import FileContent
+from .exceptions import FileError
+from .handlers.base import BaseHandler
+from .types import FileContent
 
 
 class FileOperations:
@@ -13,7 +13,7 @@ class FileOperations:
 
     def __init__(self) -> None:
         """Initialize file operations"""
-        self._handlers: Dict[str, BaseFileHandler] = {}
+        self._handlers: dict[str, BaseHandler] = {}
         self._initialized = False
 
     async def initialize(self) -> None:
@@ -25,7 +25,7 @@ class FileOperations:
         self._initialized = False
         self._handlers.clear()
 
-    def register_handler(self, extension: str, handler: BaseFileHandler) -> None:
+    def register_handler(self, extension: str, handler: BaseHandler) -> None:
         """Register file handler for extension"""
         self._handlers[extension] = handler
 
@@ -46,9 +46,9 @@ class FileOperations:
             raise RuntimeError("File operations not initialized")
 
         handler = self._get_handler(path)
-        await handler.write(path, content, **kwargs)
+        await handler.write(content, path, **kwargs)
 
-    def _get_handler(self, path: Path) -> BaseFileHandler:
+    def _get_handler(self, path: Path) -> BaseHandler:
         """Get appropriate handler for file"""
         extension = path.suffix.lower()
         handler = self._handlers.get(extension)

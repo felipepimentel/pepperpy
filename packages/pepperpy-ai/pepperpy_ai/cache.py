@@ -1,73 +1,76 @@
-"""AI cache implementation"""
+"""Cache implementation."""
 
-import hashlib
-import json
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
 
-from bko.core.cache.base import BaseCache
-from bko.core.exceptions import PepperPyError
-
-from .types import AIResponse
+T = TypeVar("T")
 
 
-class AICache:
-    """AI cache implementation"""
+class CacheError(Exception):
+    """Base cache error."""
 
-    def __init__(self, cache: BaseCache) -> None:
-        """Initialize cache"""
-        self._cache = cache
-        self._initialized = False
+    pass
 
-    async def initialize(self) -> None:
-        """Initialize cache"""
-        if not self._initialized:
-            await self._cache.initialize()
-            self._initialized = True
 
-    async def cleanup(self) -> None:
-        """Cleanup cache"""
-        if self._initialized:
-            await self._cache.cleanup()
-            self._initialized = False
+class Cache(Generic[T], ABC):
+    """Base cache interface."""
 
-    @property
-    def is_initialized(self) -> bool:
-        """Check if cache is initialized"""
-        return self._initialized
+    @abstractmethod
+    async def get(self, key: str) -> T | None:
+        """Get value from cache.
 
-    def generate_key(self, prompt: str, **kwargs: Any) -> str:
-        """Generate cache key"""
-        # Combine prompt and kwargs into a string
-        key_data = {"prompt": prompt, **kwargs}
-        key_str = json.dumps(key_data, sort_keys=True)
+        Args:
+            key: Cache key
 
-        # Generate hash
-        return hashlib.sha256(key_str.encode()).hexdigest()
+        Returns:
+            Cached value if found, None otherwise
 
-    async def get(self, key: str) -> AIResponse | None:
-        """Get value from cache"""
-        try:
-            return await self._cache.get(key)
-        except Exception as e:
-            raise PepperPyError("Cache operation failed", cause=e)
+        Raises:
+            CacheError: If get operation fails
+        """
+        pass
 
-    async def set(self, key: str, value: AIResponse) -> None:
-        """Set value in cache"""
-        try:
-            await self._cache.set(key, value)
-        except Exception as e:
-            raise PepperPyError("Cache operation failed", cause=e)
+    @abstractmethod
+    async def set(self, key: str, value: T) -> None:
+        """Set value in cache.
+
+        Args:
+            key: Cache key
+            value: Value to cache
+
+        Raises:
+            CacheError: If set operation fails
+        """
+        pass
+
+    @abstractmethod
+    async def delete(self, key: str) -> None:
+        """Delete value from cache.
+
+        Args:
+            key: Cache key
+
+        Raises:
+            CacheError: If delete operation fails
+        """
+        pass
+
+
+class MemoryCache(Cache[T]):
+    """In-memory cache implementation."""
+
+    def __init__(self) -> None:
+        """Initialize cache."""
+        self._cache: dict[str, T] = {}
+
+    async def get(self, key: str) -> T | None:
+        """Get value from cache."""
+        return self._cache.get(key)
+
+    async def set(self, key: str, value: T) -> None:
+        """Set value in cache."""
+        self._cache[key] = value
 
     async def delete(self, key: str) -> None:
-        """Delete value from cache"""
-        try:
-            await self._cache.delete(key)
-        except Exception as e:
-            raise PepperPyError("Cache operation failed", cause=e)
-
-    async def clear(self) -> None:
-        """Clear cache"""
-        try:
-            await self._cache.clear()
-        except Exception as e:
-            raise PepperPyError("Cache operation failed", cause=e)
+        """Delete value from cache."""
+        self._cache.pop(key, None)

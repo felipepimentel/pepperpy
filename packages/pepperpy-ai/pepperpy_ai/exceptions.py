@@ -1,15 +1,33 @@
-"""AI-related exceptions"""
-
-from bko.core.exceptions import PepperPyError
+"""Custom exceptions."""
 
 
-class AIError(PepperPyError):
-    """Base AI error"""
+class PepperpyError(Exception):
+    """Base exception for PepperPy errors."""
+
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
+        """Initialize exception.
+
+        Args:
+            message: Error message
+            cause: Original exception that caused this error
+        """
+        super().__init__(message)
+        self.cause = cause
 
 
-class ClientError(AIError):
-    """AI client error"""
+class AIError(PepperpyError):
+    """AI operation error."""
+
+    pass
 
 
-class ConfigError(AIError):
-    """AI configuration error"""
+class ConfigError(PepperpyError):
+    """Configuration error."""
+
+    pass
+
+
+class ProviderError(PepperpyError):
+    """Provider error."""
+
+    pass

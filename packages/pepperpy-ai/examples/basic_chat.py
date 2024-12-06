@@ -1,40 +1,33 @@
-"""Example demonstrating basic AI chat functionality"""
+"""Basic chat example."""
 
 import asyncio
+from typing import NoReturn
 
-from pepperpy_ai import AIClient, AIConfig
+from pepperpy_ai.examples.utils import ExampleAIClient
 
 
-async def demonstrate_chat() -> None:
-    """Demonstrate basic chat functionality"""
-    # Create AI configuration
-    config = AIConfig.model_validate({})
-    client = AIClient(config=config)
+async def main() -> NoReturn:
+    """Run example."""
+    # Create client
+    client = ExampleAIClient()
+
+    # Initialize
+    await client.initialize()
 
     try:
-        # Initialize client
-        await client.initialize()
+        while True:
+            # Get user input
+            prompt = input("\nYou: ")
+            if prompt.lower() in ["exit", "quit"]:
+                break
 
-        # Simple completion
-        response = await client.complete("Explain what is dependency injection in Python")
-        print("\nBasic completion:")
-        print(response.content)
-
-        # Chat with context
-        messages = [
-            {"role": "system", "content": "You are a Python expert."},
-            {"role": "user", "content": "What are Python decorators?"},
-            {"role": "assistant", "content": "Decorators are a way to modify functions."},
-            {"role": "user", "content": "Can you show an example?"},
-        ]
-
-        response = await client.complete(messages=messages)
-        print("\nChat completion:")
-        print(response.content)
+            # Get response
+            response = await client.complete(prompt)
+            print(f"\nAssistant: {response.content}")
 
     finally:
         await client.cleanup()
 
 
 if __name__ == "__main__":
-    asyncio.run(demonstrate_chat())
+    asyncio.run(main())

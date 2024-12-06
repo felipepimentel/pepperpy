@@ -1,0 +1,11 @@
+groups:
+  - name: pepperpy_recordings
+    rules:
+      - record: job:pepperpy_requests_total:rate5m
+        expr: rate(pepperpy_requests_total[5m])
+      
+      - record: job:pepperpy_errors_total:rate5m
+        expr: rate(pepperpy_errors_total[5m])
+      
+      - record: job:pepperpy_request_duration_seconds:p90
+        expr: histogram_quantile(0.9, rate(pepperpy_request_duration_seconds_bucket[5m])) 

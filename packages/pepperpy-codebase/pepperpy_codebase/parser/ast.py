@@ -1,63 +1,127 @@
-"""AST parsing implementation"""
+"""AST parser implementation."""
 
-import ast
-from typing import Any
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 
-from bko.core.module import BaseModule
+from ..config import CodebaseConfig
+from .types import ClassInfo, FunctionInfo, ImportInfo, ModuleInfo
+
+ConfigT = TypeVar("ConfigT", bound=CodebaseConfig)
 
 
-class ASTParser(BaseModule):
-    """Python AST parser"""
+class BaseParser(Generic[ConfigT], ABC):
+    """Base parser implementation."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: ConfigT) -> None:
+        """Initialize parser.
+
+        Args:
+            config: Parser configuration
+        """
+        self.config = config
         self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if parser is initialized."""
+        return self._initialized
 
     async def initialize(self) -> None:
-        """Initialize parser"""
-        self._initialized = True
-
-    async def parse_file(self, content: str) -> ast.AST:
-        """Parse Python file content"""
-        return ast.parse(content)
-
-    async def get_complexity(self, node: ast.AST) -> int:
-        """Get cyclomatic complexity"""
-        visitor = ComplexityVisitor()
-        visitor.visit(node)
-        return visitor.complexity
+        """Initialize parser."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
 
     async def cleanup(self) -> None:
-        """Cleanup resources"""
-        self._initialized = False
+        """Cleanup parser resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
+    def _ensure_initialized(self) -> None:
+        """Ensure parser is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Parser not initialized")
 
-class ComplexityVisitor(ast.NodeVisitor):
-    """AST visitor for calculating complexity"""
+    @abstractmethod
+    async def _setup(self) -> None:
+        """Setup parser resources."""
+        pass
 
-    def __init__(self) -> None:
-        self.complexity = 1
+    @abstractmethod
+    async def _teardown(self) -> None:
+        """Teardown parser resources."""
+        pass
 
-    def visit_if(self, node: ast.If) -> Any:
-        """Visit If node"""
-        self.complexity += 1
-        self.generic_visit(node)
+    @abstractmethod
+    async def parse_module(self, code: str) -> ModuleInfo:
+        """Parse module.
 
-    def visit_while(self, node: ast.While) -> Any:
-        """Visit While node"""
-        self.complexity += 1
-        self.generic_visit(node)
+        Args:
+            code: Module source code
 
-    def visit_for(self, node: ast.For) -> Any:
-        """Visit For node"""
-        self.complexity += 1
-        self.generic_visit(node)
+        Returns:
+            Module information
 
-    def visit_except_handler(self, node: ast.ExceptHandler) -> Any:
-        """Visit ExceptHandler node"""
-        self.complexity += 1
-        self.generic_visit(node)
+        Raises:
+            RuntimeError: If parser not initialized
+        """
+        pass
 
-    def visit_bool_op(self, node: ast.BoolOp) -> Any:
-        """Visit BoolOp node"""
-        self.complexity += len(node.values) - 1
-        self.generic_visit(node)
+    @abstractmethod
+    async def parse_imports(self, code: str) -> Sequence[ImportInfo]:
+        """Parse imports.
+
+        Args:
+            code: Module source code
+
+        Returns:
+            Import information
+
+        Raises:
+            RuntimeError: If parser not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def parse_functions(self, code: str) -> Sequence[FunctionInfo]:
+        """Parse functions.
+
+        Args:
+            code: Module source code
+
+        Returns:
+            Function information
+
+        Raises:
+            RuntimeError: If parser not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def parse_classes(self, code: str) -> Sequence[ClassInfo]:
+        """Parse classes.
+
+        Args:
+            code: Module source code
+
+        Returns:
+            Class information
+
+        Raises:
+            RuntimeError: If parser not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def get_stats(self) -> dict[str, Any]:
+        """Get parser statistics.
+
+        Returns:
+            Parser statistics
+
+        Raises:
+            RuntimeError: If parser not initialized
+        """
+        pass

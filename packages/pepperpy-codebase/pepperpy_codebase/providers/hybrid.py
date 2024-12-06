@@ -1,47 +1,96 @@
-"""Hybrid codebase provider implementation"""
+"""Hybrid provider implementation."""
 
-from typing import Any, AsyncGenerator, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from ..config import CodebaseConfig
-from ..exceptions import CodebaseError
-from ..types import CodeFile, CodeSearchResult
-from .analysis import StaticAnalysisProvider
-from .base import BaseProvider
+from ..types import FileContent
+from .analysis import AnalysisProvider
+from .base import BaseProvider, SearchResult
 
 
-class HybridProvider(BaseProvider):
-    """Hybrid provider implementation"""
+class HybridProvider(BaseProvider[CodebaseConfig]):
+    """Hybrid provider implementation.
+
+    Combines static analysis with AI-powered analysis.
+    """
 
     def __init__(self, config: CodebaseConfig) -> None:
+        """Initialize provider.
+
+        Args:
+            config: Provider configuration
+        """
         super().__init__(config)
-        self._static_provider = StaticAnalysisProvider(config)
+        self._analysis_provider = AnalysisProvider(config)
 
-    async def _initialize(self) -> None:
-        """Initialize provider"""
-        try:
-            await self._static_provider.initialize()
-        except Exception as e:
-            raise CodebaseError(f"Failed to initialize hybrid provider: {e}", cause=e)
+    async def _setup(self) -> None:
+        """Setup provider resources."""
+        await self._analysis_provider.initialize()
 
-    async def _cleanup(self) -> None:
-        """Cleanup provider resources"""
-        await self._static_provider.cleanup()
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
+        await self._analysis_provider.cleanup()
 
-    async def search(self, query: str, **kwargs: Any) -> AsyncGenerator[CodeSearchResult, None]:
-        """Search codebase"""
-        try:
-            # First try static analysis
-            async for result in self._static_provider.search(query, **kwargs):
-                yield result
+    async def get_file(self, path: str) -> FileContent | None:
+        """Get file content."""
+        self._ensure_initialized()
+        return await self._analysis_provider.get_file(path)
 
-            # TODO: Add dynamic/LLM-based search
-        except Exception as e:
-            raise CodebaseError(f"Hybrid search failed: {e}", cause=e)
+    async def search(self, query: str, **kwargs: Any) -> Sequence[SearchResult]:
+        """Search files."""
+        self._ensure_initialized()
 
-    async def get_file(self, path: str) -> CodeFile:
-        """Get file content"""
-        return await self._static_provider.get_file(path)
+        # Combine static and AI-powered search
+        static_results = await self._analysis_provider.search(query, **kwargs)
 
-    async def get_files(self, pattern: str) -> Sequence[CodeFile]:
-        """Get files matching pattern"""
-        return await self._static_provider.get_files(pattern)
+        # TODO: Add AI-powered search enhancement
+        # This could include:
+        # - Semantic search
+        # - Natural language understanding
+        # - Code similarity analysis
+
+        return static_results
+
+    async def analyze_file(self, file: FileContent) -> dict[str, Any]:
+        """Analyze file.
+
+        Args:
+            file: File to analyze
+
+        Returns:
+            Analysis results
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        self._ensure_initialized()
+
+        # Get static analysis results
+        static_results = await self._analysis_provider.analyze_file(file)
+
+        # TODO: Add AI-powered analysis
+        # This could include:
+        # - Code quality assessment
+        # - Security analysis
+        # - Best practices recommendations
+
+        return {
+            "static_analysis": static_results,
+            "ai_analysis": {
+                "quality_score": 0.0,
+                "security_score": 0.0,
+                "recommendations": [],
+            },
+        }
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get provider statistics."""
+        self._ensure_initialized()
+
+        static_stats = await self._analysis_provider.get_stats()
+        return {
+            **static_stats,
+            "ai_queries": 0,
+            "ai_suggestions": 0,
+        }

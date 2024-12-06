@@ -1,0 +1,42 @@
+site_name: PepperPy Framework
+site_description: Modern Python Framework for AI Applications
+repo_url: https://github.com/pimentel/pepperpy
+theme:
+  name: material
+  palette:
+    primary: black
+    accent: amber
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [packages]
+          options:
+            show_source: true
+            show_root_heading: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - Packages:
+    - Core: packages/pepperpy-core.md
+    - Console: packages/pepperpy-console.md
+  - Development:
+    - Contributing: development/contributing.md
+    - Architecture: development/architecture.md
+    - Release Process: development/release-process.md
+  - API Reference:
+    - Core API: api/pepperpy-core.md
+    - Console API: api/pepperpy-console.md
+  - Changelog: changelog.md 

@@ -1,0 +1,29 @@
+groups:
+  - name: pepperpy
+    rules:
+      - alert: HighErrorRate
+        expr: rate(pepperpy_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 10% for 5 minutes"
+
+      - alert: HighLatency
+        expr: pepperpy_request_duration_seconds{quantile="0.9"} > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency detected"
+          description: "90th percentile latency is above 1s for 5 minutes"
+
+      - alert: ServiceDown
+        expr: up{job="pepperpy"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "PepperPy service has been down for more than 2 minutes" 

@@ -196,8 +196,8 @@ This commit introduces significant improvements to the file handling system:
 
 BREAKING CHANGE: The file operations API has been redesigned for better consistency and type safety.
 
-The new architecture provides:
-- Better format support
+
+
 - Improved error handling
 - Consistent interface across formats
 - Better type safety
@@ -251,153 +251,2239 @@ The new architecture provides:
 
 * fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-### Features
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* feat(logging): implement structured logging for better traceability and debugging ([`812407b`](https://github.com/felipepimentel/pepperpy/commit/812407b23dda5237e123cd522ee27a15fa626391))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-* feat(modules): add initial implementation of LLM and data processing modules with examples ([`e8119fe`](https://github.com/felipepimentel/pepperpy/commit/e8119fef79c1bd9fec921e79fe960031586eaf45))
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-## v0.0.0 (2024-10-30)
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-### Bug Fixes
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-* fix: set initial version in pyproject.toml ([`192d55f`](https://github.com/felipepimentel/pepperpy/commit/192d55f57d6e2a38fdd08932b61f506050f3248a))
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* fix: remove version placeholder from pyproject.toml ([`a521df5`](https://github.com/felipepimentel/pepperpy/commit/a521df5963b2ad74aad8cf1db14b4b0e63f0c695))
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* fix: remove GitHub release and asset upload steps from publish workflow ([`efc6e66`](https://github.com/felipepimentel/pepperpy/commit/efc6e66d11a707bac9e38d03eadf7eda068cdb17))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-* fix: add step to set initial version tag if missing in publish workflow ([`a972070`](https://github.com/felipepimentel/pepperpy/commit/a972070ab6098ffa8f96242ec1fc4d21233d68e0))
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-* fix: add version_source to pyproject.toml for semantic versioning ([`29ea200`](https://github.com/felipepimentel/pepperpy/commit/29ea200719478c3e652917f0c6fff3be29703e80))
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-* fix: streamline semantic release setup in workflow and update build command in pyproject.toml ([`ff7acb7`](https://github.com/felipepimentel/pepperpy/commit/ff7acb71074d8b18a2e5318caeddaef14cd48aec))
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* fix(ci): update Python version to 3.10 in publish workflow ([`ed01440`](https://github.com/felipepimentel/pepperpy/commit/ed014401bbec917de908b2dbfd0835d217346e03))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-* fix: update semantic release dependency and adjust publish workflow for Python ([`e78845d`](https://github.com/felipepimentel/pepperpy/commit/e78845d7be5db273412f185aba60ae862b4ca1b8))
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* fix: update version variable path in pyproject.toml for semantic release ([`4390900`](https://github.com/felipepimentel/pepperpy/commit/4390900c491dd0aafa955f108ad630d3dbb1e52a))
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* fix(ci): add semantic-release-python to installation in publish workflow ([`3567acc`](https://github.com/felipepimentel/pepperpy/commit/3567acc6053927843dabda0ea7888348bc590ce6))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-* fix(ci): add Node.js setup step in publish workflow ([`8b285a5`](https://github.com/felipepimentel/pepperpy/commit/8b285a57d781e164013099ab222b8967e0bfb235))
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-* fix: add project description and set initial version in pyproject.toml ([`c9b025f`](https://github.com/felipepimentel/pepperpy/commit/c9b025f798fab664568c90adadcbfd53238d8934))
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-* fix(ci): update version variable in pyproject.toml for semantic release ([`15d82fc`](https://github.com/felipepimentel/pepperpy/commit/15d82fcd2ba104d4d2ce165f38a9f7086171115f))
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* fix(ci): update repository name in release workflow condition ([`169a3ca`](https://github.com/felipepimentel/pepperpy/commit/169a3cabab23e49461bd19c0811de4823a626714))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-* fix(ci): update GitHub release step identifiers for consistency ([`0f91b29`](https://github.com/felipepimentel/pepperpy/commit/0f91b298497b9f014d9848416131f74b204366d6))
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* fix(ci): update workflow for semantic release and adjust repository permissions ([`7c8ca02`](https://github.com/felipepimentel/pepperpy/commit/7c8ca0259961e0bd79e3cc3eae2f58010454571c))
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* fix(ci): update create-release action to v1.1.0 ([`7cae6c8`](https://github.com/felipepimentel/pepperpy/commit/7cae6c8330f50139cf65a885fdfec73f95bab5dc))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-## v0.1.4 (2024-10-29)
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-### Chores
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* chore: bump version to 0.1.3 ([`b147279`](https://github.com/felipepimentel/pepperpy/commit/b1472799ad2314097485c4dab8c229edd27fa1fc))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-### Unknown
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* Bump version to 0.1.4 ([`f1e227f`](https://github.com/felipepimentel/pepperpy/commit/f1e227fea9e5aae82d2969a12ac7f2682e7b0e33))
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-## v0.1.3 (2024-10-29)
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-### Bug Fixes
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-* fix(ci): add error handling for release asset upload step ([`91d8aa4`](https://github.com/felipepimentel/pepperpy/commit/91d8aa455e5fb5c5830595abc8b5530bb6550648))
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* fix(ci): downgrade upload-release-asset action to v1 for compatibility ([`0ad6a4c`](https://github.com/felipepimentel/pepperpy/commit/0ad6a4c89b167c7980ccb214d337908307b334b5))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-* fix(ci): update release action versions in publish workflow ([`8de7f38`](https://github.com/felipepimentel/pepperpy/commit/8de7f385ec17782ac0de51f225931ca9616a28aa))
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-### Unknown
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* Bump version to 0.1.3 ([`ec717bd`](https://github.com/felipepimentel/pepperpy/commit/ec717bd5a49535daacd35d18a3a6fbc6d88865e6))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-## v0.1.2 (2024-10-29)
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-### Unknown
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* Bump version to 0.1.2 ([`c1e1a40`](https://github.com/felipepimentel/pepperpy/commit/c1e1a40838a88bf22679efdd675b75251fcaf3fb))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-* Merge branch 'main' of github.com:felipepimentel/pepperpy ([`d8d268c`](https://github.com/felipepimentel/pepperpy/commit/d8d268c6794ad23cc01f013b4da494e5210dad37))
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-## v0.1.1 (2024-10-29)
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-### Bug Fixes
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-* fix(ci): correct upload URL in publish workflow for release assets ([`af9a962`](https://github.com/felipepimentel/pepperpy/commit/af9a9628d25521eff9a66176ae3495cd7c9e28e1))
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-* fix(ci): enhance publish workflow to retry on failure and bump version ([`3385969`](https://github.com/felipepimentel/pepperpy/commit/338596961bb3e99216e8c7aa74718c471db94b0d))
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* fix(ci): add error handling for missing PYPI_TOKEN in publish workflow ([`166ee95`](https://github.com/felipepimentel/pepperpy/commit/166ee953491fd167b443c35770cb5fefcd2aed06))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-* fix(ci): replace bump2version with poetry version command in publish workflow ([`9bbe304`](https://github.com/felipepimentel/pepperpy/commit/9bbe304cd03c31b4bf358d33616fc457132c89d5))
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* fix(dependencies): remove bumpversion and bump2version from poetry.lock and pyproject.toml ([`8fab7d4`](https://github.com/felipepimentel/pepperpy/commit/8fab7d4981a43504f56023556353efd1c65cfd8a))
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* fix(pyproject): remove bumpversion configuration from pyproject.toml ([`421e80b`](https://github.com/felipepimentel/pepperpy/commit/421e80bee8574a8935e27eabe469e77555ac2652))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-* fix(ci): update workflow name and actions versions in publish.yml ([`37662f0`](https://github.com/felipepimentel/pepperpy/commit/37662f0a424c94bb389a7f0b95f738202c4ce5cb))
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-### Continuous Integration
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-* ci: implement automated release workflow
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-- Add GitHub Actions workflow for automated releases on version tags
-- Configure Poetry for package building and PyPI publishing
-- Set up automatic release notes generation
-- Include artifact publishing to GitHub releases ([`9453796`](https://github.com/felipepimentel/pepperpy/commit/9453796b1a918bdfafa17619a32b40c4200895c0))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-### Features
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* feat(ci): add version check before bumping in publish workflow ([`8f894bb`](https://github.com/felipepimentel/pepperpy/commit/8f894bbd2d88cb270b301c06734197614832d116))
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* feat(ci): add GITHUB_TOKEN environment variable for secure asset uploads in publish workflow ([`2b7b5c6`](https://github.com/felipepimentel/pepperpy/commit/2b7b5c6c52f9cf4fe594ae829ae4ed343422b115))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-* feat(ci): enhance publish workflow with GitHub repository condition and improved asset upload ([`355e4c4`](https://github.com/felipepimentel/pepperpy/commit/355e4c4b53f00329f27386cb9fd2b508ecbbcc0b))
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-* feat(ci): update publish workflow to create GitHub releases and upload assets ([`2c592ed`](https://github.com/felipepimentel/pepperpy/commit/2c592ed28c67696aed3902f4c606f337d0d7dac3))
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-* feat(ci): streamline publish workflow by bumping version and tagging before build ([`ce1f8c2`](https://github.com/felipepimentel/pepperpy/commit/ce1f8c2d6ba62ed2cb8d5ba6c21d0e9400db67c0))
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* feat(ci): add tagging step in publish workflow for versioning releases ([`ebe119b`](https://github.com/felipepimentel/pepperpy/commit/ebe119b54a578321fc3387303b5b65aaaff86775))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-* feat(ci): update publish workflow to trigger on main branch and add version bumping step ([`44f454c`](https://github.com/felipepimentel/pepperpy/commit/44f454c94e7a1238ecb681fb0b311af59845daaa))
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* feat(ci): add automated release workflow
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-- Configure GitHub Actions workflow for automated releases
-- Set up Poetry for package building and PyPI publishing
-- Enable automatic release notes generation
-- Add artifact upload to GitHub releases ([`e314656`](https://github.com/felipepimentel/pepperpy/commit/e314656de8d42df78576e85e155246a0c0fa4a2a))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-* feat: initialize pypepper project structure
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-- Configure Poetry project with basic dependencies
-- Set up bumpversion configuration
-- Add project description in README.md ([`345be7b`](https://github.com/felipepimentel/pepperpy/commit/345be7b933a7398f96709a0ce44632fad53d649a))
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
 
-### Refactoring
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
 
-* refactor: migrate pypepper module to pepperpy and restructure codebase ([`a739bc3`](https://github.com/felipepimentel/pepperpy/commit/a739bc318fd9fd7723cd9bd0e8f8baef9d0d6448))
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
 
-### Unknown
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
 
-* Bump version to 0.1.1 ([`9834bd4`](https://github.com/felipepimentel/pepperpy/commit/9834bd4be1cfacd4fde29e332003f53749c78470))
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
 
-* Merge branch 'main' of github.com:felipepimentel/pypepper ([`762cea3`](https://github.com/felipepimentel/pepperpy/commit/762cea3049cad16f41e1746a83e8b3672d89a676))
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
 
-* Create publish.yml ([`54705c3`](https://github.com/felipepimentel/pepperpy/commit/54705c3bc632462e55ff5699055ebe76ae8665ad))
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
 
-* Initial commit ([`2cf6f84`](https://github.com/felipepimentel/pepperpy/commit/2cf6f8486021ecd5e43455c0b720fc69da36440a))
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: add step to clean previous builds in publish workflow ([`8a0d4e5`](https://github.com/felipepimentel/pepperpy/commit/8a0d4e53dff8728cb301b5507b2f12d180397a7f))
+
+* fix: update versioning configuration and remove unnecessary steps in publish workflow ([`c4c1085`](https://github.com/felipepimentel/pepperpy/commit/c4c10853e8c88e8b56ee7f8f185a11ef13ae2ac3))
+
+* fix: remove initial version tagging step from publish workflow ([`863d97a`](https://github.com/felipepimentel/pepperpy/commit/863d97a89cf8d76c9e9eecf0d7543cf8e73f909a))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225f513726fb70968bd5000886))
+
+* fix: remove logging module and related configuration ([`5685e2c`](https://github.com/felipepimentel/pepperpy/commit/5685e2cd14f31f9edd4da5596109949e5b46dbd0))
+
+* fix: update version to 1.0.0 in __init__.py and pyproject.toml ([`190e9a2`](https://github.com/felipepimentel/pepperpy/commit/190e9a2eabc85f9733c15783e6f79d5887831288))
+
+* fix: update version to 0.1.0 in __init__.py and pyproject.toml ([`459c7e2`](https://github.com/felipepimentel/pepperpy/commit/459c7e2f566fe8b7395f43581c82a104e2bd3e56))
+
+* fix: ensure newline at end of file in pyproject.toml ([`f5d26fd`](https://github.com/felipepimentel/pepperpy/commit/f5d26fd84cf2f1225

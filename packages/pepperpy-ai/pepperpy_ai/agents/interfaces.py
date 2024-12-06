@@ -1,31 +1,33 @@
-"""AI agent interfaces"""
+"""Agent interface definitions."""
 
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
-from bko.ai.types import AIResponse
-
-
-@runtime_checkable
-class ProjectManagerAgent(Protocol):
-    """Project manager agent interface"""
-
-    async def initialize(self) -> None: ...
-
-    async def cleanup(self) -> None: ...
-
-    async def plan(self, task: str) -> AIResponse: ...
-
-    async def coordinate(self, tasks: list[str]) -> AIResponse: ...
+from ..ai_types import AIResponse
+from .types import AgentConfig
 
 
 @runtime_checkable
-class QAAgent(Protocol):
-    """QA agent interface"""
+class Agent(Protocol):
+    """Agent interface."""
 
-    async def initialize(self) -> None: ...
+    @property
+    def config(self) -> AgentConfig:
+        """Get agent configuration."""
+        ...
 
-    async def cleanup(self) -> None: ...
+    @property
+    def is_initialized(self) -> bool:
+        """Check if agent is initialized."""
+        ...
 
-    async def test(self, code: str) -> AIResponse: ...
+    async def initialize(self) -> None:
+        """Initialize agent."""
+        ...
 
-    async def plan_tests(self, task: str) -> AIResponse: ...
+    async def cleanup(self) -> None:
+        """Cleanup agent resources."""
+        ...
+
+    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
+        """Execute agent task."""
+        ...

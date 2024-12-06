@@ -4,31 +4,47 @@ import gzip
 import zipfile
 from pathlib import Path
 
+from ..base import BaseHandler, FileHandlerConfig
 from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler
+from ..types import FileContent, FileMetadata
 
 
-class CompressionHandler(BaseFileHandler[bytes]):
+class CompressionError(FileError):
+    """Compression specific error"""
+
+
+class CompressionHandler(BaseHandler):
     """Handler for compressed files"""
 
-    def _to_path(self, file: PathLike) -> Path:
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler."""
+        super().__init__(
+            config
+            or FileHandlerConfig(
+                allowed_extensions=self._convert_extensions([".gz", ".zip"]),
+                max_file_size=100 * 1024 * 1024,  # 100MB
+                metadata={"mime_type": "application/gzip"},
+            )
+        )
+
+    def _to_path(self, file: Path | str) -> Path:
         """Convert PathLike to Path"""
         return Path(file) if isinstance(file, str) else file
 
-    def _get_mime_type(self, path: Path) -> str:
-        """Get MIME type for file"""
-        return f"application/{path.suffix[1:]}"
+    def _ensure_bytes(self, content: str | bytes) -> bytes:
+        """Ensure content is bytes.
 
-    def _get_file_type(self, path: Path) -> str:
-        """Get file type"""
-        return FileType.ARCHIVE
+        Args:
+            content: Content to convert
 
-    def _get_format(self, path: Path) -> str:
-        """Get file format"""
-        return path.suffix[1:]
+        Returns:
+            Content as bytes
+        """
+        if isinstance(content, str):
+            return content.encode(self.config.encoding)
+        return content
 
-    async def read(self, file: PathLike) -> FileContent[bytes]:
+    async def read(self, file: Path | str) -> FileContent:
         """Read compressed file"""
         try:
             path = self._to_path(file)
@@ -39,28 +55,37 @@ class CompressionHandler(BaseFileHandler[bytes]):
                 with zipfile.ZipFile(path, "r") as z:
                     content = z.read(z.namelist()[0])
             else:
-                raise FileError(f"Unsupported compression format: {path.suffix}")
+                raise CompressionError(f"Unsupported compression format: {path.suffix}")
 
-            metadata = self._create_metadata(path=path, size=len(content))
+            metadata = FileMetadata(
+                name=path.name,
+                mime_type=f"application/{path.suffix[1:]}",
+                size=len(content),
+                format=path.suffix[1:],
+            )
 
-            return FileContent(content=content, metadata=metadata)
+            return FileContent(path=path, content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read compressed file: {e}", cause=e)
+            raise CompressionError(f"Failed to read compressed file: {e}") from e
 
-    async def write(self, content: bytes, output: PathLike) -> None:
+    async def write(self, content: FileContent, path: Path | None = None) -> None:
         """Write compressed file"""
         try:
-            path = self._to_path(output)
-            if path.suffix == ".gz":
-                with gzip.open(path, "wb") as f:
-                    f.write(content)
-            elif path.suffix == ".zip":
-                with zipfile.ZipFile(path, "w") as z:
-                    z.writestr("content", content)
+            target = path or content.path
+            data = self._ensure_bytes(content.content)
+
+            if target.suffix == ".gz":
+                with gzip.open(target, "wb") as f:
+                    f.write(data)
+            elif target.suffix == ".zip":
+                with zipfile.ZipFile(target, "w") as z:
+                    z.writestr("content", data)
             else:
-                raise FileError(f"Unsupported compression format: {path.suffix}")
+                raise CompressionError(
+                    f"Unsupported compression format: {target.suffix}"
+                )
         except Exception as e:
-            raise FileError(f"Failed to write compressed file: {e}", cause=e)
+            raise CompressionError(f"Failed to write compressed file: {e}") from e
 
     async def cleanup(self) -> None:
         """Cleanup resources"""

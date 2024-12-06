@@ -1,15 +1,9 @@
-"""Validation-related exceptions"""
+"""Validation exceptions."""
 
-from .base import PepperPyError
-
-
-class ValidationError(PepperPyError):
-    """Base validation error"""
+from .base import PepperpyError
 
 
-class TypeValidationError(ValidationError):
-    """Type validation error"""
+class ValidationError(PepperpyError):
+    """Validation error."""
 
-
-class ValueValidationError(ValidationError):
-    """Value validation error"""
+    pass

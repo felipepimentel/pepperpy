@@ -1,44 +1,26 @@
-"""LLM configuration"""
+"""LLM configuration."""
 
-from enum import Enum
+from dataclasses import dataclass
 
-from bko.core.types import JsonDict
-from pydantic import BaseModel, Field
-
-
-class LLMProvider(str, Enum):
-    """LLM provider types"""
-
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
-    COHERE = "cohere"
-    OPENROUTER = "openrouter"
-    STACKSPOT = "stackspot"
+from ..providers.config import ProviderConfig
 
 
-class LLMConfig(BaseModel):
-    """LLM configuration"""
+@dataclass
+class LLMConfig(ProviderConfig):
+    """LLM configuration."""
 
-    name: str
-    model: str
-    provider: LLMProvider
-    enabled: bool = Field(default=True)
-    api_key: str | None = Field(default=None)
-    api_base: str | None = Field(default=None)
-    temperature: float = Field(default=0.7, ge=0.0, le=1.0)
-    max_tokens: int = Field(default=1000, ge=0)
-    top_p: float = Field(default=1.0, ge=0.0, le=1.0)
-    frequency_penalty: float = Field(default=0.0)
-    presence_penalty: float = Field(default=0.0)
-    stop_sequences: list[str] = Field(default_factory=list)
-    timeout: float = Field(default=30.0, gt=0)
-    retry_attempts: int = Field(default=3, ge=0)
-    retry_delay: float = Field(default=1.0, gt=0)
-    cache_enabled: bool = Field(default=True)
-    cache_ttl: int = Field(default=3600)  # 1 hour
-    metadata: JsonDict = Field(default_factory=dict)
+    # Herdamos os campos base do ProviderConfig:
+    # - name: str
+    # - provider: str
+    # - model: str
+    # - api_key: str
+    # - api_base: Optional[str] = None
+    # - metadata: Dict[str, Any]
+    # - settings: Dict[str, Any]
 
-    class Config:
-        """Pydantic config"""
-
-        frozen = True
+    # Campos específicos do LLM
+    temperature: float = 0.7
+    max_tokens: int = 1000
+    stop_sequences: list[str] | None = None
+    presence_penalty: float = 0.0
+    frequency_penalty: float = 0.0

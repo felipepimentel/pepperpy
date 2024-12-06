@@ -1,54 +1,32 @@
 """Media file handler implementation"""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
-from bko.files.exceptions import FileError
-from bko.files.handlers.base import BaseFileHandler
-from bko.files.types import FileContent, FileMetadata
+from ..base import BaseHandler, FileHandlerConfig
+from ..exceptions import FileError
+from ..types import FileContent, FileMetadata
 
 
-class MediaHandler(BaseFileHandler):
+class MediaError(FileError):
+    """Media specific error"""
+
+
+class MediaHandler(BaseHandler):
     """Handler for media file operations"""
 
-    async def read(self, path: Path, **kwargs: Dict[str, Any]) -> FileContent:
-        """Read media file content"""
-        path = self._to_path(path)
-
-        if not path.exists():
-            raise FileError(f"File does not exist: {path}")
-
-        try:
-            with open(path, "rb") as f:
-                content = f.read()
-
-            return FileContent(
-                content=content,
-                metadata=FileMetadata(
-                    name=path.name,
-                    mime_type=self._get_mime_type(path),
-                    path=path,
-                    type="media",
-                    extension=path.suffix,
-                    format="binary",
-                    size=path.stat().st_size,
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler."""
+        super().__init__(
+            config
+            or FileHandlerConfig(
+                allowed_extensions=self._convert_extensions(
+                    [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv"]
                 ),
+                max_file_size=500 * 1024 * 1024,  # 500MB
+                metadata={"mime_type": "video/mp4"},
             )
-        except Exception as e:
-            raise FileError(f"Failed to read media file: {e}", cause=e)
-
-    async def write(self, path: Path, content: FileContent, **kwargs: Dict[str, Any]) -> None:
-        """Write media file content"""
-        path = self._to_path(path)
-
-        if not isinstance(content.content, bytes):
-            raise FileError("Invalid media content")
-
-        try:
-            with open(path, "wb") as f:
-                f.write(content.content)
-        except Exception as e:
-            raise FileError(f"Failed to write media file: {e}", cause=e)
+        )
 
     def _get_mime_type(self, path: Path) -> str:
         """Get MIME type for media file"""
@@ -62,3 +40,63 @@ class MediaHandler(BaseFileHandler):
             ".mkv": "video/x-matroska",
         }
         return mime_types.get(extension, "application/octet-stream")
+
+    async def read(self, path: Path) -> FileContent:
+        """Read media file content.
+
+        Args:
+            path: Path to media file
+
+        Returns:
+            Media file content
+
+        Raises:
+            MediaError: If file cannot be read
+        """
+        try:
+            if not path.exists():
+                raise MediaError(f"File does not exist: {path}")
+
+            content = path.read_bytes()
+            metadata = FileMetadata(
+                name=path.name,
+                mime_type=self._get_mime_type(path),
+                size=len(content),
+                format=path.suffix.lstrip("."),
+            )
+
+            return FileContent(path=path, content=content, metadata=metadata)
+        except Exception as e:
+            raise MediaError(f"Failed to read media file: {e}") from e
+
+    async def write(self, content: FileContent, path: Path | None = None) -> None:
+        """Write media file content.
+
+        Args:
+            content: Media content to write
+            path: Optional path to write to
+
+        Raises:
+            MediaError: If file cannot be written
+        """
+        try:
+            target = path or content.path
+            if not isinstance(content.content, bytes):
+                raise MediaError("Invalid media content - must be bytes")
+
+            target.write_bytes(content.content)
+        except Exception as e:
+            raise MediaError(f"Failed to write media file: {e}") from e
+
+    async def cleanup(self) -> None:
+        """Cleanup resources"""
+        pass
+
+    def _get_metadata(self, media: Any) -> dict[str, Any]:
+        """Extract metadata from media file."""
+        return {
+            "duration": media.duration,
+            "bitrate": media.bitrate,
+            "codec": media.codec,
+            "channels": media.channels,
+        }

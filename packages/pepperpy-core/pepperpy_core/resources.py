@@ -1,112 +1,129 @@
-"""Resource management utilities"""
+"""Resource management module."""
 
-import inspect
-from collections.abc import Callable
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, TypeVar, Union, overload
+from typing import Any
 
-T = TypeVar("T")
-ResourceType = Union[str, Path, type[Any], Callable[..., Any]]
+from pepperpy_core.exceptions.resource import ResourceError
 
 
-def get_resource_path(resource: ResourceType) -> Path:
-    """
-    Get path to a resource
+@dataclass
+class ResourceConfig:
+    """Resource configuration."""
 
-    Args:
-        resource: Resource to get path for. Can be:
-            - A string path
-            - A Path object
-            - A class
-            - A function/method
+    name: str
+    path: str | Path
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    Returns:
-        Path: Path to the resource
 
-    """
-    if isinstance(resource, (str, Path)):
-        return Path(resource)
+@dataclass
+class ResourceInfo:
+    """Resource information."""
 
-    if inspect.isclass(resource) or inspect.isfunction(resource):
-        module = inspect.getmodule(resource)
-        if module is None:
-            raise ValueError(f"Could not determine module for {resource}")
-        module_file = getattr(module, "__file__", None)
-        if module_file is None:
-            raise ValueError(f"Could not determine file for module of {resource}")
-        return Path(module_file).parent
-
-    raise ValueError(f"Invalid resource type: {type(resource)}")
+    name: str
+    path: Path
+    size: int
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class ResourceManager:
-    """Resource manager for handling file paths and module locations"""
+    """Resource manager implementation."""
 
-    def __init__(self, base_path: str | Path | None = None):
-        """
-        Initialize resource manager
+    def __init__(self) -> None:
+        """Initialize resource manager."""
+        self._resources: dict[str, ResourceInfo] = {}
+        self._initialized: bool = False
 
-        Args:
-            base_path: Base path for resolving relative paths. Defaults to current directory.
+    def initialize(self) -> None:
+        """Initialize resource manager."""
+        if self._initialized:
+            return
+        self._initialized = True
 
-        """
-        self.base_path = Path(base_path or Path.cwd())
-        self._paths: dict[str, Path] = {}
+    def cleanup(self) -> None:
+        """Cleanup resource manager."""
+        if not self._initialized:
+            return
+        self._resources.clear()
+        self._initialized = False
 
-    def register(self, name: str, resource: ResourceType) -> None:
-        """
-        Register a resource path
-
-        Args:
-            name: Name to register resource as
-            resource: Resource to register. Can be:
-                - A string path
-                - A Path object
-                - A class
-                - A function/method
-
-        """
-        path = get_resource_path(resource)
-        if not path.is_absolute():
-            path = self.base_path / path
-        self._paths[name] = path
-
-    @overload
-    def get(self, name: str) -> Path: ...
-
-    @overload
-    def get(self, name: str, as_str: bool) -> str | Path: ...
-
-    def get(self, name: str, as_str: bool = False) -> str | Path:
-        """
-        Get path to a registered resource
+    def get_resource(self, name: str) -> ResourceInfo | None:
+        """Get resource information.
 
         Args:
-            name: Name of registered resource
-            as_str: Return path as string instead of Path object
+            name: Resource name
 
         Returns:
-            Union[str, Path]: Path to resource
+            Resource information if found, None otherwise
 
         Raises:
-            KeyError: If resource is not registered
-
+            ResourceError: If resource manager not initialized
         """
-        if name not in self._paths:
-            raise KeyError(f"Resource not registered: {name}")
+        if not self._initialized:
+            raise ResourceError("Resource manager not initialized")
+        return self._resources.get(name)
 
-        path = self._paths[name]
-        return str(path) if as_str else path
-
-    def __contains__(self, name: str) -> bool:
-        """
-        Check if resource is registered
+    def add_resource(
+        self, name: str, path: str | Path, metadata: dict[str, Any] | None = None
+    ) -> ResourceInfo:
+        """Add resource.
 
         Args:
-            name: Name of resource to check
+            name: Resource name
+            path: Resource path
+            metadata: Resource metadata
 
         Returns:
-            bool: True if resource is registered
+            Resource information
 
+        Raises:
+            ResourceError: If resource manager not initialized or resource already exists
         """
-        return name in self._paths
+        if not self._initialized:
+            raise ResourceError("Resource manager not initialized")
+
+        if name in self._resources:
+            raise ResourceError(f"Resource {name} already exists")
+
+        path_obj = Path(path)
+        if not path_obj.exists():
+            raise ResourceError(f"Resource path {path} does not exist")
+
+        info = ResourceInfo(
+            name=name,
+            path=path_obj,
+            size=path_obj.stat().st_size,
+            metadata=metadata or {},
+        )
+        self._resources[name] = info
+        return info
+
+    def remove_resource(self, name: str) -> None:
+        """Remove resource.
+
+        Args:
+            name: Resource name
+
+        Raises:
+            ResourceError: If resource manager not initialized or resource not found
+        """
+        if not self._initialized:
+            raise ResourceError("Resource manager not initialized")
+
+        if name not in self._resources:
+            raise ResourceError(f"Resource {name} not found")
+
+        del self._resources[name]
+
+    def list_resources(self) -> list[ResourceInfo]:
+        """List all resources.
+
+        Returns:
+            List of resource information
+
+        Raises:
+            ResourceError: If resource manager not initialized
+        """
+        if not self._initialized:
+            raise ResourceError("Resource manager not initialized")
+        return list(self._resources.values())

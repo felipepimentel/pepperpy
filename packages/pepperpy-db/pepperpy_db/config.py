@@ -1,25 +1,40 @@
-"""Database configuration"""
+"""Database configuration."""
 
+from dataclasses import dataclass, field
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pepperpy_core.base import BaseConfigData
 
 
-class DatabaseConfig(BaseModel):
-    """Database configuration"""
+@dataclass
+class DatabaseConfig(BaseConfigData):
+    """Database configuration."""
 
-    host: str = Field(default="localhost")
-    port: int = Field(default=5432)
-    database: str
-    user: str
-    password: str
-    pool_size: int = Field(default=10)
-    min_size: int = Field(default=1)
-    max_size: int = Field(default=20)
-    timeout: float = Field(default=60.0)
-    params: dict[str, Any] = Field(default_factory=dict)
+    # Required fields (herdado de BaseConfigData)
+    name: str = ""
 
-    class Config:
-        """Pydantic config"""
+    # Required database fields
+    database: str = ""
+    user: str = ""
+    password: str = ""
 
-        frozen = True
+    # Optional fields
+    enabled: bool = True
+    host: str = "localhost"
+    port: int = 5432
+    ssl: bool = False
+    pool_size: int = 10
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def validate(self) -> None:
+        """Validate configuration."""
+        if not self.database:
+            raise ValueError("database is required")
+        if not self.user:
+            raise ValueError("user is required")
+        if not self.password:
+            raise ValueError("password is required")
+        if self.port < 1:
+            raise ValueError("port must be greater than 0")
+        if self.pool_size < 1:
+            raise ValueError("pool_size must be greater than 0")

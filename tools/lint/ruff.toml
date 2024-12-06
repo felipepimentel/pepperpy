@@ -1,0 +1,23 @@
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+]
+
+# Ignorar alguns erros específicos
+ignore = [
+    "S603",  # `subprocess` call check - safe for dev tools
+    "S607",  # subprocess partial executable path
+    "PLC0414",  # Duplicate module conftest - expected for pytest
+]
+
+[lint.isort]
+known-first-party = ["pepperpy"] 

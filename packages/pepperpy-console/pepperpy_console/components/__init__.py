@@ -1,33 +1,27 @@
-"""Console UI components"""
+"""Console components."""
 
-from .base import Component
-from .button import Button, ButtonConfig
-from .chat import ChatView
-from .dialog import Dialog
-from .form import Form
-from .input import Input
-from .layout import Layout
-from .list import ListView
-from .menu import Menu
+from .chat import ChatConfig, ChatView, Message
+from .input import Input, InputConfig
+from .layout import Layout, LayoutConfig
+from .menu import Menu, MenuConfig
 from .panel import Panel, PanelConfig
-from .progress import ProgressBar
-from .table import Table
-from .toast import Toast
+from .progress import ProgressBar, ProgressConfig
+from .toast import Toast, ToastConfig
 
 __all__ = [
-    "Component",
-    "Button",
-    "ButtonConfig",
+    "ChatConfig",
     "ChatView",
-    "Dialog",
-    "Form",
+    "Message",
     "Input",
+    "InputConfig",
     "Layout",
-    "ListView",
+    "LayoutConfig",
     "Menu",
+    "MenuConfig",
     "Panel",
     "PanelConfig",
     "ProgressBar",
-    "Table",
+    "ProgressConfig",
     "Toast",
+    "ToastConfig",
 ]

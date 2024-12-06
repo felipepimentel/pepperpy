@@ -1,30 +1,27 @@
 """Logging types"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum, auto
+from enum import Enum
 from typing import Any
 
 
 class LogLevel(Enum):
-    """Log levels"""
+    """Log level enum."""
 
-    DEBUG = auto()
-    INFO = auto()
-    WARNING = auto()
-    ERROR = auto()
-    CRITICAL = auto()
+    DEBUG = "debug"
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
 
 
 @dataclass
 class LogRecord:
-    """Log record"""
+    """Log record."""
 
     level: LogLevel
     message: str
-    timestamp: datetime = field(default_factory=datetime.now)
-    logger_name: str = ""
-    module: str = ""
-    function: str = ""
-    line: int = 0
+    logger_name: str
+    module: str
+    function: str
+    line: int
     metadata: dict[str, Any] = field(default_factory=dict)

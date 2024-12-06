@@ -1,46 +1,54 @@
-"""Progress bar component"""
+"""Progress bar component implementation."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
-from rich.progress import Progress as RichProgress
-
-from .base import Component
+from ..base.component import BaseComponent
 
 
 @dataclass
 class ProgressConfig:
-    """Progress bar configuration"""
+    """Progress bar configuration."""
 
     total: int = 100
     description: str = ""
-    style: str = "default"
+    unit: str = "%"
+    style: str = "blue"
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class ProgressBar(Component):
-    """Progress bar component"""
+class ProgressBar(BaseComponent):
+    """Progress bar component."""
 
-    def __init__(self, total: int = 100):
+    def __init__(self, config: ProgressConfig | None = None) -> None:
+        """Initialize progress bar.
+
+        Args:
+            config: Progress bar configuration
+        """
         super().__init__()
-        self.config = ProgressConfig(total=total)
-        self._progress = RichProgress()
-        self._task = self._progress.add_task("", total=total)
+        self.config = config or ProgressConfig()
+        self._value: int = 0
 
     async def initialize(self) -> None:
-        """Initialize progress bar"""
+        """Initialize progress bar."""
         await super().initialize()
 
+    async def render(self) -> Any:
+        """Render progress bar."""
+        await super().render()
+        percentage = min(100, int(self._value / self.config.total * 100))
+        return f"{self.config.description} [{percentage}{self.config.unit}]"
+
     async def cleanup(self) -> None:
-        """Cleanup progress bar resources"""
+        """Cleanup progress bar."""
         await super().cleanup()
 
-    def set_progress(self, value: int, description: str | None = None) -> None:
-        """Update progress value and description"""
-        if description:
-            self._progress.update(self._task, description=description)
-        self._progress.update(self._task, completed=value)
+    def update(self, value: int) -> None:
+        """Update progress value.
 
-    async def render(self) -> Any:
-        """Render progress bar"""
-        await super().render()
-        return self._progress
+        Args:
+            value: New progress value
+        """
+        self._ensure_initialized()
+        self._value = min(self.config.total, max(0, value))

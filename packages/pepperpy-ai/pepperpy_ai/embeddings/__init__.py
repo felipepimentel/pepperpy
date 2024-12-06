@@ -1,15 +1,10 @@
-"""Embeddings module"""
+"""Embeddings module exports."""
 
-from .base import BaseEmbeddingProvider
+from .base import EmbeddingConfig, EmbeddingProvider
 from .client import EmbeddingClient
-from .config import EmbeddingConfig
-from .exceptions import EmbeddingError
-from .providers import create_provider
 
 __all__ = [
     "EmbeddingConfig",
-    "BaseEmbeddingProvider",
+    "EmbeddingProvider",
     "EmbeddingClient",
-    "EmbeddingError",
-    "create_provider",
 ]

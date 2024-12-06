@@ -1,45 +1,66 @@
-"""AI function implementations"""
+"""AI function utilities."""
 
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Protocol, runtime_checkable
 
+from .ai_types import AIResponse
 from .client import AIClient
-from .exceptions import AIError
-from .types import AIResponse
 
 
-class TextGeneration:
-    """Text generation functions"""
+@runtime_checkable
+class EmbeddingClient(Protocol):
+    """Protocol for clients that support embeddings."""
 
-    def __init__(self, client: AIClient) -> None:
-        """Initialize text generation"""
-        self.client = client
-
-    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Generate text completion"""
-        try:
-            return await self.client.complete(prompt, **kwargs)
-        except Exception as e:
-            raise AIError(f"Text generation failed: {e}", cause=e)
-
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream text generation"""
-        try:
-            async for chunk in self.client.stream(prompt, **kwargs):
-                yield chunk
-        except Exception as e:
-            raise AIError(f"Text generation stream failed: {e}", cause=e)
+    async def get_embedding(self, text: str) -> list[float]:
+        """Get embedding for text."""
+        ...
 
 
-class TextEmbedding:
-    """Text embedding functions"""
+@runtime_checkable
+class StreamingClient(Protocol):
+    """Protocol for clients that support streaming."""
 
-    def __init__(self, client: AIClient) -> None:
-        """Initialize text embedding"""
-        self.client = client
+    async def stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses."""
+        ...
 
-    async def embed(self, text: str) -> list[float]:
-        """Get text embedding"""
-        try:
-            return await self.client.get_embedding(text)
-        except Exception as e:
-            raise AIError(f"Text embedding failed: {e}", cause=e)
+
+async def stream_response(
+    client: AIClient, prompt: str
+) -> AsyncGenerator[AIResponse, None]:
+    """Stream response from client.
+
+    Args:
+        client: AI client
+        prompt: Prompt to stream
+
+    Yields:
+        AI response chunks
+
+    Raises:
+        TypeError: If client doesn't support streaming
+    """
+    if not hasattr(client, "stream"):
+        raise TypeError("Client does not support streaming")
+
+    async for response in client.stream(prompt):
+        yield response
+
+
+async def get_embedding(client: AIClient, text: str) -> list[float]:
+    """Get embedding from client.
+
+    Args:
+        client: AI client
+        text: Text to embed
+
+    Returns:
+        Embedding vector
+
+    Raises:
+        TypeError: If client doesn't support embeddings
+    """
+    if not isinstance(client, EmbeddingClient):
+        raise TypeError("Client does not support embeddings")
+
+    return await client.get_embedding(text)

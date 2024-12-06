@@ -1,7 +1,16 @@
-"""Rich console module"""
+"""Rich console integration."""
 
-from .app import RichConsoleApp
-from .config import RichConfig
-from .console import RichConsole
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress, ProgressColumn
+from rich.table import Table
+from rich.text import Text
 
-__all__ = ["RichConsole", "RichConsoleApp", "RichConfig"]
+__all__ = [
+    "Console",
+    "Panel",
+    "Progress",
+    "ProgressColumn",
+    "Table",
+    "Text",
+]

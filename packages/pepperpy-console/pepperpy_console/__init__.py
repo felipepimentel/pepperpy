@@ -1,44 +1,35 @@
-"""Console module for PepperPy framework"""
+"""Console package."""
 
-from .base import Console, ConsoleConfig
 from .components import (
-    Button,
-    ButtonConfig,
+    ChatConfig,
     ChatView,
-    Dialog,
-    Form,
     Input,
+    InputConfig,
     Layout,
-    ListView,
+    LayoutConfig,
     Menu,
+    MenuConfig,
     Panel,
     PanelConfig,
     ProgressBar,
-    Table,
+    ProgressConfig,
     Toast,
+    ToastConfig,
 )
-from .styles import Style
-
-__version__ = "0.1.0"
 
 __all__ = [
-    "Console",
-    "ConsoleConfig",
-    # Components
-    "Button",
-    "ButtonConfig",
+    "ChatConfig",
     "ChatView",
-    "Dialog",
-    "Form",
+    "InputConfig",
     "Input",
+    "LayoutConfig",
     "Layout",
-    "ListView",
+    "MenuConfig",
     "Menu",
-    "Panel",
     "PanelConfig",
+    "Panel",
     "ProgressBar",
-    "Table",
+    "ProgressConfig",
+    "ToastConfig",
     "Toast",
-    # Styles
-    "Style",
 ]

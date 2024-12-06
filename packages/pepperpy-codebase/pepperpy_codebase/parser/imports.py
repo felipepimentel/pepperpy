@@ -1,48 +1,59 @@
-"""Import parsing implementation"""
+"""Import parser implementation."""
 
-import ast
+from collections.abc import Sequence
 from typing import Any
 
-from bko.core.module import BaseModule
+from ..config import CodebaseConfig
+from .ast import BaseParser
+from .types import ClassInfo, FunctionInfo, ImportInfo, ModuleInfo
 
 
-class ImportParser(BaseModule):
-    """Python import parser"""
+class ImportParser(BaseParser[CodebaseConfig]):
+    """Import parser implementation."""
 
-    def __init__(self) -> None:
-        self._initialized = False
+    async def _setup(self) -> None:
+        """Setup parser resources."""
+        pass
 
-    async def initialize(self) -> None:
-        """Initialize parser"""
-        self._initialized = True
+    async def _teardown(self) -> None:
+        """Teardown parser resources."""
+        pass
 
-    async def parse_imports(self, tree: ast.AST) -> list[str]:
-        """Parse imports from AST"""
-        visitor = ImportVisitor()
-        visitor.visit(tree)
-        return visitor.imports
+    async def parse_module(self, code: str) -> ModuleInfo:
+        """Parse module."""
+        self._ensure_initialized()
+        # TODO: Implement module parsing
+        return ModuleInfo(
+            path="",
+            imports=[],
+            functions=[],
+            classes=[],
+        )
 
-    async def cleanup(self) -> None:
-        """Cleanup resources"""
-        self._initialized = False
+    async def parse_imports(self, code: str) -> Sequence[ImportInfo]:
+        """Parse imports."""
+        self._ensure_initialized()
+        # TODO: Implement import parsing
+        return []
 
+    async def parse_functions(self, code: str) -> Sequence[FunctionInfo]:
+        """Parse functions."""
+        self._ensure_initialized()
+        # TODO: Implement function parsing
+        return []
 
-class ImportVisitor(ast.NodeVisitor):
-    """AST visitor for collecting imports"""
+    async def parse_classes(self, code: str) -> Sequence[ClassInfo]:
+        """Parse classes."""
+        self._ensure_initialized()
+        # TODO: Implement class parsing
+        return []
 
-    def __init__(self) -> None:
-        self.imports: list[str] = []
-
-    def visit_import(self, node: ast.Import) -> Any:
-        """Visit Import node"""
-        for name in node.names:
-            self.imports.append(name.name)
-
-    def visit_import_from(self, node: ast.ImportFrom) -> Any:
-        """Visit ImportFrom node"""
-        if node.module:
-            for name in node.names:
-                if name.name == "*":
-                    self.imports.append(node.module)
-                else:
-                    self.imports.append(f"{node.module}.{name.name}")
+    async def get_stats(self) -> dict[str, Any]:
+        """Get parser statistics."""
+        self._ensure_initialized()
+        return {
+            "modules_parsed": 0,
+            "imports_found": 0,
+            "functions_found": 0,
+            "classes_found": 0,
+        }

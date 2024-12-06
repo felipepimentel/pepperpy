@@ -1,53 +1,97 @@
-"""Document file handler implementation"""
+"""Document file handler implementation."""
 
 from pathlib import Path
 
+from ..base import BaseHandler, FileHandlerConfig
 from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler
+from ..types import FileContent, FileMetadata
 
 
-class DocumentHandler(BaseFileHandler[bytes]):
-    """Handler for document files"""
+class DocumentError(FileError):
+    """Document specific error."""
 
-    def _to_path(self, file: PathLike) -> Path:
-        """Convert PathLike to Path"""
-        return Path(file) if isinstance(file, str) else file
+    pass
 
-    def _get_mime_type(self, path: Path) -> str:
-        """Get MIME type for file"""
-        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
-    def _get_file_type(self, path: Path) -> str:
-        """Get file type"""
-        return FileType.DOCUMENT
+class DocumentHandler(BaseHandler):
+    """Handler for document file operations."""
 
-    def _get_format(self, path: Path) -> str:
-        """Get file format"""
-        return path.suffix[1:]
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler.
 
-    async def read(self, file: PathLike) -> FileContent[bytes]:
-        """Read document file"""
+        Args:
+            config: Optional handler configuration
+        """
+        super().__init__(
+            config
+            or FileHandlerConfig(
+                allowed_extensions=self._convert_extensions(
+                    [".doc", ".docx", ".odt", ".rtf"]
+                ),
+                max_file_size=50 * 1024 * 1024,  # 50MB
+                metadata={"mime_type": "application/msword"},
+            )
+        )
+        self._initialized = False
+
+    async def read(self, path: Path) -> FileContent:
+        """Read document file content.
+
+        Args:
+            path: Path to document file
+
+        Returns:
+            Document content
+
+        Raises:
+            DocumentError: If file cannot be read
+        """
         try:
-            path = self._to_path(file)
-            with open(path, "rb") as f:
-                content = f.read()
+            if not path.exists():
+                raise DocumentError(f"File does not exist: {path}")
 
-            metadata = self._create_metadata(path=path, size=len(content))
+            if not self._initialized:
+                raise RuntimeError("Handler not initialized")
 
-            return FileContent(content=content, metadata=metadata)
+            # TODO: Implement document reading
+            content = ""
+            metadata = FileMetadata(
+                name=path.name,
+                mime_type="application/msword",
+                size=path.stat().st_size,
+                format=path.suffix.lstrip("."),
+            )
+
+            return FileContent(path=path, content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read document file: {e}", cause=e)
+            raise DocumentError(f"Failed to read document file: {e}") from e
 
-    async def write(self, content: bytes, output: PathLike) -> None:
-        """Write document file"""
+    async def write(self, content: FileContent, path: Path | None = None) -> None:
+        """Write document file content.
+
+        Args:
+            content: Document content to write
+            path: Optional path to write to
+
+        Raises:
+            DocumentError: If file cannot be written
+        """
         try:
-            path = self._to_path(output)
-            with open(path, "wb") as f:
-                f.write(content)
+            if not self._initialized:
+                raise RuntimeError("Handler not initialized")
+
+            if path is None:
+                raise ValueError("Path is required for document files")
+
+            # TODO: Implement document writing
+            raise NotImplementedError("Document writing not implemented yet")
         except Exception as e:
-            raise FileError(f"Failed to write document file: {e}", cause=e)
+            raise DocumentError(f"Failed to write document file: {e}") from e
 
     async def cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
+        """Cleanup resources."""
+        self._initialized = False
+
+    async def process(self, content: bytes) -> str:
+        """Process document content."""
+        return content.decode("utf-8")

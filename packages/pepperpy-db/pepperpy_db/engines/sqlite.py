@@ -1,38 +1,47 @@
 """SQLite database engine"""
 
 import sqlite3
-from typing import Any, Protocol, Sequence, cast
+from collections.abc import Sequence
+from typing import Any, Protocol, cast
 
+from ..base import BaseEngine
 from ..config import DatabaseConfig
 from ..exceptions import DatabaseError
 from ..types import QueryResult
-from .base import BaseEngine
 
 
 class SQLiteCursor(Protocol):
     """SQLite cursor protocol"""
 
     @property
-    def description(self) -> list[tuple[str, ...]]: ...
+    def description(self) -> list[tuple[str, ...]]:
+        ...
 
     @property
-    def rowcount(self) -> int: ...
+    def rowcount(self) -> int:
+        ...
 
-    def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> Any: ...
+    def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
+        ...
 
-    def fetchall(self) -> list[tuple[Any, ...]]: ...
+    def fetchall(self) -> list[tuple[Any, ...]]:
+        ...
 
-    def close(self) -> None: ...
+    def close(self) -> None:
+        ...
 
 
 class SQLiteConnection(Protocol):
     """SQLite connection protocol"""
 
-    def cursor(self) -> SQLiteCursor: ...
+    def cursor(self) -> SQLiteCursor:
+        ...
 
-    def commit(self) -> None: ...
+    def commit(self) -> None:
+        ...
 
-    def close(self) -> None: ...
+    def close(self) -> None:
+        ...
 
 
 class SQLiteEngine(BaseEngine):
@@ -43,25 +52,27 @@ class SQLiteEngine(BaseEngine):
         self._conn: SQLiteConnection | None = None
         self._cursor: SQLiteCursor | None = None
 
-    async def _initialize(self) -> None:
-        """Initialize database connection"""
-        await super()._initialize()
+    async def _setup(self) -> None:
+        """Setup database connection"""
         try:
-            conn = sqlite3.connect(database=self.config.database, timeout=self.config.timeout)
+            conn = sqlite3.connect(
+                database=self.config.database, timeout=self.config.timeout
+            )
             self._conn = cast(SQLiteConnection, conn)
             self._cursor = cast(SQLiteCursor, self._conn.cursor())
         except Exception as e:
             raise DatabaseError(f"Failed to connect to SQLite: {e}", cause=e)
 
-    async def _cleanup(self) -> None:
-        """Cleanup database resources"""
+    async def _teardown(self) -> None:
+        """Teardown database resources"""
         if self._cursor:
             self._cursor.close()
         if self._conn:
             self._conn.close()
-        await super()._cleanup()
 
-    async def execute(self, query: str, params: dict[str, Any] | None = None) -> QueryResult:
+    async def execute(
+        self, query: str, params: dict[str, Any] | None = None
+    ) -> QueryResult:
         """Execute database query"""
         self._ensure_initialized()
         try:
@@ -70,7 +81,9 @@ class SQLiteEngine(BaseEngine):
 
             self._cursor.execute(query, params or {})
             rows = [
-                dict(zip([col[0] for col in self._cursor.description], row))
+                dict(
+                    zip([col[0] for col in self._cursor.description], row, strict=False)
+                )
                 for row in self._cursor.fetchall()
             ]
 
@@ -97,12 +110,22 @@ class SQLiteEngine(BaseEngine):
             for params in params_list:
                 self._cursor.execute(query, params)
                 rows = [
-                    dict(zip([col[0] for col in self._cursor.description], row))
+                    dict(
+                        zip(
+                            [col[0] for col in self._cursor.description],
+                            row,
+                            strict=False,
+                        )
+                    )
                     for row in self._cursor.fetchall()
                 ]
 
                 results.append(
-                    QueryResult(rows=rows, affected_rows=self._cursor.rowcount, execution_time=0.0)
+                    QueryResult(
+                        rows=rows,
+                        affected_rows=self._cursor.rowcount,
+                        execution_time=0.0,
+                    )
                 )
 
             self._conn.commit()

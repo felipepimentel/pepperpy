@@ -1,3 +1,9 @@
-"""Core framework for PepperPy"""
+"""Core package exports."""
 
-__version__ = "0.1.0"
+from .base.module import InitializableModule
+from .validation import ValidatorFactory
+
+__all__ = [
+    "InitializableModule",
+    "ValidatorFactory",
+]

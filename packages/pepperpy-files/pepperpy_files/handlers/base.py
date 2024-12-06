@@ -1,65 +1,97 @@
-"""Base file handler module"""
+"""Base handler module."""
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, Generic, TypeVar
 
-from bko.files.config import FileHandlerConfig
-from bko.files.types import FileContent, FileMetadata
-
-T = TypeVar("T")  # Type for file content
+from ..base import FileHandlerConfig
+from ..exceptions import FileError
+from ..types import FileContent
 
 
-class BaseFileHandler(ABC, Generic[T]):
-    """Base class for file handlers"""
+class BaseHandler(ABC):
+    """Base class for file handlers."""
 
-    def __init__(self, config: FileHandlerConfig) -> None:
-        """Initialize handler"""
-        self.config = config
-        self._initialized = False
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler.
 
-    def _to_path(self, path: Path) -> Path:
-        """Convert path to absolute path"""
-        return path if path.is_absolute() else self.config.base_path / path
-
-    def _create_metadata(self, path: Path, size: int) -> FileMetadata:
-        """Create file metadata"""
-        return FileMetadata(
-            name=path.name,
-            mime_type=self._get_mime_type(path),
-            path=path,
-            type=self._get_file_type(path),
-            extension=path.suffix,
-            format=self._get_format(path),
-            size=size,
-        )
-
-    def _get_mime_type(self, path: Path) -> str:
-        """Get MIME type for file"""
-        return "application/octet-stream"
-
-    def _get_file_type(self, path: Path) -> str:
-        """Get file type"""
-        return "binary"
-
-    def _get_format(self, path: Path) -> str:
-        """Get file format"""
-        return path.suffix.lstrip(".")
+        Args:
+            config: Handler configuration
+        """
+        self.config = config or FileHandlerConfig()
 
     @abstractmethod
-    async def read(self, path: Path, **kwargs: Dict[str, Any]) -> FileContent[T]:
-        """Read file content"""
+    async def read(self, path: Path) -> FileContent:
+        """Read file content.
+
+        Args:
+            path: File path
+
+        Returns:
+            File content
+
+        Raises:
+            FileError: If file cannot be read
+        """
         raise NotImplementedError
 
     @abstractmethod
-    async def write(self, path: Path, content: FileContent[T], **kwargs: Dict[str, Any]) -> None:
-        """Write file content"""
+    async def write(self, content: FileContent, path: Path | None = None) -> None:
+        """Write file content.
+
+        Args:
+            content: File content
+            path: Optional path to write to (defaults to content.path)
+
+        Raises:
+            FileError: If file cannot be written
+        """
         raise NotImplementedError
 
-    async def initialize(self) -> None:
-        """Initialize handler"""
-        self._initialized = True
+    async def _read_file(self, path: Path) -> str:
+        """Read text file content.
 
-    async def cleanup(self) -> None:
-        """Cleanup handler"""
-        self._initialized = False
+        Args:
+            path: File path
+
+        Returns:
+            File content as string
+
+        Raises:
+            FileError: If file cannot be read
+        """
+        try:
+            if not path.exists():
+                raise FileError("File does not exist")
+
+            if not path.is_file():
+                raise FileError("Path is not a file")
+
+            if path.stat().st_size > self.config.max_file_size:
+                raise FileError("File is too large")
+
+            return path.read_text(encoding=self.config.encoding)
+
+        except Exception as e:
+            raise FileError(f"Failed to read file: {e}") from e
+
+    async def _write_file(self, path: Path, content: str | bytes) -> None:
+        """Write file content.
+
+        Args:
+            path: File path
+            content: Content to write (string or bytes)
+
+        Raises:
+            FileError: If file cannot be written
+        """
+        try:
+            if not path.parent.exists():
+                path.parent.mkdir(parents=True)
+
+            if isinstance(content, str):
+                path.write_text(content, encoding=self.config.encoding)
+            else:
+                path.write_bytes(content)
+
+        except Exception as e:
+            raise FileError(f"Failed to write file: {e}") from e

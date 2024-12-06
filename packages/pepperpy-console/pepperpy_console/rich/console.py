@@ -1,59 +1,66 @@
-"""Rich console implementation"""
+"""Rich console implementation."""
 
-from typing import Any, Literal
+from dataclasses import dataclass, field
+from typing import Any, Literal, TextIO
 
-from rich.console import Console as RichConsoleBase
+from rich.console import Console as RichConsole
 
-from ..base import Console
-from .config import RichConfig
+from ..base.console import BaseConsole
 
-# Define os tipos válidos de color_system
-ColorSystemType = Literal["auto", "standard", "256", "truecolor", "windows"] | None
+# Define valid color system types
+ColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 
 
-class RichConsole(Console):
-    """Rich console implementation"""
+@dataclass
+class ConsoleConfig:
+    """Console configuration."""
 
-    def __init__(self, config: RichConfig | None = None):
-        super().__init__(config or RichConfig())
-        self._setup_console()
+    style: str = "default"
+    width: int | None = None
+    height: int | None = None
+    color_system: ColorSystem = "auto"
+    stderr: bool = False
+    file: TextIO | None = None
+    quiet: bool = False
+    markup: bool = True
+    emoji: bool = True
+    highlight: bool = True
+    record: bool = False
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def _setup_console(self) -> None:
-        """Setup rich console with config"""
-        config = self.config
-        if not isinstance(config, RichConfig):
-            config = RichConfig()
 
-        color_system: ColorSystemType = "auto"  # valor padrão
+class Console(BaseConsole):
+    """Rich console implementation."""
 
-        # Converte o valor da config para um tipo válido se possível
-        if config.color_system in ("auto", "standard", "256", "truecolor", "windows"):
-            color_system = config.color_system  # type: ignore
-
-        self._console = RichConsoleBase(
-            style=config.style,
-            highlight=config.highlight,
-            markup=config.markup,
-            emoji=config.emoji,
-            color_system=color_system,
-            width=config.width,
-            height=config.height,
-            tab_size=config.tab_size,
-            soft_wrap=config.soft_wrap,
+    def __init__(self, config: ConsoleConfig | None = None) -> None:
+        """Initialize console."""
+        super().__init__()
+        self.config = config or ConsoleConfig()
+        self._console = RichConsole(
+            stderr=self.config.stderr,
+            file=self.config.file,
+            color_system=self.config.color_system,
+            record=self.config.record,
+            markup=self.config.markup,
+            emoji=self.config.emoji,
+            highlight=self.config.highlight,
+            width=self.config.width,
+            height=self.config.height,
         )
 
     def print(self, *args: Any, **kwargs: Any) -> None:
-        """Print with rich formatting"""
-        self._console.print(*args, **kwargs)
+        """Print to console."""
+        style = kwargs.pop("style", self.config.style)
+        self._console.print(*args, style=style, **kwargs)
 
     def clear(self) -> None:
-        """Clear console"""
+        """Clear console."""
         self._console.clear()
 
-    def rule(self, title: str = "", **kwargs: Any) -> None:
-        """Print horizontal rule"""
-        self._console.rule(title, **kwargs)
+    def get_width(self) -> int:
+        """Get console width."""
+        return self._console.width or 80
 
-    def print_json(self, data: Any, **kwargs: Any) -> None:
-        """Print JSON data"""
-        self._console.print_json(data, **kwargs)
+    def get_height(self) -> int:
+        """Get console height."""
+        return self._console.height or 24

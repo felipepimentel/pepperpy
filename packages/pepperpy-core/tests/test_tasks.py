@@ -3,7 +3,9 @@
 from uuid import UUID
 
 import pytest
-from pepperpy_core.tasks import TaskManager, TaskStatus
+
+from pepperpy_core.tasks.manager import TaskManager
+from pepperpy_core.tasks.status import TaskStatus
 
 
 @pytest.fixture
@@ -14,7 +16,9 @@ def task_manager() -> TaskManager:
 
 async def test_task_creation(task_manager: TaskManager) -> None:
     """Test task creation"""
-    task = await task_manager.create_task("test_task", lambda: "result", test_meta="value")
+    task = await task_manager.create_task(
+        "test_task", lambda: "result", test_meta="value"
+    )
     assert isinstance(task.id, UUID)
     assert task.name == "test_task"
     assert task.status == TaskStatus.PENDING

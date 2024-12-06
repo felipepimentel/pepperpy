@@ -1,44 +1,42 @@
-"""AI client implementation"""
+"""AI client protocol definition."""
 
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Protocol, runtime_checkable
 
-from bko.core.module import BaseModule
-
-from .config.client import AIConfig
-from .types import AIMessage, AIResponse, MessageRole
+from .ai_types import AIResponse
+from .config import AIConfig
 
 
-class AIClient(BaseModule[AIConfig]):
-    """AI client implementation"""
+@runtime_checkable
+class AIClient(Protocol):
+    """AI client protocol."""
 
-    def __init__(self, config: AIConfig) -> None:
-        super().__init__(config)
-        self._provider = None
+    @property
+    def config(self) -> AIConfig:
+        """Get client configuration."""
+        ...
 
-    async def _initialize(self) -> None:
-        """Initialize client"""
-        # Implementar inicialização real
-        pass
+    @property
+    def is_initialized(self) -> bool:
+        """Check if client is initialized."""
+        ...
 
-    async def _cleanup(self) -> None:
-        """Cleanup client resources"""
-        # Implementar limpeza real
-        pass
+    async def initialize(self) -> None:
+        """Initialize client."""
+        ...
 
-    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Complete prompt"""
-        self._ensure_initialized()
-        # Implementar completação real
-        return AIResponse(content="", messages=[AIMessage(role=MessageRole.ASSISTANT, content="")])
+    async def cleanup(self) -> None:
+        """Cleanup client resources."""
+        ...
 
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream completions"""
-        self._ensure_initialized()
-        # Implementar streaming real
-        yield AIResponse(content="", messages=[AIMessage(role=MessageRole.ASSISTANT, content="")])
+    async def complete(self, prompt: str) -> AIResponse:
+        """Complete prompt."""
+        ...
+
+    async def stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses."""
+        ...
 
     async def get_embedding(self, text: str) -> list[float]:
-        """Get text embedding"""
-        self._ensure_initialized()
-        # Implementar embedding real
-        return []
+        """Get embedding for text."""
+        ...

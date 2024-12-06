@@ -1,23 +1,30 @@
 """Text file handler implementation"""
 
 from pathlib import Path
-from typing import Optional
 
+from ..base import BaseHandler, FileHandlerConfig
+from ..enums import FileType
 from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler, FileHandlerConfig
+from ..types import FileContent, FileMetadata
 
 
-class TextFileHandler(BaseFileHandler[str]):
+class TextError(FileError):
+    """Text specific error"""
+
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
+        super().__init__(message)
+        self.cause = cause
+
+
+class TextHandler(BaseHandler):
     """Text file handler implementation"""
 
     def __init__(self) -> None:
         """Initialize handler"""
         super().__init__(
             config=FileHandlerConfig(
-                base_path=Path("."),
-                allowed_extensions={".txt", ".log", ".csv", ".tsv"},
-                max_file_size=50 * 1024 * 1024,  # 50MB
+                allowed_extensions=self._convert_extensions([".txt", ".md", ".rst"]),
+                max_file_size=10 * 1024 * 1024,  # 10MB
                 metadata={
                     "type": FileType.TEXT,
                     "mime_type": "text/plain",
@@ -26,8 +33,15 @@ class TextFileHandler(BaseFileHandler[str]):
         )
         self._initialized = True
 
-    def _to_path(self, file: PathLike) -> Path:
-        """Convert PathLike to Path"""
+    def _to_path(self, file: str | Path) -> Path:
+        """Convert to Path object.
+
+        Args:
+            file: Path-like object to convert
+
+        Returns:
+            Converted Path object
+        """
         return Path(file) if isinstance(file, str) else file
 
     def _get_mime_type(self, path: Path) -> str:
@@ -40,60 +54,55 @@ class TextFileHandler(BaseFileHandler[str]):
 
     def _get_format(self, path: Path) -> str:
         """Get file format"""
-        return path.suffix[1:]
+        return path.suffix.lstrip(".")
 
     def _validate_path(self, path: Path) -> None:
         """Validate file path"""
         if not path.exists():
-            raise FileError(f"File not found: {path}")
+            raise TextError(f"File not found: {path}")
         if not path.is_file():
-            raise FileError(f"Not a file: {path}")
+            raise TextError(f"Not a file: {path}")
         if path.suffix not in self.config.allowed_extensions:
-            raise FileError(f"Invalid file extension: {path.suffix}")
+            raise TextError(f"Invalid file extension: {path.suffix}")
 
     def _validate_size(self, path: Path) -> None:
         """Validate file size"""
         size = path.stat().st_size
         if size > self.config.max_file_size:
-            raise FileError(
+            raise TextError(
                 f"File size ({size} bytes) exceeds limit ({self.config.max_file_size} bytes)"
             )
 
-    async def read(self, file: PathLike, encoding: str = "utf-8") -> FileContent[str]:
+    async def read(self, file: str | Path) -> FileContent:
         """Read text file"""
         try:
             path = self._to_path(file)
             self._validate_path(path)
             self._validate_size(path)
 
-            with open(path, "r", encoding=encoding) as f:
-                content = f.read()
+            content = path.read_text(encoding=self.config.encoding)
 
-            metadata = self._create_metadata(
-                path=path,
-                size=len(content.encode(encoding)),  # Tamanho em bytes do conteúdo codificado
+            file_metadata = FileMetadata(
+                name=path.name,
+                mime_type=self._get_mime_type(path),
+                size=len(content.encode()),
+                format=self._get_format(path),
+                additional_metadata={},
             )
 
-            return FileContent(content=content, metadata=metadata)
-        except UnicodeError as e:
-            raise FileError(f"Invalid text encoding: {e}", cause=e)
+            return FileContent(path=path, content=content, metadata=file_metadata)
         except Exception as e:
-            raise FileError(f"Failed to read text file: {e}", cause=e)
+            raise TextError(f"Failed to read text file: {e}", cause=e)
 
-    async def write(self, content: str, output: PathLike, encoding: Optional[str] = None) -> None:
+    async def write(self, content: str, output: str | Path) -> None:
         """Write text file"""
         try:
             path = self._to_path(output)
             self._validate_path(path.parent)
 
-            file_encoding = encoding or "utf-8"
-
-            with open(path, "w", encoding=file_encoding) as f:
-                f.write(content)
-        except UnicodeError as e:
-            raise FileError(f"Invalid text encoding: {e}", cause=e)
+            path.write_text(content, encoding=self.config.encoding)
         except Exception as e:
-            raise FileError(f"Failed to write text file: {e}", cause=e)
+            raise TextError(f"Failed to write text file: {e}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup resources"""

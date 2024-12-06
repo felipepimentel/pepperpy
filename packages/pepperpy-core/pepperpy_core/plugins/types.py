@@ -1,32 +1,33 @@
-"""Plugin type definitions"""
+"""Plugin type definitions."""
 
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Any, Protocol, TypeVar
 
-from bko.core.types import JsonDict
-
-
-@dataclass
-class PluginConfig:
-    """Plugin configuration"""
-
-    name: str
-    enabled: bool = True
-    auto_load: bool = True
-    metadata: JsonDict = field(default_factory=dict)
+T = TypeVar("T")
 
 
-class Plugin(Protocol):
-    """Plugin protocol"""
+class PluginProtocol(Protocol):
+    """Plugin protocol definition."""
 
     async def initialize(self) -> None:
-        """Initialize plugin"""
-        ...
-
-    async def execute(self, **kwargs: Any) -> Any:
-        """Execute plugin"""
+        """Initialize plugin."""
         ...
 
     async def cleanup(self) -> None:
-        """Cleanup plugin resources"""
+        """Cleanup plugin."""
         ...
+
+    async def execute(self, **kwargs: Any) -> Any:
+        """Execute plugin functionality."""
+        ...
+
+
+@dataclass
+class PluginMetadata:
+    """Plugin metadata."""
+
+    name: str
+    version: str
+    description: str = ""
+    author: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)

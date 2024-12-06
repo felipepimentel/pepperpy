@@ -1,75 +1,105 @@
-"""Sentence Transformers embedding provider"""
+"""Sentence Transformers embedding provider."""
 
-from typing import List, Optional, Sequence
+from typing import Any, cast
 
-from pydantic import BaseModel, ConfigDict, Field
-from sentence_transformers import SentenceTransformer
-
-from ...base.types import JsonDict
-from ...exceptions import AIError
 from ..base import EmbeddingProvider
 
+# Define module-level variables
+_have_sentence_transformers = False
+_sentence_transformers = None
+_SentenceTransformer: type[Any] | None = None
 
-class SentenceTransformersConfig(BaseModel):
-    """Sentence Transformers configuration"""
+try:
+    import sentence_transformers  # type: ignore
+    from sentence_transformers import SentenceTransformer  # type: ignore
 
-    model_name: str = Field(default="all-MiniLM-L6-v2")
-    device: str = Field(default="cpu")
-    batch_size: int = Field(default=32, gt=0)
-    normalize_embeddings: bool = Field(default=True)
-    metadata: JsonDict = Field(default_factory=dict)
-    model_config = ConfigDict(frozen=True)
+    _sentence_transformers = sentence_transformers
+    _SentenceTransformer = SentenceTransformer
+    _have_sentence_transformers = True
+except ImportError:
+    pass
 
 
-class SentenceTransformersProvider(EmbeddingProvider[SentenceTransformersConfig]):
-    """Sentence Transformers provider implementation"""
+class SentenceTransformersProvider(EmbeddingProvider):
+    """Sentence Transformers embedding provider."""
 
-    def __init__(self, config: SentenceTransformersConfig) -> None:
+    def __init__(self, config: Any) -> None:
+        """Initialize provider."""
         super().__init__(config)
-        self._model: Optional[SentenceTransformer] = None
+        self._model: Any | None = None
 
-    async def _initialize(self) -> None:
-        """Initialize provider"""
-        try:
-            self._model = SentenceTransformer(
-                self.config.model_name,
-                device=self.config.device,
+    async def _setup(self) -> None:
+        """Setup provider resources.
+
+        Raises:
+            ImportError: If sentence-transformers is not installed
+            RuntimeError: If model initialization fails
+        """
+        if not _have_sentence_transformers or _SentenceTransformer is None:
+            raise ImportError(
+                "sentence-transformers package not installed. "
+                "Please install it with: pip install sentence-transformers"
             )
-        except Exception as e:
-            raise AIError("Failed to initialize SentenceTransformer", cause=e)
 
-    async def _cleanup(self) -> None:
-        """Cleanup provider"""
+        try:
+            model_name = self.config.settings["model_name"]
+            device = self.config.settings.get("device", "cpu")
+            model_class = cast(type[Any], _SentenceTransformer)
+            self._model = model_class(model_name_or_path=model_name, device=device)
+        except (AttributeError, ImportError) as e:
+            raise RuntimeError(
+                "Failed to initialize SentenceTransformer model. "
+                "Please ensure you have the correct version installed."
+            ) from e
+
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
         self._model = None
 
-    async def embed(self, text: str) -> List[float]:
-        """Get embedding for text"""
-        self._ensure_initialized()
-        if not self._model:
-            raise AIError("Model not initialized")
+    async def embed(self, text: str) -> list[float]:
+        """Generate embedding for text.
 
-        try:
-            embedding = self._model.encode(
-                [text],
-                batch_size=self.config.batch_size,
-                normalize_embeddings=self.config.normalize_embeddings,
-            )[0]
-            return embedding.tolist()
-        except Exception as e:
-            raise AIError("Failed to generate embedding", cause=e)
+        Args:
+            text: Text to embed
 
-    async def embed_batch(self, texts: Sequence[str]) -> List[List[float]]:
-        """Get embeddings for multiple texts"""
-        self._ensure_initialized()
-        if not self._model:
-            raise AIError("Model not initialized")
+        Returns:
+            Embedding vector
 
-        try:
-            embeddings = self._model.encode(
-                texts,
-                batch_size=self.config.batch_size,
-                normalize_embeddings=self.config.normalize_embeddings,
-            )
-            return embeddings.tolist()
-        except Exception as e:
-            raise AIError("Failed to generate embeddings", cause=e)
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        if not self.is_initialized or not self._model:
+            raise RuntimeError("Provider not initialized")
+
+        # Generate embedding
+        embedding = self._model.encode(
+            text,
+            batch_size=self.config.settings.get("batch_size", 32),
+            normalize_embeddings=self.config.settings.get("normalize_embeddings", True),
+        )
+
+        return cast(list[float], embedding.tolist())
+
+    async def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        """Generate embeddings for multiple texts.
+
+        Args:
+            texts: Texts to embed
+
+        Returns:
+            List of embedding vectors
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        if not self.is_initialized or not self._model:
+            raise RuntimeError("Provider not initialized")
+
+        # Generate embeddings
+        embeddings = self._model.encode(
+            texts,
+            batch_size=self.config.settings.get("batch_size", 32),
+            normalize_embeddings=self.config.settings.get("normalize_embeddings", True),
+        )
+
+        return cast(list[list[float]], embeddings.tolist())

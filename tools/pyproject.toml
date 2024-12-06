@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "pepperpy-tools"
+version = "0.1.0"
+description = "Development tools for PepperPy"
+authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+prometheus-client = "^0.19.0"
+pydantic = "^2.0.0"
+sqlalchemy = "^2.0.0"
+asyncpg = "^0.29.0"
+Pillow = "^10.0.0"
+pandas = "^2.0.0"
+numpy = "^1.24.0"
+pydub = "^0.25.1"
+networkx = "^3.0.0"
+nox = "^2024.0.0"
+pepperpy-core = {path = "../packages/pepperpy-core", develop = true}
+pepperpy-db = {path = "../packages/pepperpy-db", develop = true}
+pepperpy-console = {path = "../packages/pepperpy-console", develop = true}
+pepperpy-files = {path = "../packages/pepperpy-files", develop = true}
+pepperpy-ai = {path = "../packages/pepperpy-ai", develop = true}
+pepperpy-codebase = {path = "../packages/pepperpy-codebase", develop = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api" 

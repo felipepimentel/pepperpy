@@ -1,57 +1,105 @@
-"""Configuration file handler implementation"""
+"""Configuration file handler implementation."""
 
-import json
 from pathlib import Path
+from typing import Any, cast
 
+from ..base import BaseHandler, FileHandlerConfig
 from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler
+from ..types import FileContent, FileMetadata
 
 
-class ConfigHandler(BaseFileHandler[dict]):
-    """Handler for configuration files"""
+class ConfigError(FileError):
+    """Configuration specific error."""
 
-    def _to_path(self, file: PathLike) -> Path:
-        """Convert PathLike to Path"""
-        return Path(file) if isinstance(file, str) else file
 
-    def _get_mime_type(self, path: Path) -> str:
-        """Get MIME type for file"""
-        return "application/json"
+class ConfigHandler(BaseHandler):
+    """Handler for configuration file operations."""
 
-    def _get_file_type(self, path: Path) -> str:
-        """Get file type"""
-        return FileType.CONFIG
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler.
 
-    def _get_format(self, path: Path) -> str:
-        """Get file format"""
-        return "json"
+        Args:
+            config: Optional handler configuration
+        """
+        super().__init__(
+            config
+            or FileHandlerConfig(
+                allowed_extensions=self._convert_extensions(
+                    [".json", ".yaml", ".toml", ".ini"]
+                ),
+                max_file_size=1 * 1024 * 1024,  # 1MB
+                metadata={"mime_type": "application/json"},
+            )
+        )
+        self._initialized = False
 
-    async def read(self, file: PathLike) -> FileContent[dict]:
-        """Read configuration file"""
+    async def read(self, path: Path) -> FileContent:
+        """Read configuration file content.
+
+        Args:
+            path: Path to configuration file
+
+        Returns:
+            Configuration content
+
+        Raises:
+            ConfigError: If file cannot be read
+        """
         try:
-            path = self._to_path(file)
-            with open(path, "r", encoding="utf-8") as f:
-                content = json.load(f)
+            if not path.exists():
+                raise ConfigError(f"File does not exist: {path}")
 
-            metadata = self._create_metadata(
-                path=path,
-                size=len(json.dumps(content)),  # Usando dumps para obter o tamanho real do JSON
+            if not self._initialized:
+                raise RuntimeError("Handler not initialized")
+
+            with open(path, encoding="utf-8") as f:
+                content = f.read()
+
+            metadata = FileMetadata(
+                name=path.name,
+                mime_type="application/json",
+                size=path.stat().st_size,
+                format=path.suffix.lstrip("."),
             )
 
-            return FileContent(content=content, metadata=metadata)
+            return FileContent(path=path, content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to read config file: {e}", cause=e)
+            raise ConfigError(f"Failed to read configuration file: {e}") from e
 
-    async def write(self, content: dict, output: PathLike) -> None:
-        """Write configuration file"""
+    async def write(self, content: FileContent, path: Path | None = None) -> None:
+        """Write configuration file content.
+
+        Args:
+            content: Configuration content to write
+            path: Optional path to write to
+
+        Raises:
+            ConfigError: If file cannot be written
+        """
         try:
-            path = self._to_path(output)
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(content, f, indent=2)
+            target = path or content.path
+            if not self._initialized:
+                raise RuntimeError("Handler not initialized")
+
+            # Handle different content types
+            raw_content = content.content
+            if isinstance(raw_content, bytes):
+                text_content = raw_content.decode("utf-8")
+            elif isinstance(raw_content, (bytearray, memoryview)):
+                text_content = bytes(raw_content).decode("utf-8")
+            else:
+                text_content = cast(str, raw_content)
+
+            with open(target, "w", encoding="utf-8") as f:
+                f.write(text_content)
         except Exception as e:
-            raise FileError(f"Failed to write config file: {e}", cause=e)
+            raise ConfigError(f"Failed to write configuration file: {e}") from e
 
     async def cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
+        """Cleanup resources."""
+        self._initialized = False
+
+    def _validate_content(self, content: Any) -> None:
+        """Validate configuration content."""
+        if not isinstance(content, str | bytes):
+            raise ValueError("Content must be string or bytes")

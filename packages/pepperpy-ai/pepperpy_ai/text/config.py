@@ -1,29 +1,35 @@
-"""Text processor configuration"""
+"""Text processing configuration."""
 
-from typing import Any, Dict
+from dataclasses import dataclass, field
 
-from pydantic import BaseModel, ConfigDict, Field
-
-
-class TextProcessorConfig(BaseModel):
-    """Configuration for text processor"""
-
-    model_config = ConfigDict(frozen=True)
-
-    language: str = Field(default="en", description="Default language for text processing")
-    min_length: int = Field(default=10, gt=0, description="Minimum text length")
-    max_length: int = Field(default=1000, gt=0, description="Maximum text length")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+from ..types import JsonDict
 
 
-class TextAnalyzerConfig(TextProcessorConfig):
-    """Configuration for text analyzer"""
+@dataclass
+class ProcessorConfig:
+    """Base text processor configuration."""
 
-    pass
+    name: str
+    enabled: bool = True
+    settings: JsonDict = field(default_factory=dict)
+    metadata: JsonDict = field(default_factory=dict)
 
 
-class TextChunkerConfig(TextProcessorConfig):
-    """Configuration for text chunker"""
+@dataclass
+class ChunkerConfig(ProcessorConfig):
+    """Text chunker configuration."""
 
-    chunk_size: int = Field(default=500, gt=0, description="Size of each chunk")
-    overlap: int = Field(default=50, ge=0, description="Overlap between chunks")
+    chunk_size: int = 1000
+    overlap: int = 200
+    min_chunk_size: int | None = None
+    max_chunk_size: int | None = None
+
+
+@dataclass
+class AnalyzerConfig(ProcessorConfig):
+    """Text analyzer configuration."""
+
+    min_length: int = 10
+    max_length: int = 100000
+    language: str | None = None
+    complexity_threshold: float = 0.5

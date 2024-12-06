@@ -1,79 +1,52 @@
-"""Panel component for content framing"""
+"""Panel component implementation."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from rich.box import ASCII, DOUBLE, HEAVY, ROUNDED, SQUARE  # Importar os estilos de borda do Rich
-from rich.panel import Panel as RichPanel
-
-from .base import Component
-
-# Definir tipos literais para estilos de borda válidos
-BorderStyle = Literal[
-    "none",
-    "hidden",
-    "ascii",
-    "square",
-    "heavy",
-    "double",
-    "rounded",  # Mantemos "rounded" na nossa API
-]
+from ..base.component import BaseComponent
 
 
 @dataclass
 class PanelConfig:
-    """Panel configuration"""
+    """Panel configuration."""
 
     title: str = ""
-    subtitle: str = ""
-    style: str = "none"
-    border_style: BorderStyle = "square"
+    border_style: Literal["single", "double", "rounded", "none"] = "single"
     padding: tuple[int, int] = (1, 1)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Validate configuration."""
+        valid_styles = ["single", "double", "rounded", "none"]
+        if self.border_style not in valid_styles:
+            raise ValueError(
+                f"Invalid border style: {self.border_style}. "
+                f"Must be one of: {', '.join(valid_styles)}"
+            )
 
 
-class Panel(Component):
-    """Panel component for framing content"""
+class Panel(BaseComponent):
+    """Panel component."""
 
-    def __init__(self, content: Any, config: PanelConfig | None = None):
+    def __init__(self, config: PanelConfig | None = None) -> None:
+        """Initialize panel."""
         super().__init__()
-        self.content = content
         self.config = config or PanelConfig()
 
     async def initialize(self) -> None:
-        """Initialize panel"""
+        """Initialize panel."""
         await super().initialize()
-        if isinstance(self.content, Component):
-            await self.content.initialize()
 
     async def render(self) -> Any:
-        """Render panel"""
+        """Render panel."""
         await super().render()
-        content = (
-            await self.content.render() if isinstance(self.content, Component) else self.content
-        )
-
-        # Mapear nossos estilos de borda para os estilos do Rich
-        box_style = {
-            "none": None,
-            "hidden": None,
-            "ascii": ASCII,
-            "square": SQUARE,
-            "heavy": HEAVY,
-            "double": DOUBLE,
-            "rounded": ROUNDED,
-        }[self.config.border_style]
-
-        return RichPanel(
-            content,
-            title=self.config.title,
-            subtitle=self.config.subtitle,
-            style=self.config.style,
-            box=box_style,  # Usar box ao invés de border_style
-            padding=self.config.padding,
-        )
+        # TODO: Implement actual rendering with rich.Panel
+        return {
+            "title": self.config.title,
+            "border_style": self.config.border_style,
+            "padding": self.config.padding,
+        }
 
     async def cleanup(self) -> None:
-        """Cleanup panel resources"""
-        if isinstance(self.content, Component):
-            await self.content.cleanup()
+        """Cleanup panel."""
         await super().cleanup()

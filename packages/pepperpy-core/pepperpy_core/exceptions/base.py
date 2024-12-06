@@ -1,27 +1,45 @@
-"""Base exceptions"""
-
-from typing import Any, Optional
+"""Base exceptions for pepperpy-core."""
 
 
-class PepperPyError(Exception):
-    """Base exception for all framework errors"""
+class PepperpyError(Exception):
+    """Base exception for all pepperpy errors."""
 
-    def __init__(self, message: str, cause: Optional[Exception] = None, **metadata: Any) -> None:
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
+        """Initialize exception.
+
+        Args:
+            message: Error message
+            cause: Original exception that caused this error
+        """
         super().__init__(message)
         self.cause = cause
-        self.metadata = metadata
-
-    def __str__(self) -> str:
-        if self.cause:
-            return f"{super().__str__()} (caused by: {self.cause})"
-        return super().__str__()
 
 
-class ValidationError(PepperPyError):
-    """Validation error"""
+class ConfigError(PepperpyError):
+    """Configuration error."""
+
+    pass
 
 
-__all__ = [
-    "PepperPyError",
-    "ValidationError",
-]
+class ValidationError(PepperpyError):
+    """Validation error."""
+
+    pass
+
+
+class ResourceError(PepperpyError):
+    """Resource error."""
+
+    pass
+
+
+class StateError(PepperpyError):
+    """State error."""
+
+    pass
+
+
+class InitializationError(PepperpyError):
+    """Initialization error."""
+
+    pass

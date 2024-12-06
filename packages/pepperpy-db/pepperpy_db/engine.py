@@ -1,85 +1,110 @@
-"""Database engine implementation"""
+"""Database engine module."""
 
-from typing import Any, AsyncGenerator, Dict, Optional
+import time
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from typing import Any, cast
 
-import asyncpg
-from asyncpg import Connection, Pool
-
-from ..module import BaseModule
-from .config import DatabaseConfig
-from .types import DatabaseError, QueryResult
+from pepperpy_core.exceptions import PepperpyError
+from sqlalchemy import text
+from sqlalchemy.engine import CursorResult, Engine
+from sqlalchemy.orm import Session
 
 
-class DatabaseEngine(BaseModule[DatabaseConfig]):
-    """Database engine implementation"""
+class DatabaseError(PepperpyError):
+    """Database specific error."""
 
-    def __init__(self, config: DatabaseConfig) -> None:
-        super().__init__(config)
-        self._pool: Optional[Pool] = None
+    pass
 
-    async def _initialize(self) -> None:
-        """Initialize database engine"""
+
+@dataclass
+class QueryResult:
+    """Query result data."""
+
+    rows: Sequence[dict[str, Any]]
+    affected_rows: int
+    execution_time: float
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class DatabaseEngine:
+    """Database engine implementation."""
+
+    def __init__(self, engine: Engine) -> None:
+        """Initialize database engine."""
+        self._engine = engine
+        self._session: Session | None = None
+
+    async def connect(self) -> None:
+        """Connect to database."""
+        if not self._session:
+            self._session = Session(self._engine)
+
+    async def disconnect(self) -> None:
+        """Disconnect from database."""
+        if self._session:
+            self._session.close()
+            self._session = None
+
+    async def execute(
+        self, query: str, params: dict[str, Any] | None = None
+    ) -> QueryResult:
+        """Execute query."""
         try:
-            self._pool = await asyncpg.create_pool(
-                host=self.config.host,
-                port=self.config.port,
-                database=self.config.database,
-                user=self.config.username,
-                password=self.config.password,
-                min_size=1,
-                max_size=self.config.pool_size,
-                command_timeout=self.config.timeout,
-                ssl=self.config.ssl_enabled,
-                **self.config.options,
+            if not self._session:
+                raise DatabaseError("Not connected to database")
+
+            start_time = time.perf_counter()
+            # Convert SQL string to executable
+            stmt = text(query)
+            # Use bind parameters instead of direct dict
+            result = self._session.execute(stmt, params or {})
+            # Cast result to CursorResult to access rowcount
+            cursor_result = cast(CursorResult[Any], result)
+            execution_time = time.perf_counter() - start_time
+
+            rows = [dict(row._mapping) for row in result.fetchall()]
+
+            return QueryResult(
+                rows=rows,
+                affected_rows=cursor_result.rowcount,
+                execution_time=execution_time,
             )
+
         except Exception as e:
-            raise DatabaseError("Failed to initialize database engine", cause=e)
+            raise DatabaseError(f"Query execution failed: {str(e)}")
 
-    async def _cleanup(self) -> None:
-        """Cleanup database engine"""
-        if self._pool:
-            await self._pool.close()
-            self._pool = None
-
-    async def execute(self, query: str, params: Optional[Dict[str, Any]] = None) -> QueryResult:
-        """Execute database query"""
-        self._ensure_initialized()
-        if not self._pool:
-            raise DatabaseError("Database pool not initialized")
-
+    async def execute_many(
+        self, query: str, params_list: Sequence[dict[str, Any]]
+    ) -> QueryResult:
+        """Execute multiple queries."""
         try:
-            async with self._pool.acquire() as conn:
-                result = await conn.fetch(query, *(params or {}).values())
-                return QueryResult(rows=[dict(row) for row in result], count=len(result))
-        except Exception as e:
-            raise DatabaseError(f"Query execution failed: {e}", cause=e)
+            if not self._session:
+                raise DatabaseError("Not connected to database")
 
-    async def stream(
-        self, query: str, params: Optional[Dict[str, Any]] = None, batch_size: int = 1000
-    ) -> AsyncGenerator[QueryResult, None]:
-        """Stream query results"""
-        self._ensure_initialized()
-        if not self._pool:
-            raise DatabaseError("Database pool not initialized")
+            start_time = time.perf_counter()
+            # Convert SQL string to executable
+            stmt = text(query)
+            # Execute with sequence of parameters
+            result = self._session.execute(stmt, [dict(p) for p in params_list])
+            # Cast result to CursorResult to access rowcount
+            cursor_result = cast(CursorResult[Any], result)
+            execution_time = time.perf_counter() - start_time
 
-        try:
-            async with self._pool.acquire() as conn:
-                async for batch in self._stream_results(conn, query, params, batch_size):
-                    yield batch
-        except Exception as e:
-            raise DatabaseError(f"Query streaming failed: {e}", cause=e)
+            return QueryResult(
+                rows=[],  # executemany doesn't return rows
+                affected_rows=cursor_result.rowcount,
+                execution_time=execution_time,
+            )
 
-    async def _stream_results(
-        self, conn: Connection, query: str, params: Optional[Dict[str, Any]], batch_size: int
-    ) -> AsyncGenerator[QueryResult, None]:
-        """Stream results in batches"""
-        try:
-            async with conn.transaction():
-                cursor = await conn.cursor(query, *(params or {}).values())
-                while True:
-                    rows = await cursor.fetch(batch_size)
-                    if not rows:
-                        break
-                    yield QueryResult(rows=[dict(row) for row in rows], count=len(rows))
         except Exception as e:
-            raise DatabaseError(f"Result streaming failed: {e}", cause=e)
+            raise DatabaseError(f"Batch query execution failed: {str(e)}")
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get database engine statistics."""
+        return {
+            "connected": self._session is not None,
+            "engine_url": str(self._engine.url),
+            # Access pool size safely
+            "pool_size": getattr(self._engine.pool, "_size", None),
+        }

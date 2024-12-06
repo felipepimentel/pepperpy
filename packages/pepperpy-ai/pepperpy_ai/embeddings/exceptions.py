@@ -1,12 +1,12 @@
 """Embedding exceptions module"""
 
-from typing import Any, Optional
+from typing import Any
 
 
 class EmbeddingError(Exception):
     """Base exception for embedding errors"""
 
-    def __init__(self, message: str, cause: Optional[Exception] = None) -> None:
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
         """Initialize embedding error
 
         Args:
@@ -23,7 +23,7 @@ class EmbeddingError(Exception):
         return self._message
 
     @property
-    def cause(self) -> Optional[Exception]:
+    def cause(self) -> Exception | None:
         """Get original exception"""
         return self._cause
 

@@ -2,92 +2,89 @@
 
 from pathlib import Path
 
-from bko.files.exceptions import FileError
-from bko.files.types import FileContent, FileType, PathLike
+from ..base import BaseHandler, FileHandlerConfig
+from ..enums import FileType
+from ..exceptions import FileError
+from ..types import FileContent, FileMetadata
 
-from .base import BaseFileHandler
+
+class BinaryError(FileError):
+    """Binary file specific error"""
 
 
-class BinaryFileHandler(BaseFileHandler[bytes]):
-    """Binary file handler implementation"""
+class BinaryHandler(BaseHandler):
+    """Handler for binary files"""
 
-    def _ensure_initialized(self) -> None:
-        """Ensure handler is initialized"""
-        if not self._initialized:
-            raise RuntimeError("Handler is not initialized")
-
-    def _validate_path(self, path: Path) -> None:
-        """Validate file path.
-
-        Args:
-            path: Path to validate
-
-        Raises:
-            FileError: If path is invalid
-        """
-        if not path.exists():
-            raise FileError(f"File not found: {path}")
-        if not path.is_file():
-            raise FileError(f"Not a file: {path}")
-        if path.suffix not in self.config.allowed_extensions:
-            raise FileError(f"Invalid file extension: {path.suffix}")
-
-    def _validate_size(self, path: Path) -> None:
-        """Validate file size.
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler
 
         Args:
-            path: Path to validate
-
-        Raises:
-            FileError: If file size exceeds limit
+            config: Optional handler configuration
         """
-        size = path.stat().st_size
-        if size > self.config.max_file_size:
-            raise FileError(
-                f"File size ({size} bytes) exceeds limit ({self.config.max_file_size} bytes)"
+        super().__init__(
+            config
+            or FileHandlerConfig(
+                allowed_extensions=self._convert_extensions([".bin", ".dat"]),
+                encoding="binary",
+                max_file_size=100 * 1024 * 1024,  # 100MB
+                metadata={
+                    "type": FileType.BINARY,
+                    "mime_type": "application/octet-stream",
+                },
             )
+        )
 
-    async def read(self, file: PathLike) -> FileContent[bytes]:
-        """Read binary file"""
-        self._ensure_initialized()
+    async def read(self, path: Path) -> FileContent:
+        """Read binary file
+
+        Args:
+            path: Path to binary file
+
+        Returns:
+            Binary file content
+
+        Raises:
+            BinaryError: If file cannot be read
+        """
         try:
-            path = Path(file) if isinstance(file, str) else file
-            self._validate_path(path)
-            self._validate_size(path)
+            if not path.exists():
+                raise BinaryError(f"File not found: {path}")
 
-            content = path.read_bytes()
-            metadata = self._create_metadata(path=path, size=len(content))
-            return FileContent(content=content, metadata=metadata)
+            if not path.is_file():
+                raise BinaryError(f"Not a file: {path}")
 
-        except Exception as e:
-            raise FileError(f"Failed to read binary file: {e}", cause=e)
-
-    async def write(self, content: bytes, output: PathLike) -> None:
-        """Write binary file"""
-        self._ensure_initialized()
-        try:
-            path = Path(output) if isinstance(output, str) else output
-            self._validate_path(path.parent)
-
-            if len(content) > self.config.max_file_size:
-                raise FileError(
-                    f"Content size ({len(content)} bytes) exceeds limit "
-                    f"({self.config.max_file_size} bytes)"
+            size = path.stat().st_size
+            if size > self.config.max_file_size:
+                raise BinaryError(
+                    f"File size ({size} bytes) exceeds limit ({self.config.max_file_size} bytes)"
                 )
 
-            path.write_bytes(content)
-
+            content = path.read_bytes()
+            metadata = FileMetadata(
+                name=path.name,
+                mime_type="application/octet-stream",
+                size=len(content),
+                format=path.suffix.lstrip("."),
+            )
+            return FileContent(path=path, content=content, metadata=metadata)
         except Exception as e:
-            raise FileError(f"Failed to write binary file: {e}", cause=e)
+            raise BinaryError(f"Failed to read binary file: {e}") from e
 
-    def _get_mime_type(self, path: Path) -> str:
-        """Get MIME type for file"""
-        return "application/octet-stream"
+    async def write(self, content: FileContent, path: Path | None = None) -> None:
+        """Write binary file
 
-    def _get_file_type(self, path: Path) -> str:
-        """Get file type"""
-        return FileType.BINARY
+        Args:
+            content: Binary content to write
+            path: Optional path to write to
 
-    def _get_format(self, path: Path) -> str:
-        """Get file format"""
-        return "binary"
+        Raises:
+            BinaryError: If file cannot be written
+        """
+        try:
+            target = path or content.path
+            if isinstance(content.content, bytes):
+                target.write_bytes(content.content)
+            else:
+                raise BinaryError("Content must be bytes")
+        except Exception as e:
+            raise BinaryError(f"Failed to write binary file: {e}") from e

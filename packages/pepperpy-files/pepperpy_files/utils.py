@@ -1,9 +1,8 @@
-"""File utilities"""
+"""Utility functions."""
 
 from pathlib import Path
-from typing import Union
 
-PathLike = Union[str, Path]
+PathLike = Path | str  # Usando union type
 
 
 def ensure_path(path: PathLike) -> Path:

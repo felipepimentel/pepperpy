@@ -1,26 +1,36 @@
-"""Agent factory module"""
-
-from typing import Any, Dict, Type, TypeVar
-
-from bko.ai.agents.base import BaseAgent
-from bko.ai.agents.config import AgentConfig
-
-T = TypeVar("T", bound=BaseAgent)
+"""Agent factory implementation."""
 
 
-class AgentFactory:
-    """Factory for creating agents"""
+from .analysis import AnalysisAgent
+from .architect import ArchitectAgent
+from .base import BaseAgent
+from .development import DevelopmentAgent
+from .management import ProjectManagerAgent, QualityEngineerAgent
+from .types import AgentConfig, AgentRole
 
-    _registry: Dict[str, Type[BaseAgent]] = {}
+AGENT_TYPES: dict[AgentRole, type[BaseAgent]] = {
+    AgentRole.ARCHITECT: ArchitectAgent,
+    AgentRole.DEVELOPER: DevelopmentAgent,
+    AgentRole.RESEARCHER: AnalysisAgent,
+    AgentRole.PLANNER: ProjectManagerAgent,
+    AgentRole.REVIEWER: QualityEngineerAgent,
+}
 
-    @classmethod
-    def register(cls, name: str, agent_class: Type[T]) -> None:
-        """Register agent class"""
-        cls._registry[name] = agent_class
 
-    @classmethod
-    def create_agent(cls, name: str, config: AgentConfig, **kwargs: Any) -> BaseAgent:
-        """Create agent instance"""
-        if name not in cls._registry:
-            raise ValueError(f"Unknown agent type: {name}")
-        return cls._registry[name](config, **kwargs)
+def create_agent(config: AgentConfig) -> BaseAgent:
+    """Create agent instance.
+
+    Args:
+        config: Agent configuration
+
+    Returns:
+        Agent instance
+
+    Raises:
+        ValueError: If agent type is unknown
+    """
+    agent_class = AGENT_TYPES.get(config.role)
+    if not agent_class:
+        raise ValueError(f"Unknown agent role: {config.role}")
+
+    return agent_class(config)

@@ -1,0 +1,23 @@
+[tool.benchmark]
+output_dir = "benchmark_results"
+compare_to = "main"  # Branch to compare against
+min_rounds = 5
+warmup_rounds = 2
+time_unit = "us"  # microseconds
+
+[tool.benchmark.thresholds]
+mean = 1.2  # 20% regression threshold
+median = 1.1  # 10% regression threshold
+max = 1.5  # 50% regression threshold
+
+[tool.benchmark.export]
+formats = ["json", "markdown"]
+save_raw = true
+compare_previous = true
+
+[tool.benchmark.pytest]
+benchmark_only = false  # Run only benchmark tests
+benchmark_disable = false  # Disable benchmarks
+benchmark_skip = false  # Skip benchmarks
+benchmark_timer = "time.perf_counter"
+benchmark_min_time = 0.000001 

@@ -1,6 +1,6 @@
-# pepperpy-console
+# PepperPy Console
 
-Terminal interface components for PepperPy framework
+Interactive console components for PepperPy framework.
 
 ## Installation
 

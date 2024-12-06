@@ -1,42 +1,65 @@
-"""Configuration type definitions"""
+"""Configuration types."""
 
 from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
-from bko.core.types import JsonDict
+from pydantic import BaseModel
 
-
-class ConfigFormat(str, Enum):
-    """Configuration format"""
-
-    JSON = "json"
-    YAML = "yaml"
-    TOML = "toml"
-    ENV = "env"
-    INI = "ini"
+from ..base import BaseData
+from ..types import JsonDict
 
 
-ConfigValue = Union[str, int, float, bool, list[Any], dict[str, Any], None]
+@dataclass
+class ConfigData(BaseData):
+    """Base configuration data."""
+
+    enabled: bool = True
+    settings: JsonDict = field(default_factory=dict)
+    defaults: JsonDict = field(default_factory=dict)
+    overrides: JsonDict = field(default_factory=dict)
 
 
 @dataclass
 class ConfigSource:
-    """Configuration source"""
+    """Configuration source."""
 
     name: str
-    path: Path | None = None
-    format: ConfigFormat | None = None
-    data: dict[str, ConfigValue] = field(default_factory=dict)
+    path: str
+    format: str = "json"
+    required: bool = True
     metadata: JsonDict = field(default_factory=dict)
 
 
 @dataclass
-class ConfigManagerConfig:
-    """Configuration manager configuration"""
+class ConfigState:
+    """Configuration state."""
+
+    loaded: bool = False
+    validated: bool = False
+    sources: list[ConfigSource] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+
+    def get_stats(self) -> dict[str, Any]:
+        """Get state statistics."""
+        return {
+            "loaded": self.loaded,
+            "validated": self.validated,
+            "sources": len(self.sources),
+            "errors": len(self.errors),
+        }
+
+
+class ConfigManagerConfig(BaseModel):
+    """Configuration manager configuration."""
 
     name: str
-    sources: list[ConfigSource] = field(default_factory=list)
-    auto_load: bool = True
-    metadata: JsonDict = field(default_factory=dict)
+    config_path: str
+    enabled: bool = True
+
+
+__all__ = [
+    "ConfigData",
+    "ConfigSource",
+    "ConfigState",
+    "ConfigManagerConfig",
+]

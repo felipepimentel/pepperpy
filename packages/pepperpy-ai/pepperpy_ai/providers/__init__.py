@@ -1,11 +1,11 @@
-"""AI providers module"""
+"""Providers module exports."""
 
-from .base import AIProvider
+from .base import BaseProvider
+from .config import ProviderConfig
 from .factory import AIProviderFactory
-from .openrouter import OpenRouterProvider
 
 __all__ = [
-    "AIProvider",
+    "BaseProvider",
+    "ProviderConfig",
     "AIProviderFactory",
-    "OpenRouterProvider",
 ]

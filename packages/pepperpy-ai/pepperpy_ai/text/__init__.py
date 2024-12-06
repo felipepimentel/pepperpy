@@ -1,16 +1,17 @@
-"""Text processing package initialization"""
+"""Text processing module."""
 
-from .analyzer import TextAnalyzer
-from .config import TextAnalyzerConfig, TextProcessorConfig
-from .exceptions import TextAnalysisError, TextError
-from .types import TextAnalysis, TextAnalysisResult
+from .exceptions import (
+    ChunkingError,
+    ProcessingError,
+    TextProcessingError,
+    ValidationError,
+)
+from .processor import BaseProcessor
 
 __all__ = [
-    "TextAnalyzer",
-    "TextAnalyzerConfig",
-    "TextProcessorConfig",
-    "TextAnalysisError",
-    "TextError",
-    "TextAnalysis",
-    "TextAnalysisResult",
+    "BaseProcessor",
+    "ChunkingError",
+    "ProcessingError",
+    "TextProcessingError",
+    "ValidationError",
 ]

@@ -1,7 +1,8 @@
 """Button component"""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from rich.text import Text
 
@@ -14,14 +15,14 @@ class ButtonConfig:
 
     label: str
     callback: Callable[[], None]
-    style: str = "default"
     enabled: bool = True
 
 
 class Button(Component):
     """Button component"""
 
-    def __init__(self, config: ButtonConfig):
+    def __init__(self, config: ButtonConfig) -> None:
+        """Initialize button."""
         super().__init__()
         self.config = config
 
@@ -33,11 +34,7 @@ class Button(Component):
         """Render button"""
         await super().render()
 
-        style = self.config.style
-        if not self.config.enabled:
-            style = "dim " + style
-
-        return Text(self.config.label, style=style)
+        return Text(self.config.label)
 
     async def click(self) -> None:
         """Handle button click"""

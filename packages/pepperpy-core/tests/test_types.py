@@ -1,8 +1,8 @@
 """Test core types"""
 
-from typing import Dict
 
 import pytest
+
 from pepperpy_core.base.types import JsonDict, JsonValue
 
 
@@ -17,14 +17,24 @@ def test_json_dict_type() -> None:
         "list": [1, 2, 3],
         "dict": {"key": "value"},
     }
-    assert isinstance(data, Dict)
+    assert isinstance(data, dict)
 
 
 def test_json_value_type() -> None:
     """Test JsonValue type"""
-    values: list[JsonValue] = ["string", 42, 3.14, True, None, [1, 2, 3], {"key": "value"}]
+    values: list[JsonValue] = [
+        "string",
+        42,
+        3.14,
+        True,
+        None,
+        [1, 2, 3],
+        {"key": "value"},
+    ]
     for value in values:
-        assert isinstance(value, (str, int, float, bool, list, dict)) or value is None
+        assert (
+            isinstance(value, str | int | float | bool | list | dict) or value is None
+        )
 
 
 def test_json_dict_nested() -> None:
@@ -43,8 +53,24 @@ def test_json_dict_invalid() -> None:
 
     with pytest.raises((TypeError, ValueError)):
         data: JsonDict = {}
-        data["func"] = func  # type: ignore
+        data["func"] = func
         # Força o erro tentando serializar
         import json
 
         json.dumps(data)
+
+
+def test_json_primitive_validation() -> None:
+    """Test JSON primitive validation."""
+    valid_values = [
+        "string",
+        123,
+        3.14,
+        True,
+        False,
+        None,
+    ]
+    for value in valid_values:
+        assert isinstance(
+            value, str | int | float | bool | None.__class__
+        )  # Usando union type

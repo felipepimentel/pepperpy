@@ -1,40 +1,59 @@
-"""AI provider factory"""
+"""AI provider factory."""
 
-from typing import Type
 
-from ...core.exceptions import PepperPyError
-from .anthropic import AnthropicProvider
+from ..exceptions import PepperpyError
+from ..llm.config import LLMConfig
 from .base import BaseProvider
-from .config import ProviderConfig
-from .openai import OpenAIProvider
-from .openrouter import OpenRouterProvider
-from .stackspot import StackspotProvider
+
+# Import providers conditionally to handle optional dependencies
+_PROVIDERS: dict[str, type[BaseProvider[LLMConfig]]] = {}
+
+# Optional Anthropic provider
+try:
+    from .anthropic import AnthropicProvider
+
+    _PROVIDERS["anthropic"] = AnthropicProvider
+except ImportError:
+    pass
+
+# Optional OpenAI provider
+try:
+    from .openai import OpenAIProvider
+
+    _PROVIDERS["openai"] = OpenAIProvider
+except ImportError:
+    pass
 
 
 class AIProviderFactory:
-    """Factory for creating AI providers"""
+    """Factory for creating AI providers."""
 
-    _provider_map: dict[str, Type[BaseProvider]] = {
-        "openai": OpenAIProvider,
-        "anthropic": AnthropicProvider,
-        "openrouter": OpenRouterProvider,
-        "stackspot": StackspotProvider,
-    }
+    _provider_map: dict[str, type[BaseProvider[LLMConfig]]] = _PROVIDERS
 
     @classmethod
-    def create_provider(cls, config: ProviderConfig) -> BaseProvider:
-        """Create provider instance"""
+    def create_provider(cls, config: LLMConfig) -> BaseProvider[LLMConfig]:
+        """Create provider instance.
+
+        Args:
+            config: Provider configuration
+
+        Returns:
+            Provider instance
+
+        Raises:
+            PepperpyError: If provider creation fails
+        """
         try:
             if config.provider not in cls._provider_map:
-                raise PepperPyError(f"Unsupported provider type: {config.provider}")
+                raise PepperpyError(f"Unsupported provider type: {config.provider}")
 
             provider_class = cls._provider_map[config.provider]
             return provider_class(config)
 
         except Exception as e:
-            raise PepperPyError(f"Failed to create provider: {e}", cause=e)
+            raise PepperpyError(f"Failed to create provider: {e}", cause=e)
 
     @classmethod
     def get_supported_providers(cls) -> list[str]:
-        """Get list of supported provider types"""
+        """Get list of supported provider types."""
         return list(cls._provider_map.keys())

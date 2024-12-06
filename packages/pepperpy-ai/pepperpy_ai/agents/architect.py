@@ -2,64 +2,35 @@
 
 from typing import Any
 
-from bko.ai.types import AIResponse
-from bko.core.exceptions import PepperPyError
-
+from ..ai_types import AIMessage, AIResponse
 from .base import BaseAgent
+from .types import AgentConfig, AgentRole
 
 
 class ArchitectAgent(BaseAgent):
     """Agent responsible for system architecture design"""
 
-    async def design_architecture(self, requirements: str, **kwargs: Any) -> AIResponse:
-        """Design system architecture based on requirements.
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent."""
+        super().__init__(config)
 
-        Args:
-            requirements: System requirements
-            **kwargs: Additional arguments for architecture design
+    async def _setup(self) -> None:
+        """Setup agent resources."""
+        pass
 
-        Returns:
-            AIResponse: Architecture design
-
-        Raises:
-            PepperPyError: If design fails
-            RuntimeError: If agent is not initialized
-        """
-        self._ensure_initialized()
-
-        prompt = (
-            f"As a system architect with the role of {self.config.role}, "
-            f"please design an architecture for:\n\n{requirements}\n\n"
-            "Include:\n"
-            "- System components\n"
-            "- Component interactions\n"
-            "- Data flow\n"
-            "- Technology stack\n"
-            "- Scalability considerations"
-        )
-
-        if "constraints" in kwargs:
-            prompt += f"\n\nConstraints:\n{kwargs['constraints']}"
-        elif kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Architecture design failed: {e}", cause=e)
+    async def _teardown(self) -> None:
+        """Teardown agent resources."""
+        pass
 
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute an architecture design task.
+        """Execute architecture task."""
+        self._ensure_initialized()
+        return AIResponse(
+            content=f"Architecture design for: {task}",
+            messages=[AIMessage(role=AgentRole.ARCHITECT, content=task)],
+        )
 
-        Args:
-            task: Design task description
-            **kwargs: Additional arguments for task execution
-
-        Returns:
-            AIResponse: Architecture design
-
-        Raises:
-            PepperPyError: If execution fails
-            RuntimeError: If agent is not initialized
-        """
-        return await self.design_architecture(task, **kwargs)
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized."""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")

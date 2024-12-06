@@ -1,62 +1,87 @@
-"""Example demonstrating validation functionality"""
+"""Validation example."""
 
-import asyncio
-from typing import Any, List
+from dataclasses import dataclass, field
+from typing import Any
 
-from pepperpy_core.validation import (
-    LengthValidator,
-    SchemaValidator,
-    TypeValidator,
-    ValidationPipeline,
-)
-from pydantic import BaseModel, Field
+from pepperpy_core.types import JsonDict
+from pepperpy_core.validation import Validator as BaseValidator
+from pepperpy_core.validation.base import ValidationResult
+from pepperpy_core.validation.types import ValidationData
 
 
-class UserData(BaseModel):
-    """User data model for validation"""
+@dataclass
+class ValidatorConfig(ValidationData):
+    """Validator configuration."""
 
-    username: str = Field(min_length=3, max_length=20)
-    age: int = Field(ge=0, le=120)
-    email: str
-    scores: List[float] = Field(default_factory=list)
-
-
-async def demonstrate_validation() -> None:
-    """Demonstrate validation functionality"""
-    # Create validation pipeline
-    pipeline = ValidationPipeline[Any, dict]()
-
-    # Add validators
-    pipeline.add_validator(SchemaValidator(UserData))
-    pipeline.add_validator(TypeValidator(dict))
-    pipeline.add_validator(LengthValidator(min_length=1, max_length=100))
-
-    # Test data
-    valid_data = {
-        "username": "testuser",
-        "age": 25,
-        "email": "test@example.com",
-        "scores": [85.5, 92.0, 78.5],
-    }
-
-    invalid_data = {
-        "username": "t",  # Too short
-        "age": 150,  # Too high
-        "email": "invalid-email",
-        "scores": "not-a-list",  # Wrong type
-    }
-
-    # Validate data
-    print("Validating valid data...")
-    results = await pipeline.validate(valid_data)
-    for result in results:
-        print(f"Valid: {result.valid}, Level: {result.level}, Message: {result.message}")
-
-    print("\nValidating invalid data...")
-    results = await pipeline.validate(invalid_data)
-    for result in results:
-        print(f"Valid: {result.valid}, Level: {result.level}, Message: {result.message}")
+    name: str = ""
+    enabled: bool = True
+    stop_on_error: bool = False
+    metadata: JsonDict = field(default_factory=dict)
 
 
-if __name__ == "__main__":
-    asyncio.run(demonstrate_validation())
+class DataValidator(BaseValidator):
+    """Example data validator."""
+
+    def __init__(self) -> None:
+        """Initialize validator."""
+        super().__init__()
+        self.config = ValidatorConfig(name="validator")
+        self._validations: int = 0
+        self._errors: int = 0
+        self._initialized: bool = False
+
+    async def _setup(self) -> None:
+        """Setup validator resources."""
+        self._initialized = True
+
+    async def _teardown(self) -> None:
+        """Teardown validator resources."""
+        self._validations = 0
+        self._errors = 0
+        self._initialized = False
+
+    def _ensure_initialized(self) -> None:
+        """Ensure validator is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Validator not initialized")
+
+    async def validate(self, data: Any) -> ValidationResult:
+        """Validate data.
+
+        Args:
+            data: Data to validate
+
+        Returns:
+            Validation result
+        """
+        self._ensure_initialized()
+        if not self.config.enabled:
+            return ValidationResult(valid=True)
+
+        # Simulate validation
+        self._validations += 1
+        errors: list[str] = []
+
+        if not data:
+            errors.append("Data cannot be empty")
+            self._errors += 1
+
+        if self.config.stop_on_error and errors:
+            return ValidationResult(valid=False, message=errors[0] if errors else None)
+
+        # Additional validation logic here...
+
+        return ValidationResult(
+            valid=len(errors) == 0, message=errors[0] if errors else None
+        )
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get validator statistics."""
+        self._ensure_initialized()
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "validations": self._validations,
+            "errors": self._errors,
+            "max_errors": self.config.max_errors,
+        }

@@ -1,54 +1,104 @@
-"""Console configuration"""
+"""Console configuration."""
 
-from dataclasses import dataclass, field
-from enum import Enum
+from dataclasses import dataclass
 
-from bko.core.types import JsonDict, ModuleConfig
+from .types import ConsoleConfig, LayoutConfig, Theme, ThemeColors
 
+DEFAULT_THEME = Theme(
+    name="default",
+    colors=ThemeColors(
+        primary="#00ff00",
+        secondary="#0000ff",
+        accent="#ff0000",
+        background="#000000",
+        foreground="#ffffff",
+    ),
+)
 
-class ConsoleMode(str, Enum):
-    """Console mode"""
+DEFAULT_LAYOUT = LayoutConfig(
+    width=80,
+    height=24,
+)
 
-    BASIC = "basic"
-    RICH = "rich"
-    INTERACTIVE = "interactive"
-    LEGACY = "legacy"
-
-
-class ConsoleTheme(str, Enum):
-    """Console theme"""
-
-    DEFAULT = "default"
-    DARK = "dark"
-    LIGHT = "light"
-    CUSTOM = "custom"
-
-
-@dataclass
-class ConsoleConfig(ModuleConfig):
-    """Console configuration"""
-
-    name: str
-    mode: ConsoleMode = ConsoleMode.RICH
-    theme: ConsoleTheme = ConsoleTheme.DEFAULT
-    enabled: bool = True
-    show_timestamps: bool = True
-    show_levels: bool = True
-    show_colors: bool = True
-    width: int | None = None
-    height: int | None = None
-    metadata: JsonDict = field(default_factory=dict)
+DEFAULT_CONFIG = ConsoleConfig(
+    theme=DEFAULT_THEME,
+    layout=DEFAULT_LAYOUT,
+)
 
 
 @dataclass
-class ConsoleUIConfig(ModuleConfig):
-    """Console UI configuration"""
+class ConfigManager:
+    """Configuration manager."""
 
-    name: str
-    enabled: bool = True
-    show_header: bool = True
-    show_footer: bool = True
-    show_progress: bool = True
-    show_status: bool = True
-    refresh_rate: float = 0.1  # seconds
-    metadata: JsonDict = field(default_factory=dict)
+    def __init__(self, config: ConsoleConfig | None = None) -> None:
+        """Initialize configuration manager.
+
+        Args:
+            config: Console configuration
+        """
+        self.config = config or DEFAULT_CONFIG
+        self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if manager is initialized."""
+        return self._initialized
+
+    async def initialize(self) -> None:
+        """Initialize manager."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup manager resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
+
+    def _ensure_initialized(self) -> None:
+        """Ensure manager is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Manager not initialized")
+
+    async def _setup(self) -> None:
+        """Setup manager resources."""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown manager resources."""
+        pass
+
+    def get_theme(self) -> Theme:
+        """Get current theme."""
+        self._ensure_initialized()
+        return self.config.theme
+
+    def get_layout(self) -> LayoutConfig:
+        """Get current layout."""
+        self._ensure_initialized()
+        return self.config.layout
+
+    def update_theme(self, theme: Theme) -> None:
+        """Update theme.
+
+        Args:
+            theme: New theme
+
+        Raises:
+            RuntimeError: If manager not initialized
+        """
+        self._ensure_initialized()
+        self.config.theme = theme
+
+    def update_layout(self, layout: LayoutConfig) -> None:
+        """Update layout.
+
+        Args:
+            layout: New layout
+
+        Raises:
+            RuntimeError: If manager not initialized
+        """
+        self._ensure_initialized()
+        self.config.layout = layout

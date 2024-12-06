@@ -1,55 +1,39 @@
-"""Enhanced markdown file handler implementation"""
+"""Markdown enhanced handler implementation."""
 
 from pathlib import Path
-from typing import Any, Dict
 
-from bko.files.exceptions import FileError
-from bko.files.handlers.base import BaseFileHandler
-from bko.files.types import FileContent, FileMetadata
+from ..base import BaseHandler, FileHandlerConfig
+from ..types import FileMetadata
 
 
-class MarkdownEnhancedHandler(BaseFileHandler):
-    """Handler for enhanced markdown file operations"""
+class MarkdownEnhancedHandler(BaseHandler):
+    """Handler for enhanced markdown files."""
 
-    async def read(self, path: Path, **kwargs: Dict[str, Any]) -> FileContent:
-        """Read markdown file content"""
-        path = self._to_path(path)
-
-        if not path.exists():
-            raise FileError(f"File does not exist: {path}")
-
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                content = f.read()
-
-            return FileContent(
-                content=content,
-                metadata=FileMetadata(
-                    name=path.name,
-                    mime_type="text/markdown",
-                    path=path,
-                    type="text",
-                    extension=path.suffix,
-                    format="utf-8",
-                    size=path.stat().st_size,
-                ),
+    def __init__(self, config: FileHandlerConfig | None = None) -> None:
+        """Initialize handler."""
+        super().__init__(
+            config
+            or FileHandlerConfig(
+                allowed_extensions=self._convert_extensions([".md", ".markdown"]),
+                max_file_size=10 * 1024 * 1024,  # 10MB
+                metadata={"mime_type": "text/markdown"},
             )
-        except Exception as e:
-            raise FileError(f"Failed to read markdown file: {e}", cause=e)
+        )
 
-    async def write(self, path: Path, content: FileContent, **kwargs: Dict[str, Any]) -> None:
-        """Write markdown file content"""
-        path = self._to_path(path)
+    async def _extract_metadata(self, content: str, path: Path) -> FileMetadata:
+        """Extract metadata from markdown content.
 
-        if not isinstance(content.content, str):
-            raise FileError("Invalid markdown content")
+        Args:
+            content: Markdown content
+            path: File path
 
-        try:
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(content.content)
-        except Exception as e:
-            raise FileError(f"Failed to write markdown file: {e}", cause=e)
-
-    async def cleanup(self) -> None:
-        """Cleanup resources"""
-        pass
+        Returns:
+            File metadata
+        """
+        # TODO: Implement metadata extraction
+        return FileMetadata(
+            name=path.name,
+            mime_type="text/markdown",
+            size=len(content),
+            format=path.suffix.lstrip("."),
+        )

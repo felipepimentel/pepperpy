@@ -1,66 +1,57 @@
-"""Security manager implementation"""
+"""Security manager module."""
 
-from typing import Optional
+from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from ..module import BaseModule
-from .types import SecurityContext, SecurityToken
+from .config import SecurityConfig
+from .types import AuthToken, AuthUser
 
 
-class SecurityConfig(BaseModel):
-    """Security configuration"""
-
-    secret_key: str
-    token_expiration: int = 3600  # 1 hour
-    token_algorithm: str = "HS256"
-    refresh_enabled: bool = True
-    refresh_expiration: int = 86400  # 24 hours
-
-
-class SecurityManager(BaseModule[SecurityConfig]):
-    """Security manager implementation"""
+class SecurityManager(ABC):
+    """Abstract security manager."""
 
     def __init__(self, config: SecurityConfig) -> None:
-        super().__init__(config)
-        self._context: Optional[SecurityContext] = None
+        """Initialize security manager.
 
-    async def _initialize(self) -> None:
-        """Initialize security manager"""
-        self._context = SecurityContext(
-            secret_key=self.config.secret_key, algorithm=self.config.token_algorithm
-        )
+        Args:
+            config: Security configuration
+        """
+        self.config = config
+        self._initialized = False
 
-    async def _cleanup(self) -> None:
-        """Cleanup security manager"""
-        self._context = None
+    async def initialize(self) -> None:
+        """Initialize security manager."""
+        if self._initialized:
+            return
+        self._initialized = True
 
-    async def create_token(self, subject: str, **claims: str) -> SecurityToken:
-        """Create security token"""
-        self._ensure_initialized()
-        if not self._context:
-            raise RuntimeError("Security context not initialized")
+    async def cleanup(self) -> None:
+        """Cleanup security manager."""
+        if not self._initialized:
+            return
+        self._initialized = False
 
-        return await self._context.create_token(
-            subject=subject, expiration=self.config.token_expiration, **claims
-        )
+    @abstractmethod
+    async def authenticate(self, credentials: BaseModel) -> AuthToken:
+        """Authenticate user with credentials.
 
-    async def validate_token(self, token: str) -> bool:
-        """Validate security token"""
-        self._ensure_initialized()
-        if not self._context:
-            raise RuntimeError("Security context not initialized")
+        Args:
+            credentials: User credentials
 
-        return await self._context.validate_token(token)
+        Returns:
+            Authentication token
+        """
+        pass
 
-    async def refresh_token(self, token: str) -> SecurityToken:
-        """Refresh security token"""
-        self._ensure_initialized()
-        if not self.config.refresh_enabled:
-            raise RuntimeError("Token refresh not enabled")
-        if not self._context:
-            raise RuntimeError("Security context not initialized")
+    @abstractmethod
+    async def validate_token(self, token: AuthToken) -> AuthUser | None:
+        """Validate authentication token.
 
-        return await self._context.refresh_token(
-            token=token, expiration=self.config.refresh_expiration
-        )
+        Args:
+            token: Authentication token
+
+        Returns:
+            Authenticated user if token is valid, None otherwise
+        """
+        pass

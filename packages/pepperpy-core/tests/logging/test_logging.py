@@ -1,9 +1,12 @@
 """Test logging functionality"""
 
-from typing import List
+from typing import Any
 
 import pytest
-from pepperpy_core.logging import LogConfig, LogLevel, LogManager
+
+from pepperpy_core.logging.config import LogConfig
+from pepperpy_core.logging.manager import LogManager
+from pepperpy_core.logging.types import LogLevel
 
 
 class MockLogManager(LogManager):
@@ -11,25 +14,25 @@ class MockLogManager(LogManager):
 
     def __init__(self, config: LogConfig) -> None:
         super().__init__(config)
-        self.logs: List[str] = []
-        self._log_metadata: List[dict] = []
+        self.logs: list[str] = []
+        self._log_metadata: list[dict[str, Any]] = []
 
-    def debug(self, message: str, **kwargs: str) -> None:
+    def debug(self, message: str, **kwargs: Any) -> None:
         """Log debug message"""
         self.logs.append(f"DEBUG: {message}")
         self._log_metadata.append(kwargs)
 
-    def info(self, message: str, **kwargs: str) -> None:
+    def info(self, message: str, **kwargs: Any) -> None:
         """Log info message"""
         self.logs.append(f"INFO: {message}")
         self._log_metadata.append(kwargs)
 
-    def warning(self, message: str, **kwargs: str) -> None:
+    def warning(self, message: str, **kwargs: Any) -> None:
         """Log warning message"""
         self.logs.append(f"WARNING: {message}")
         self._log_metadata.append(kwargs)
 
-    def error(self, message: str, **kwargs: str) -> None:
+    def error(self, message: str, **kwargs: Any) -> None:
         """Log error message"""
         self.logs.append(f"ERROR: {message}")
         self._log_metadata.append(kwargs)
@@ -38,7 +41,7 @@ class MockLogManager(LogManager):
 @pytest.fixture
 async def log_manager() -> MockLogManager:
     """Create mock log manager"""
-    config = LogConfig(level=LogLevel.DEBUG)
+    config = LogConfig(name="test", level=str(LogLevel.DEBUG.value))
     manager = MockLogManager(config)
     await manager.initialize()
     return manager

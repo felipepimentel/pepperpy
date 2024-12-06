@@ -1,0 +1,29 @@
+[tools]
+python_versions = ["3.9", "3.10", "3.11", "3.12"]
+default_python = "3.9"
+
+[tools.pytest]
+min_coverage = 80
+parallel = true
+benchmark_rounds = 5
+
+[tools.docker]
+registry = "ghcr.io"
+organization = "pepperpy"
+platforms = ["linux/amd64", "linux/arm64"]
+
+[tools.release]
+branch = "main"
+changelog_sections = [
+    "Added",
+    "Changed",
+    "Deprecated",
+    "Removed",
+    "Fixed",
+    "Security"
+]
+
+[tools.monitoring]
+metrics_port = 8000
+benchmark_port = 8001
+test_port = 8002 

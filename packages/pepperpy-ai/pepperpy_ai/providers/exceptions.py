@@ -1,12 +1,10 @@
 """Provider exceptions module"""
 
-from typing import Optional
-
 
 class ProviderError(Exception):
     """Base exception for provider errors"""
 
-    def __init__(self, message: str, cause: Optional[Exception] = None) -> None:
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
         """Initialize error"""
         super().__init__(message)
         self._message = message
@@ -18,6 +16,6 @@ class ProviderError(Exception):
         return self._message
 
     @property
-    def cause(self) -> Optional[Exception]:
+    def cause(self) -> Exception | None:
         """Get original exception"""
         return self._cause

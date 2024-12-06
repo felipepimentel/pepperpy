@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Run tests
+echo "Running tests..."
+poetry run pytest || exit 1
+
+# Run type checking
+echo "Running type checking..."
+poetry run mypy . || exit 1
+
+# Check dependencies
+echo "Checking dependencies..."
+poetry run pip-audit || exit 1
+
+# Run benchmarks
+echo "Running benchmarks..."
+poetry run pytest benchmarks/ --benchmark-only || exit 1
+
+exit 0 

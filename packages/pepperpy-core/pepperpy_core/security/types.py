@@ -1,63 +1,39 @@
-"""Security type definitions"""
+"""Security types."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-
-from bko.core.types import JsonDict
-
-
-@dataclass
-class Permission:
-    """Permission definition"""
-
-    name: str
-    description: str
-    scope: str
-    metadata: dict[str, str] = field(default_factory=dict)
+from enum import Enum
+from typing import Any
 
 
-@dataclass
-class Role:
-    """Role definition"""
+class AuthType(Enum):
+    """Authentication type."""
 
-    name: str
-    description: str
-    permissions: set[str]
-    metadata: dict[str, str] = field(default_factory=dict)
-
-
-@dataclass
-class User:
-    """User information"""
-
-    id: str
-    username: str
-    email: str | None = None
-    roles: set[str] = field(default_factory=set)
-    permissions: set[str] = field(default_factory=set)
-    metadata: dict[str, str] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    last_login: datetime | None = None
-    active: bool = True
-
-
-@dataclass
-class AuthToken:
-    """Authentication token"""
-
-    token: str
-    type: str = "bearer"
-    metadata: JsonDict = field(default_factory=dict)
+    BASIC = "basic"
+    TOKEN = "token"
+    OAUTH = "oauth"
+    CUSTOM = "custom"
 
 
 @dataclass
 class AuthContext:
-    """Authentication context"""
+    """Authentication context."""
 
-    user_id: str | None = None
-    roles: list[str] = field(default_factory=list)
-    permissions: set[str] = field(default_factory=set)
-    metadata: dict[str, str] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    last_login: datetime | None = None
-    active: bool = True
+    auth_type: AuthType
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class AuthToken:
+    """Authentication token."""
+
+    value: str
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class AuthUser:
+    """Authenticated user."""
+
+    username: str
+    metadata: dict[str, Any] = field(default_factory=dict)
+    token: AuthToken | None = None

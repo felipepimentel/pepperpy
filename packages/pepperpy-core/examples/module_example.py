@@ -1,62 +1,67 @@
-"""Example demonstrating core module functionality"""
+"""Module example."""
 
-import asyncio
+from dataclasses import dataclass, field
+from typing import Any
 
-from pepperpy_core.base.module import BaseModule
-from pepperpy_core.base.types import JsonDict
-from pydantic import BaseModel, ConfigDict, Field
-
-
-class ExampleConfig(BaseModel):
-    """Example configuration"""
-
-    name: str = "example"
-    enabled: bool = True
-    metadata: JsonDict = Field(default_factory=dict)
-    model_config = ConfigDict(frozen=True)
+from pepperpy_core.module import BaseModule, ModuleConfig
+from pepperpy_core.types import JsonDict
 
 
-class ExampleModule(BaseModule[ExampleConfig]):
-    """Example module implementation"""
+@dataclass
+class ProcessorConfig(ModuleConfig):
+    """Processor configuration."""
 
-    async def _initialize(self) -> None:
-        """Initialize module"""
-        print(f"Initializing {self.config.name}...")
-        self._metadata["initialized_at"] = "now"
+    batch_size: int = 100
+    max_workers: int = 4
+    timeout: float = 30.0
+    metadata: JsonDict = field(default_factory=dict)
 
-    async def _cleanup(self) -> None:
-        """Cleanup module"""
-        print(f"Cleaning up {self.config.name}...")
-        self._metadata["cleaned_at"] = "now"
 
-    async def process(self, data: str) -> str:
-        """Process data"""
-        self._ensure_initialized()
+class DataProcessor(BaseModule[ProcessorConfig]):
+    """Example data processor module."""
+
+    def __init__(self) -> None:
+        """Initialize processor."""
+        config = ProcessorConfig(name="processor")
+        super().__init__(config)
+        self._processed: int = 0
+
+    async def _setup(self) -> None:
+        """Setup processor resources."""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown processor resources."""
+        self._processed = 0
+
+    async def process(self, data: Any) -> Any:
+        """Process data.
+
+        Args:
+            data: Data to process
+
+        Returns:
+            Processed data
+        """
+        if not self.is_initialized:
+            await self.initialize()
+
+        if not self.config.enabled:
+            return data
+
+        # Simulate processing
+        self._processed += 1
         return f"Processed: {data}"
 
+    async def get_stats(self) -> dict[str, Any]:
+        """Get processor statistics."""
+        if not self.is_initialized:
+            await self.initialize()
 
-async def main() -> None:
-    """Run example"""
-    # Create module
-    config = ExampleConfig(name="test_module")
-    module = ExampleModule(config)
-
-    try:
-        # Initialize
-        await module.initialize()
-        assert module.is_initialized
-        assert "initialized_at" in module.metadata
-
-        # Process data
-        result = await module.process("test data")
-        print(f"Result: {result}")
-
-    finally:
-        # Cleanup
-        await module.cleanup()
-        assert not module.is_initialized
-        assert "cleaned_at" in module.metadata
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "batch_size": self.config.batch_size,
+            "max_workers": self.config.max_workers,
+            "processed": self._processed,
+        }

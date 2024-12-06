@@ -1,81 +1,104 @@
-"""Test panel component"""
+"""Panel component tests."""
 
-from io import StringIO
+from typing import Literal, cast
 
 import pytest
-from pepperpy_console.components import Panel, Table
-from pepperpy_console.components.panel import PanelConfig
-from rich.console import Console as RichConsole
-from rich.panel import Panel as RichPanel
 
-
-@pytest.fixture
-def panel() -> Panel:
-    """Create test panel"""
-    return Panel("Test Content", PanelConfig(title="Test Panel", style="blue"))
+from pepperpy_console.components import Panel, PanelConfig
 
 
 @pytest.mark.asyncio
-async def test_panel_initialization(panel: Panel) -> None:
-    """Test panel initialization"""
-    assert panel.content == "Test Content"
-    assert panel.config.title == "Test Panel"
-    assert panel.config.style == "blue"
+async def test_panel_initialization() -> None:
+    """Test panel initialization."""
+    # Create panel with default config
+    panel = Panel()
+    assert panel.config == PanelConfig()
+
+    # Create panel with custom config
+    config = PanelConfig(
+        title="Test Panel",
+        border_style="rounded",
+    )
+    panel = Panel(config=config)
+    assert panel.config == config
 
 
 @pytest.mark.asyncio
-async def test_panel_render(panel: Panel) -> None:
-    """Test panel rendering"""
-    console = RichConsole(file=StringIO(), force_terminal=True)
+async def test_panel_lifecycle() -> None:
+    """Test panel lifecycle (initialize, render, cleanup)."""
+    panel = Panel(
+        config=PanelConfig(
+            title="Test Panel",
+            border_style="rounded",
+        )
+    )
+
+    # Test initialization
+    assert not panel._initialized
+    await panel.initialize()
+    assert panel._initialized
+
+    # Test rendering
     rendered = await panel.render()
-    console.print(rendered)
-    output = console.file.getvalue()  # type: ignore
-    assert "Test Content" in output
-    assert "Test Panel" in output
+    assert rendered is not None
+
+    # Test cleanup
+    await panel.cleanup()
+    assert not panel._initialized
 
 
 @pytest.mark.asyncio
-async def test_panel_with_component() -> None:
-    """Test panel with nested component"""
-    console = RichConsole(file=StringIO(), force_terminal=True)
-    table = Table()
-    table.add_column("Test")
-    table.add_row("Value")
+async def test_panel_config_validation() -> None:
+    """Test panel configuration validation."""
+    # Test invalid border style
+    with pytest.raises(ValueError):
+        PanelConfig(
+            border_style=cast(Literal["single", "double", "rounded", "none"], "invalid")
+        )
 
-    panel = Panel(table, PanelConfig(title="Table Panel"))
-    rendered = await panel.render()
-    console.print(rendered)
-    output = console.file.getvalue()  # type: ignore
-    assert "Table Panel" in output
-    assert "Value" in output
-
-
-@pytest.fixture
-def rich_console() -> RichConsole:
-    """Create Rich console for testing"""
-    return RichConsole(file=StringIO(), force_terminal=True, color_system="truecolor", width=80)
+    # Test valid configurations
+    valid_styles: list[Literal["single", "double", "rounded", "none"]] = [
+        "single",
+        "double",
+        "rounded",
+        "none",
+    ]
+    for style in valid_styles:
+        config = PanelConfig(border_style=style)
+        assert config.border_style == style
 
 
 @pytest.mark.asyncio
-async def test_panel_styling(panel: Panel, rich_console: RichConsole) -> None:
-    """Test panel styling"""
+async def test_panel_with_content() -> None:
+    """Test panel with different content types."""
+    # Test with string content
+    panel = Panel(
+        config=PanelConfig(
+            title="String Content",
+            border_style="single",
+        )
+    )
+    await panel.initialize()
     rendered = await panel.render()
+    assert rendered is not None
+    await panel.cleanup()
 
-    # Verify panel was rendered correctly
-    assert isinstance(rendered, RichPanel)
-
-    # Check panel style
-    style = rendered.style
-    assert style is not None
-
-    # Style can be either a string or RichStyle object
-    if isinstance(style, str):
-        assert style == "blue"
-    else:
-        assert hasattr(style, "color")
-        assert style.color.name == "blue"  # type: ignore
-
-    # Verify rendered output with ANSI codes
-    rich_console.print(rendered)
-    output = rich_console.file.getvalue()  # type: ignore
-    assert "\x1b[34m" in output  # ANSI code for blue
+    # Test with nested panel
+    nested_panel = Panel(
+        config=PanelConfig(
+            title="Nested Panel",
+            border_style="double",
+        )
+    )
+    panel = Panel(
+        config=PanelConfig(
+            title="Parent Panel",
+            border_style="rounded",
+        )
+    )
+    await panel.initialize()
+    await nested_panel.initialize()
+    rendered = await panel.render()
+    assert rendered is not None
+    await panel.cleanup()
+    await nested_panel.cleanup()

@@ -1,54 +1,118 @@
-"""Code indexing implementation"""
+"""Codebase indexer implementation."""
 
-from pathlib import Path
-from typing import AsyncGenerator
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from typing import Any, Generic, TypeVar
 
-from bko.core.module import BaseModule
+from .config import IndexConfig
+from .types import FileContent
 
-from .config import CodebaseConfig
-from .types import IndexEntry
+ConfigT = TypeVar("ConfigT", bound=IndexConfig)
 
 
-class CodeIndexer(BaseModule[CodebaseConfig]):
-    """Code indexer implementation"""
+@dataclass
+class IndexEntry:
+    """Index entry."""
 
-    def __init__(self, config: CodebaseConfig) -> None:
-        super().__init__(config)
+    file: FileContent
+    tokens: list[str]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class BaseIndexer(Generic[ConfigT], ABC):
+    """Base indexer implementation."""
+
+    def __init__(self, config: ConfigT) -> None:
+        """Initialize indexer.
+
+        Args:
+            config: Indexer configuration
+        """
+        self.config = config
+        self._initialized = False
         self._index: dict[str, IndexEntry] = {}
 
-    async def index_project(self, path: Path) -> list[IndexEntry]:
-        """Index project at path"""
+    @property
+    def is_initialized(self) -> bool:
+        """Check if indexer is initialized."""
+        return self._initialized
+
+    async def initialize(self) -> None:
+        """Initialize indexer."""
         if not self._initialized:
-            await self.initialize()
+            await self._setup()
+            self._initialized = True
 
-        self._index.clear()
-        async for entry in self._scan_path(path):
-            self._index[entry.id] = entry
-        return list(self._index.values())
+    async def cleanup(self) -> None:
+        """Cleanup indexer resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
-    async def _scan_path(self, path: Path) -> AsyncGenerator[IndexEntry, None]:
-        """Scan path for code files"""
-        if path.is_file() and path.suffix == ".py":
-            yield await self._index_file(path)
-        elif path.is_dir():
-            for item in path.iterdir():
-                if not self._should_ignore(item):
-                    async for entry in self._scan_path(item):
-                        yield entry
+    def _ensure_initialized(self) -> None:
+        """Ensure indexer is initialized."""
+        if not self._initialized:
+            raise RuntimeError("Indexer not initialized")
 
-    async def _index_file(self, path: Path) -> IndexEntry:
-        """Index single file"""
-        # Implementation here
-        raise NotImplementedError
-
-    def _should_ignore(self, path: Path) -> bool:
-        """Check if path should be ignored"""
-        return any(path.match(pattern) for pattern in self.config.ignore_patterns)
-
-    async def _initialize(self) -> None:
-        """Initialize indexer"""
+    @abstractmethod
+    async def _setup(self) -> None:
+        """Setup indexer resources."""
         pass
 
-    async def _cleanup(self) -> None:
-        """Cleanup resources"""
-        self._index.clear()
+    @abstractmethod
+    async def _teardown(self) -> None:
+        """Teardown indexer resources."""
+        pass
+
+    @abstractmethod
+    async def index_file(self, file: FileContent) -> None:
+        """Index file.
+
+        Args:
+            file: File to index
+
+        Raises:
+            RuntimeError: If indexer not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def remove_file(self, path: str) -> None:
+        """Remove file from index.
+
+        Args:
+            path: File path
+
+        Raises:
+            RuntimeError: If indexer not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def search(self, query: str, **kwargs: Any) -> Sequence[IndexEntry]:
+        """Search index.
+
+        Args:
+            query: Search query
+            **kwargs: Additional arguments
+
+        Returns:
+            Matching index entries
+
+        Raises:
+            RuntimeError: If indexer not initialized
+        """
+        pass
+
+    @abstractmethod
+    async def get_stats(self) -> dict[str, Any]:
+        """Get indexer statistics.
+
+        Returns:
+            Indexer statistics
+
+        Raises:
+            RuntimeError: If indexer not initialized
+        """
+        pass

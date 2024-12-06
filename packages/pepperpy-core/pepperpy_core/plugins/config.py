@@ -1,31 +1,38 @@
-"""Plugin configuration"""
+"""Plugin configuration."""
 
-from pathlib import Path
+from dataclasses import dataclass, field
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from ..base.types import JsonDict
+from ..base import BaseConfigData
 
 
-class PluginConfig(BaseModel):
-    """Plugin configuration"""
+@dataclass
+class PluginConfig(BaseConfigData):
+    """Plugin configuration."""
 
-    plugins_path: Path = Field(default=Path.cwd() / "plugins")
-    enabled_plugins: list[str] = Field(default_factory=list)
-    auto_discover: bool = Field(default=True)
-    auto_load: bool = Field(default=True)
-    reload_on_change: bool = Field(default=False)
-    metadata: JsonDict = Field(default_factory=dict)
-    model_config = ConfigDict(frozen=True)
+    # Required fields (herdado de BaseConfigData)
+    name: str
 
-    @classmethod
-    def get_default(cls) -> "PluginConfig":
-        """Get default configuration"""
-        return cls(
-            plugins_path=Path.cwd() / "plugins",
-            enabled_plugins=[],
-            auto_discover=True,
-            auto_load=True,
-            reload_on_change=False,
-            metadata={},
-        )
+    # Optional fields
+    enabled: bool = True
+    auto_load: bool = True
+    search_paths: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def validate(self) -> None:
+        """Validate configuration."""
+        if not isinstance(self.search_paths, list):
+            raise ValueError("search_paths must be a list")
+
+    def get_stats(self) -> dict[str, Any]:
+        """Get configuration statistics."""
+        return {
+            "name": self.name,
+            "enabled": self.enabled,
+            "auto_load": self.auto_load,
+            "search_paths_count": len(self.search_paths),
+            "metadata": self.metadata,
+        }
+
+
+__all__ = ["PluginConfig"]

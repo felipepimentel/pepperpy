@@ -1,32 +1,24 @@
-"""Rich console application"""
+"""Rich console application."""
 
-from typing import Any
+from rich.console import Console
 
-from ..base import ConsoleApp
 from .config import RichConfig
 
 
-class RichConsoleApp(ConsoleApp):
-    """Rich console application implementation"""
+class RichApp:
+    """Rich console application."""
 
-    def __init__(self, config: RichConfig | None = None):
-        super().__init__(config or RichConfig())
-        self._content: Any = None
-
-    async def initialize(self) -> None:
-        """Initialize rich console application"""
-        await super().initialize()
-
-    async def render(self) -> None:
-        """Render content"""
-        await super().render()
-        if self._content is not None:
-            self.console.print(self._content)
-
-    async def handle_input(self) -> None:
-        """Handle user input"""
-        pass
-
-    def set_content(self, content: Any) -> None:
-        """Set content to render"""
-        self._content = content
+    def __init__(self, config: RichConfig | None = None) -> None:
+        """Initialize rich console application."""
+        self.config = config or RichConfig()
+        self.console = Console(
+            style=self.config.style,
+            highlight=self.config.highlight,
+            markup=self.config.markup,
+            emoji=self.config.emoji,
+            color_system=self.config.color_system,
+            width=self.config.width,
+            height=self.config.height,
+            tab_size=self.config.tab_size,
+            soft_wrap=self.config.soft_wrap,
+        )

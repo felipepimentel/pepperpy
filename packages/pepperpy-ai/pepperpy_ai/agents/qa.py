@@ -1,59 +1,36 @@
-"""QA agent implementation"""
+"""QA agent implementation."""
 
 from typing import Any
 
-from bko.ai.types import AIResponse
-from bko.core.exceptions import PepperPyError
-
+from ..ai_types import AIMessage, AIResponse
 from .base import BaseAgent
+from .types import AgentConfig, AgentRole
 
 
 class QAAgent(BaseAgent):
-    """Agent responsible for quality assurance and testing"""
+    """QA agent implementation."""
+
+    def __init__(self, config: AgentConfig) -> None:
+        """Initialize agent."""
+        super().__init__(config)
+
+    async def _setup(self) -> None:
+        """Setup agent resources."""
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown agent resources."""
+        pass
 
     async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute QA task"""
-        return await self.test_code(task, **kwargs)
-
-    async def test_code(self, code: str, **kwargs: Any) -> AIResponse:
-        """Test code with structured prompt"""
+        """Execute QA task."""
         self._ensure_initialized()
-        prompt = (
-            f"As a QA engineer with the role of {self.config.role}, "
-            f"please test this code:\n\n{code}\n\n"
-            "Include:\n"
-            "- Test cases\n"
-            "- Edge cases\n"
-            "- Error scenarios\n"
-            "- Test coverage"
+        return AIResponse(
+            content=f"QA task: {task}",
+            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
         )
 
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Testing failed: {e}", cause=e)
-
-    async def plan_tests(self, task: str, **kwargs: Any) -> AIResponse:
-        """Plan test strategy for a task"""
-        self._ensure_initialized()
-        prompt = (
-            f"As a QA engineer with the role of {self.config.role}, "
-            f"please create a test plan for:\n\n{task}\n\n"
-            "Include:\n"
-            "- Test strategy\n"
-            "- Test scenarios\n"
-            "- Test priorities\n"
-            "- Test coverage goals\n"
-            "- Testing tools and frameworks"
-        )
-
-        if kwargs:
-            prompt += f"\n\nContext:\n{kwargs}"
-
-        try:
-            return await self._client.complete(prompt)
-        except Exception as e:
-            raise PepperPyError(f"Test planning failed: {e}", cause=e)
+    def _ensure_initialized(self) -> None:
+        """Ensure agent is initialized."""
+        if not self.is_initialized:
+            raise RuntimeError("Agent not initialized")

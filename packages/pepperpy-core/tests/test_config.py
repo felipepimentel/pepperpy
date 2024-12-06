@@ -1,35 +1,42 @@
 """Test configuration functionality"""
 
 import pytest
-from pepperpy_core.base.types import JsonDict
-from pepperpy_core.config import BaseConfig, ConfigManager, ConfigManagerConfig
-from pydantic import ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
+
+from pepperpy_core.config.manager import ConfigManager, ConfigManagerConfig
 
 
-class SampleTestConfig(BaseConfig):
-    """Sample configuration for testing"""
+class TestConfig(BaseModel):
+    """Test configuration model"""
 
     model_config = ConfigDict(frozen=True)
 
-    name: str
-    value: int
-    metadata: JsonDict = Field(default_factory=dict)
+    name: str = "test"
+    value: int = 42
 
 
 @pytest.fixture
 async def config_manager() -> ConfigManager:
-    """Create config manager"""
-    config = ConfigManagerConfig()
+    """Create config manager fixture"""
+    config = ConfigManagerConfig(
+        name="test", config_path="tests/data/config", enabled=True
+    )
     manager = ConfigManager(config)
     await manager.initialize()
-    yield manager
-    await manager.cleanup()
+    return manager
 
 
-async def test_load_config(config_manager: ConfigManager) -> None:
+@pytest.mark.asyncio
+async def test_config_get(config_manager: ConfigManager) -> None:
     """Test config loading"""
-    data = {"name": "test", "value": 42, "metadata": {"key": "value"}}
-    config = config_manager.load_config(SampleTestConfig, data)
+    config = await config_manager.get_config("TestConfig", TestConfig)
+    assert isinstance(config, TestConfig)
     assert config.name == "test"
     assert config.value == 42
-    assert config.metadata == {"key": "value"}
+
+
+@pytest.mark.asyncio
+async def test_config_validation(config_manager: ConfigManager) -> None:
+    """Test config validation"""
+    with pytest.raises(ValueError):
+        await config_manager.get_config("invalid_config", TestConfig)

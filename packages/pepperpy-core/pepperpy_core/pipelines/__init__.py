@@ -1,21 +1,17 @@
-"""Pipeline module"""
+"""Pipeline module."""
 
-from .base import BasePipeline
-from .types import (
-    InputT,
-    OutputT,
-    Pipeline,
-    PipelineConfig,
-    PipelineResult,
-    PipelineStep,
-)
+from typing import TypeVar
+
+from .base import Pipeline, PipelineStep
+from .manager import PipelineManager
+
+InputT = TypeVar("InputT")
+OutputT = TypeVar("OutputT")
 
 __all__ = [
-    "BasePipeline",
     "Pipeline",
-    "PipelineConfig",
-    "PipelineResult",
     "PipelineStep",
+    "PipelineManager",
     "InputT",
     "OutputT",
 ]

@@ -1,162 +1,103 @@
-"""Stackspot AI provider implementation"""
+"""StackSpot provider implementation."""
 
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 
-import aiohttp
-
-from ..exceptions import AIError
-from ..types import AIMessage, AIResponse, MessageRole
-from .base import BaseProvider
-from .config import ProviderConfig
+from ..ai_types import AIMessage, AIResponse
+from ..llm.base import LLMClient
+from ..llm.config import LLMConfig
 
 
-class StackspotProvider(BaseProvider):
-    """Stackspot provider implementation"""
+class StackSpotProvider(LLMClient):
+    """StackSpot provider implementation."""
 
-    def __init__(self, config: ProviderConfig) -> None:
-        """Initialize provider"""
+    def __init__(self, config: LLMConfig) -> None:
+        """Initialize provider."""
         super().__init__(config)
-        self._session: aiohttp.ClientSession | None = None
+        self._client: Any = None
         self._base_url = "https://api.stackspot.com/v1"
 
-    async def _initialize(self) -> None:
-        """Initialize provider"""
+    async def _setup(self) -> None:
+        """Setup provider resources."""
+        # Implementação específica do StackSpot
+        pass
+
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
+        self._client = None
+
+    async def complete(self, prompt: str) -> AIResponse:
+        """Complete prompt.
+
+        Args:
+            prompt: Prompt to complete
+
+        Returns:
+            AI response
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        if not self.is_initialized or not self._client:
+            raise RuntimeError("Provider not initialized")
+
         try:
-            self._session = aiohttp.ClientSession(
-                headers={
-                    "Authorization": f"Bearer {self.config.api_key}",
-                    "Content-Type": "application/json",
-                }
+            response = await self._client.chat.completions.create(
+                model=self.config.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+                **self.config.settings,
+            )
+
+            return AIResponse(
+                content=response.choices[0].message.content,
+                messages=[
+                    AIMessage(
+                        role="assistant", content=response.choices[0].message.content
+                    )
+                ],
             )
         except Exception as e:
-            raise AIError(f"Failed to initialize Stackspot provider: {e}", cause=e)
+            raise RuntimeError("Completion failed") from e
 
-    async def _cleanup(self) -> None:
-        """Cleanup provider resources"""
-        if self._session:
-            await self._session.close()
-        self._session = None
+    async def stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses.
 
-    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Complete text"""
-        if not self.is_initialized:
-            raise RuntimeError("Provider is not initialized")
-        if not self._session:
-            raise AIError("Session not initialized")
+        Args:
+            prompt: Prompt to stream
+
+        Returns:
+            AsyncGenerator that yields AI response chunks
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        return self._stream(prompt)
+
+    async def _stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        if not self.is_initialized or not self._client:
+            raise RuntimeError("Provider not initialized")
 
         try:
-            messages = [AIMessage(role=MessageRole.USER, content=prompt)]
+            stream = await self._client.chat.completions.create(
+                model=self.config.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+                stream=True,
+                **self.config.settings,
+            )
 
-            async with self._session.post(
-                f"{self._base_url}/completions",
-                json={
-                    "model": self.config.model,
-                    "messages": [{"role": m.role.value, "content": m.content} for m in messages],
-                    "temperature": self.config.temperature,
-                    "max_tokens": self.config.max_tokens,
-                    **self.config.provider_options,
-                },
-                timeout=aiohttp.ClientTimeout(total=self.config.timeout),
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise AIError(f"Stackspot API error: {error_text}")
-
-                data = await response.json()
-                assistant_message = data["choices"][0]["message"]
-                messages.append(
-                    AIMessage(
-                        role=MessageRole.ASSISTANT,
-                        content=assistant_message["content"],
+            async for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield AIResponse(
+                        content=chunk.choices[0].delta.content,
+                        messages=[
+                            AIMessage(
+                                role="assistant", content=chunk.choices[0].delta.content
+                            )
+                        ],
                     )
-                )
-
-                return AIResponse(
-                    content=assistant_message["content"],
-                    messages=messages,
-                    metadata={
-                        "provider": "stackspot",
-                        "model": self.config.model,
-                        "response_id": data.get("id"),
-                    },
-                )
-
         except Exception as e:
-            raise AIError(f"Stackspot completion failed: {e}", cause=e)
-
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream text generation"""
-        if not self.is_initialized:
-            raise RuntimeError("Provider is not initialized")
-        if not self._session:
-            raise AIError("Session not initialized")
-
-        try:
-            messages = [AIMessage(role=MessageRole.USER, content=prompt)]
-
-            async with self._session.post(
-                f"{self._base_url}/completions/stream",
-                json={
-                    "model": self.config.model,
-                    "messages": [{"role": m.role.value, "content": m.content} for m in messages],
-                    "temperature": self.config.temperature,
-                    "max_tokens": self.config.max_tokens,
-                    **self.config.provider_options,
-                },
-                timeout=aiohttp.ClientTimeout(total=self.config.timeout),
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise AIError(f"Stackspot API error: {error_text}")
-
-                current_content = ""
-                async for line in response.content:
-                    if line:
-                        chunk = line.decode().strip()
-                        if chunk:
-                            current_content += chunk
-                            messages.append(
-                                AIMessage(
-                                    role=MessageRole.ASSISTANT,
-                                    content=current_content,
-                                )
-                            )
-                            yield AIResponse(
-                                content=current_content,
-                                messages=messages,
-                                metadata={
-                                    "provider": "stackspot",
-                                    "model": self.config.model,
-                                    "streaming": True,
-                                },
-                            )
-
-        except Exception as e:
-            raise AIError(f"Stackspot streaming failed: {e}", cause=e)
-
-    async def get_embedding(self, text: str) -> list[float]:
-        """Get text embedding"""
-        if not self.is_initialized:
-            raise RuntimeError("Provider is not initialized")
-        if not self._session:
-            raise AIError("Session not initialized")
-
-        try:
-            async with self._session.post(
-                f"{self._base_url}/embeddings",
-                json={
-                    "input": text,
-                    "model": "stackspot-embedding-v1",
-                    **self.config.provider_options,
-                },
-                timeout=aiohttp.ClientTimeout(total=self.config.timeout),
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise AIError(f"Stackspot API error: {error_text}")
-
-                data = await response.json()
-                return data["data"][0]["embedding"]
-
-        except Exception as e:
-            raise AIError(f"Stackspot embedding failed: {e}", cause=e)
+            raise RuntimeError("Streaming failed") from e

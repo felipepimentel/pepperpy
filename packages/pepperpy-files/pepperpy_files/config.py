@@ -1,39 +1,23 @@
-"""File configuration"""
-
+"""File handler configuration."""
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Set
-
-from pydantic import BaseModel
+from typing import Any
 
 
 @dataclass
-class FileHandlerConfig(BaseModel):
-    """File handler configuration"""
+class FileHandlerConfig:
+    """File handler configuration."""
+
+    allowed_extensions: list[str] | set[str]
+    path: Path | None = None
+    max_size: int = 10 * 1024 * 1024  # 10MB default
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class FileManagerConfig:
+    """File manager configuration."""
 
     base_path: Path
-    allowed_extensions: Set[str]
-    max_file_size: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        """Validate configuration"""
-        if not self.base_path:
-            raise ValueError("Base path cannot be empty")
-        if not self.allowed_extensions:
-            raise ValueError("Allowed extensions cannot be empty")
-        if self.max_file_size <= 0:
-            raise ValueError("Max file size must be positive")
-
-
-@dataclass
-class FileManagerConfig(FileHandlerConfig):
-    """File manager configuration"""
-
-    def __post_init__(self) -> None:
-        """Validate configuration"""
-        super().__post_init__()
-
-        # Additional manager-specific validation
-        if not any(ext.startswith(".") for ext in self.allowed_extensions):
-            raise ValueError("Extensions must start with '.'")
+    max_file_size: int = 100 * 1024 * 1024  # 100MB default
+    allowed_extensions: set[str] = field(default_factory=set)

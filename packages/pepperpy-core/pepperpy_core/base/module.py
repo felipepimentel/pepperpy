@@ -1,62 +1,100 @@
-"""Base module implementation"""
+"""Base module implementation."""
 
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel
+from .config import BaseConfigData
 
-from ..exceptions.module import ModuleError
-from .types import JsonDict
-
-T = TypeVar("T", bound=BaseModel)
+ConfigT = TypeVar("ConfigT", bound=BaseConfigData)
 
 
-class BaseModule(ABC, Generic[T]):
-    """Base module implementation"""
+class BaseModule(Generic[ConfigT], ABC):
+    """Base module implementation."""
 
-    def __init__(self, config: T) -> None:
+    def __init__(self, config: ConfigT) -> None:
+        """Initialize module.
+
+        Args:
+            config: Module configuration
+        """
         self.config = config
         self._initialized = False
-        self._metadata: JsonDict = {}
-
-    async def initialize(self) -> None:
-        """Initialize module"""
-        if not self._initialized:
-            await self._initialize()
-            self._initialized = True
-
-    async def cleanup(self) -> None:
-        """Cleanup module"""
-        if self._initialized:
-            await self._cleanup()
-            self._initialized = False
 
     @property
     def is_initialized(self) -> bool:
-        """Check if module is initialized"""
+        """Check if module is initialized."""
         return self._initialized
 
-    @property
-    def metadata(self) -> JsonDict:
-        """Get module metadata"""
-        return self._metadata
-
-    def _ensure_initialized(self) -> None:
-        """Ensure module is initialized"""
+    async def initialize(self) -> None:
+        """Initialize module."""
         if not self._initialized:
-            raise ModuleError("Module not initialized")
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup module resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
     @abstractmethod
-    async def _initialize(self) -> None:
-        """Initialize module implementation"""
-        ...
+    async def _setup(self) -> None:
+        """Setup module resources."""
+        pass
 
     @abstractmethod
-    async def _cleanup(self) -> None:
-        """Cleanup module implementation"""
-        ...
+    async def _teardown(self) -> None:
+        """Teardown module resources."""
+        pass
+
+    @abstractmethod
+    async def get_stats(self) -> dict[str, Any]:
+        """Get module statistics.
+
+        Returns:
+            Module statistics
+        """
+        pass
 
 
-__all__ = [
-    "BaseModule",
-]
+class BaseManager(BaseModule[ConfigT], ABC):
+    """Base manager implementation."""
+
+    def __init__(self, config: ConfigT) -> None:
+        """Initialize manager.
+
+        Args:
+            config: Manager configuration
+        """
+        super().__init__(config)
+        self._items: dict[str, Any] = {}
+
+    async def _setup(self) -> None:
+        """Setup manager resources."""
+        self._items.clear()
+
+    async def _teardown(self) -> None:
+        """Teardown manager resources."""
+        self._items.clear()
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get manager statistics.
+
+        Returns:
+            Manager statistics
+        """
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "items_count": len(self._items),
+            "item_names": list(self._items.keys()),
+        }
+
+
+class InitializableModule(BaseModule[ConfigT], ABC):
+    """Initializable module implementation."""
+
+    async def _ensure_initialized(self) -> None:
+        """Ensure module is initialized."""
+        if not self.is_initialized:
+            await self.initialize()

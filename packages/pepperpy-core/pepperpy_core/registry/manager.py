@@ -1,54 +1,83 @@
-"""Registry manager implementation"""
+"""Registry manager implementation."""
 
-from typing import Any, Dict, Optional, Type
-
-from pydantic import BaseModel
+from dataclasses import dataclass, field
+from typing import Any
 
 from ..module import BaseModule
-from .types import Registration, RegistryEntry
+from .config import RegistryConfig
 
 
-class RegistryConfig(BaseModel):
-    """Registry configuration"""
+@dataclass
+class RegistryEntry:
+    """Registry entry."""
 
-    auto_discover: bool = True
-    plugins_enabled: bool = True
+    key: str
+    value: Any
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class RegistryManager(BaseModule[RegistryConfig]):
-    """Registry manager implementation"""
+    """Registry manager implementation."""
 
-    def __init__(self, config: RegistryConfig) -> None:
+    def __init__(self) -> None:
+        """Initialize registry manager."""
+        config = RegistryConfig(name="registry-manager")
         super().__init__(config)
-        self._registry: Dict[str, RegistryEntry] = {}
+        self._registry: dict[str, RegistryEntry] = {}
 
-    async def _initialize(self) -> None:
-        """Initialize registry"""
-        if self.config.auto_discover:
-            await self._discover_components()
-
-    async def _cleanup(self) -> None:
-        """Cleanup registry"""
+    async def _setup(self) -> None:
+        """Setup registry manager."""
         self._registry.clear()
 
-    async def _discover_components(self) -> None:
-        """Discover available components"""
-        # Implementar descoberta de componentes
-        pass
+    async def _teardown(self) -> None:
+        """Teardown registry manager."""
+        self._registry.clear()
 
-    def register(self, registration: Registration) -> None:
-        """Register component"""
-        self._ensure_initialized()
-        entry = RegistryEntry(
-            name=registration.name,
-            component_type=registration.component_type,
-            factory=registration.factory,
-            metadata=registration.metadata,
-        )
-        self._registry[registration.name] = entry
+    async def register(self, entry: RegistryEntry) -> None:
+        """Register entry.
 
-    def get_component(self, name: str) -> Optional[Type[Any]]:
-        """Get registered component"""
-        self._ensure_initialized()
-        entry = self._registry.get(name)
-        return entry.component_type if entry else None
+        Args:
+            entry: Registry entry
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        self._registry[entry.key] = entry
+
+    async def unregister(self, key: str) -> None:
+        """Unregister entry.
+
+        Args:
+            key: Entry key
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        self._registry.pop(key, None)
+
+    async def get(self, key: str) -> Any | None:
+        """Get registry value.
+
+        Args:
+            key: Entry key
+
+        Returns:
+            Entry value if found, None otherwise
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        entry = self._registry.get(key)
+        return entry.value if entry else None
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get registry statistics.
+
+        Returns:
+            Registry statistics
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "entries_count": len(self._registry),
+            "keys": list(self._registry.keys()),
+        }

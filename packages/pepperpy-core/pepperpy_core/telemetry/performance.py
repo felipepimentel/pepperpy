@@ -1,103 +1,87 @@
-"""Performance monitoring utilities"""
+"""Performance monitoring module."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from time import perf_counter
 from typing import Any
 
-import psutil
-from bko.core.exceptions import PepperPyError
+from ..exceptions import PepperpyError
+from ..module import BaseModule
+from .config import TelemetryConfig
 
 
-class PerformanceError(PepperPyError):
-    """Performance monitoring error"""
+class PerformanceError(PepperpyError):
+    """Performance specific error."""
+
+    pass
 
 
 @dataclass
-class ResourceUsage:
-    """System resource usage information"""
+class PerformanceMetric:
+    """Performance metric data."""
 
-    cpu_percent: float
-    memory_percent: float
-    disk_usage: dict[str, float]
-    network_io: dict[str, int]
-    timestamp: datetime = field(default_factory=datetime.now)
+    name: str
+    value: float
+    unit: str
+    timestamp: float = field(default_factory=perf_counter)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class PerformanceMonitor:
-    """System performance monitor"""
+class PerformanceMonitor(BaseModule[TelemetryConfig]):
+    """Performance monitor implementation."""
 
-    def __init__(self):
-        self._process = psutil.Process()
-        self._last_usage: ResourceUsage | None = None
+    def __init__(self) -> None:
+        """Initialize performance monitor."""
+        config = TelemetryConfig(name="performance-monitor")
+        super().__init__(config)
+        self._metrics: list[PerformanceMetric] = []
 
-    def get_resource_usage(self) -> ResourceUsage:
+    async def _setup(self) -> None:
+        """Setup performance monitor."""
+        self._metrics.clear()
+
+    async def _teardown(self) -> None:
+        """Teardown performance monitor."""
+        self._metrics.clear()
+
+    async def record_metric(
+        self, name: str, value: float, unit: str, metadata: dict[str, Any] | None = None
+    ) -> None:
+        """Record performance metric.
+
+        Args:
+            name: Metric name
+            value: Metric value
+            unit: Metric unit
+            metadata: Optional metric metadata
         """
-        Get current resource usage
+        if not self.is_initialized:
+            await self.initialize()
+
+        if len(self._metrics) >= self.config.buffer_size:
+            self._metrics.pop(0)
+
+        metric = PerformanceMetric(
+            name=name,
+            value=value,
+            unit=unit,
+            metadata=metadata or {},
+        )
+        self._metrics.append(metric)
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get performance monitor statistics.
 
         Returns:
-            ResourceUsage: Current resource usage information
-
+            Performance monitor statistics
         """
-        try:
-            # Get CPU and memory usage
-            cpu_percent = psutil.cpu_percent(interval=0.1)
-            memory_percent = psutil.virtual_memory().percent
+        if not self.is_initialized:
+            await self.initialize()
 
-            # Get disk usage for all mounted partitions
-            disk_usage = {
-                partition.mountpoint: psutil.disk_usage(partition.mountpoint).percent
-                for partition in psutil.disk_partitions()
-                if partition.fstype
-            }
-
-            # Get network I/O counters
-            net_io = psutil.net_io_counters()
-            network_io = {
-                "bytes_sent": net_io.bytes_sent,
-                "bytes_recv": net_io.bytes_recv,
-                "packets_sent": net_io.packets_sent,
-                "packets_recv": net_io.packets_recv,
-            }
-
-            usage = ResourceUsage(
-                cpu_percent=cpu_percent,
-                memory_percent=memory_percent,
-                disk_usage=disk_usage,
-                network_io=network_io,
-            )
-
-            self._last_usage = usage
-            return usage
-
-        except Exception as e:
-            raise PerformanceError(f"Failed to get resource usage: {e!s}", cause=e)
-
-    def get_process_info(self) -> dict[str, Any]:
-        """
-        Get current process information
-
-        Returns:
-            Dict[str, Any]: Process information
-
-        """
-        try:
-            return {
-                "pid": self._process.pid,
-                "cpu_percent": self._process.cpu_percent(),
-                "memory_percent": self._process.memory_percent(),
-                "threads": len(self._process.threads()),
-                "open_files": len(self._process.open_files()),
-                "connections": len(self._process.connections()),
-            }
-        except Exception as e:
-            raise PerformanceError(f"Failed to get process info: {e!s}", cause=e)
-
-    @property
-    def last_usage(self) -> ResourceUsage | None:
-        """Get last recorded resource usage"""
-        return self._last_usage
-
-
-# Global performance monitor instance
-monitor = PerformanceMonitor()
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "total_samples": len(self._metrics),
+            "buffer_size": self.config.buffer_size,
+            "flush_interval": self.config.flush_interval,
+            "metric_names": {m.name for m in self._metrics},
+        }

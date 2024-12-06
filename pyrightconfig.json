@@ -1,0 +1,23 @@
+{
+  "include": ["."],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "**/dist",
+    "**/build"
+  ],
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": false,
+  "pythonVersion": "3.12",
+  "pythonPlatform": "All",
+  "venvPath": "./",
+  "extraPaths": [
+    "packages/*/.venv/lib/python3.12/site-packages",
+    "tools/.venv/lib/python3.12/site-packages",
+    "packages"
+  ],
+  "stubPath": "tools/stubs"
+}

@@ -1,66 +1,70 @@
-"""Mock utilities for testing"""
+"""Mock utilities for development."""
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from typing import Any, TypeVar, Union
+from typing import Any, cast
 
-T = TypeVar("T")
-MockFunction = Callable[..., Any]
-MockReturn = Union[Any, Exception]
+from ..types import JsonDict, JsonValue
 
 
-@dataclass
-class MockCall:
-    """Mock function call record"""
+class MockResponse:
+    """Mock HTTP response."""
 
-    args: tuple
-    kwargs: dict[str, Any]
-    return_value: Any
-    exception: Exception | None = None
+    def __init__(
+        self,
+        status: int = 200,
+        data: str | bytes | dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        """Initialize mock response.
+
+        Args:
+            status: HTTP status code
+            data: Response data
+            headers: Response headers
+        """
+        self.status = status
+        self.data = data or {}
+        self.headers = headers or {}
+
+    async def json(self) -> JsonDict:
+        """Get JSON response data."""
+        if isinstance(self.data, str | bytes):
+            import json
+
+            return cast(JsonDict, json.loads(self.data))
+        return cast(JsonDict, self.data)
+
+    async def text(self) -> str:
+        """Get text response data."""
+        if isinstance(self.data, bytes):
+            return self.data.decode()
+        if isinstance(self.data, dict):
+            import json
+
+            return json.dumps(self.data)
+        return str(self.data)
 
 
-@dataclass
-class Mock:
-    """Mock function or object"""
+def mock_response(
+    status: int = 200,
+    data: str | bytes | dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+) -> Callable[..., MockResponse]:
+    """Create mock response factory."""
 
-    name: str
-    return_value: Any = None
-    side_effect: Exception | MockFunction | None = None
-    calls: list[MockCall] = field(default_factory=list)
+    def factory(*args: Any, **kwargs: Any) -> MockResponse:
+        return MockResponse(status, data, headers)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        """Handle mock function call"""
-        if self.side_effect is not None:
-            if isinstance(self.side_effect, Exception):
-                self.calls.append(MockCall(args, kwargs, None, self.side_effect))
-                raise self.side_effect
-            result = self.side_effect(*args, **kwargs)
-        else:
-            result = self.return_value
-
-        self.calls.append(MockCall(args, kwargs, result))
-        return result
-
-    def reset(self) -> None:
-        """Reset mock call history"""
-        self.calls.clear()
+    return factory
 
 
-def create_mock(
-    name: str,
-    return_value: Any = None,
-    side_effect: Exception | MockFunction | None = None,
-) -> Mock:
-    """
-    Create a mock function
-
-    Args:
-        name: Mock name
-        return_value: Value to return when called
-        side_effect: Exception to raise or function to call
-
-    Returns:
-        Mock: Mock function
-
-    """
-    return Mock(name=name, return_value=return_value, side_effect=side_effect)
+def generate_mock_data() -> dict[str, JsonValue]:
+    """Generate mock data."""
+    mock_data = {
+        "id": "123",
+        "name": "test",
+        "value": 42,
+        "enabled": True,
+        "metadata": {"key": "value"},
+    }
+    return cast(dict[str, JsonValue], mock_data)

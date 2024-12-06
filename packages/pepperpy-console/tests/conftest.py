@@ -1,20 +1,26 @@
-"""Test configuration and fixtures"""
+"""Test configuration and fixtures for pepperpy-console.
+
+Note: It's normal to have multiple conftest.py files in different test directories.
+Each one provides fixtures specific to its package's tests.
+"""
 
 import pytest
+
 from pepperpy_console import (
+    ChatConfig,
     ChatView,
-    Console,
-    ConsoleConfig,
     Layout,
+    Panel,
+    PanelConfig,
     ProgressBar,
-    Table,
+    ProgressConfig,
 )
 
 
 @pytest.fixture
-def console() -> Console:
-    """Create test console"""
-    return Console(ConsoleConfig())
+def panel() -> Panel:
+    """Create test panel"""
+    return Panel(config=PanelConfig())
 
 
 @pytest.fixture
@@ -24,21 +30,17 @@ def layout() -> Layout:
 
 
 @pytest.fixture
-def table() -> Table:
-    """Create test table"""
-    table = Table()
-    table.add_column("Col 1")
-    table.add_column("Col 2")
-    return table
-
-
-@pytest.fixture
 def progress_bar() -> ProgressBar:
     """Create test progress bar"""
-    return ProgressBar(total=100)
+    return ProgressBar(
+        config=ProgressConfig(
+            total=100,
+            description="Test Progress",
+        )
+    )
 
 
 @pytest.fixture
 def chat_view() -> ChatView:
     """Create test chat view"""
-    return ChatView()
+    return ChatView(config=ChatConfig())

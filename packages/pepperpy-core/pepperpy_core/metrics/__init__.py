@@ -1,12 +1,10 @@
-"""Metrics module"""
+"""Metrics module exports."""
 
-from .base import Metric, MetricsCollector, MetricsConfig, MetricType
-from .timing import timing
+from .base import MetricsConfig, MetricsCollector
+from .decorators import timing
 
 __all__ = [
-    "Metric",
-    "MetricsCollector",
-    "MetricType",
     "MetricsConfig",
+    "MetricsCollector",
     "timing",
 ]

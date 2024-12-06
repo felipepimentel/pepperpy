@@ -1,50 +1,37 @@
-"""Toast notification component"""
+"""Toast component implementation."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from rich.panel import Panel as RichPanel
-from rich.text import Text
-
-from .base import Component
-
-ToastType = Literal["info", "success", "warning", "error"]
+from ..base.component import BaseComponent
 
 
 @dataclass
 class ToastConfig:
-    """Toast configuration"""
+    """Toast configuration."""
 
-    type_: ToastType = "info"
+    type_: Literal["info", "success", "warning", "error"] = "info"
     duration: float = 3.0
-    style: str | None = None
-    border_style: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class Toast(Component):
-    """Toast notification component"""
+class Toast(BaseComponent):
+    """Toast component."""
 
-    def __init__(self, message: str, config: ToastConfig | None = None):
+    def __init__(self, config: ToastConfig | None = None) -> None:
+        """Initialize toast."""
         super().__init__()
-        self.message = message
         self.config = config or ToastConfig()
 
-    def _get_style(self) -> tuple[str, str]:
-        """Get toast style based on type"""
-        styles = {
-            "info": ("blue", "blue"),
-            "success": ("green", "green"),
-            "warning": ("yellow", "yellow"),
-            "error": ("red", "red"),
-        }
-        content_style, border = styles.get(self.config.type_, ("default", "default"))
-        return (self.config.style or content_style, self.config.border_style or border)
+    async def initialize(self) -> None:
+        """Initialize toast."""
+        await super().initialize()
 
     async def render(self) -> Any:
-        """Render toast"""
+        """Render toast."""
         await super().render()
+        return None
 
-        content_style, border_style = self._get_style()
-        text = Text(self.message, style=content_style)
-
-        return RichPanel(text, border_style=border_style, padding=(0, 1))
+    async def cleanup(self) -> None:
+        """Cleanup toast."""
+        await super().cleanup()

@@ -1,19 +1,21 @@
-"""Plugin-related exceptions"""
+"""Plugin exceptions module."""
 
-from bko.core.exceptions import PepperPyError
-
-
-class PluginError(PepperPyError):
-    """Base plugin error"""
+from ..exceptions import PepperpyError
 
 
-class PluginLoadError(PluginError):
-    """Plugin loading error"""
+class PluginError(PepperpyError):
+    """Base plugin error."""
+
+    pass
 
 
 class PluginNotFoundError(PluginError):
-    """Plugin not found error"""
+    """Plugin not found error."""
+
+    pass
 
 
-class PluginConfigError(PluginError):
-    """Plugin configuration error"""
+class PluginLoadError(PluginError):
+    """Plugin load error."""
+
+    pass

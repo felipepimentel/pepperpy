@@ -1,0 +1,48 @@
+# {{package_name}}
+
+{{package_description}}
+
+## Installation
+
+```bash
+poetry add {{package_name}}
+```
+
+## Quick Start
+
+```python
+from {{package_module}} import *
+
+# Add example code here
+```
+
+## Features
+
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Development
+
+### Setup
+
+```bash
+poetry install
+pre-commit install
+```
+
+### Testing
+
+```bash
+poetry run pytest
+```
+
+### Documentation
+
+```bash
+poetry run mkdocs serve
+```
+
+## License
+
+MIT License - see LICENSE file for details 

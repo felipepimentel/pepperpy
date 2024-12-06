@@ -1,89 +1,86 @@
-"""Plugin manager implementation"""
+"""Plugin manager implementation."""
 
-from typing import Any, Protocol, Sequence
+from dataclasses import dataclass, field
+from typing import Any
 
-from bko.core.module import BaseModule
-
+from ..module import BaseModule
 from .config import PluginConfig
-from .exceptions import PluginError
 
 
-class Plugin(Protocol):
-    """Plugin protocol"""
+@dataclass
+class PluginInfo:
+    """Plugin information."""
 
-    def initialize(self) -> None:
-        """Initialize plugin"""
-        ...
-
-    def cleanup(self) -> None:
-        """Cleanup plugin"""
-        ...
-
-    def execute(self, **kwargs: Any) -> Any:
-        """Execute plugin"""
-        ...
+    name: str
+    version: str
+    enabled: bool = True
+    dependencies: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class PluginManager(BaseModule[PluginConfig]):
-    """Plugin manager implementation"""
+    """Plugin manager implementation."""
 
-    def __init__(self, config: PluginConfig) -> None:
+    def __init__(self) -> None:
+        """Initialize plugin manager."""
+        config = PluginConfig(name="plugin-manager")
         super().__init__(config)
-        self._plugins: dict[str, Plugin] = {}
+        self._plugins: dict[str, PluginInfo] = {}
 
-    async def _initialize(self) -> None:
-        """Initialize plugin manager"""
-        try:
-            if not self.config.plugins_path.exists():
-                self.config.plugins_path.mkdir(parents=True)
-
-            if self.config.auto_discover:
-                await self._discover_plugins()
-
-            if self.config.auto_load:
-                await self._load_plugins()
-        except Exception as e:
-            raise PluginError(f"Failed to initialize plugin manager: {e}", cause=e)
-
-    async def _cleanup(self) -> None:
-        """Cleanup plugin manager"""
-        for plugin in self._plugins.values():
-            plugin.cleanup()
+    async def _setup(self) -> None:
+        """Setup plugin manager."""
         self._plugins.clear()
 
-    async def _discover_plugins(self) -> None:
-        """Discover available plugins"""
-        try:
-            # Implementar descoberta de plugins
-            pass
-        except Exception as e:
-            raise PluginError(f"Plugin discovery failed: {e}", cause=e)
+    async def _teardown(self) -> None:
+        """Teardown plugin manager."""
+        self._plugins.clear()
 
-    async def _load_plugins(self) -> None:
-        """Load enabled plugins"""
-        try:
-            # Implementar carregamento de plugins
-            pass
-        except Exception as e:
-            raise PluginError(f"Plugin loading failed: {e}", cause=e)
+    async def register_plugin(self, plugin: PluginInfo) -> None:
+        """Register plugin.
 
-    async def get_plugin(self, name: str) -> Plugin:
-        """Get plugin by name"""
-        self._ensure_initialized()
-        plugin = self._plugins.get(name)
-        if not plugin:
-            raise PluginError(f"Plugin not found: {name}")
-        return plugin
+        Args:
+            plugin: Plugin information
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        self._plugins[plugin.name] = plugin
 
-    async def get_plugins(self) -> Sequence[Plugin]:
-        """Get all loaded plugins"""
-        self._ensure_initialized()
-        return list(self._plugins.values())
+    async def unregister_plugin(self, name: str) -> None:
+        """Unregister plugin.
 
-    async def execute_plugin(self, name: str, **kwargs: Any) -> Any:
-        """Execute plugin"""
-        plugin = await self.get_plugin(name)
-        try:
-            return plugin.execute(**kwargs)
-        except Exception as e:
-            raise PluginError(f"Plugin execution failed: {e}", cause=e)
+        Args:
+            name: Plugin name
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        self._plugins.pop(name, None)
+
+    async def get_plugin(self, name: str) -> PluginInfo | None:
+        """Get plugin information.
+
+        Args:
+            name: Plugin name
+
+        Returns:
+            Plugin information if found, None otherwise
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        return self._plugins.get(name)
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get plugin manager statistics.
+
+        Returns:
+            Plugin manager statistics
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "auto_load": self.config.auto_load,
+            "plugins_count": len(self._plugins),
+            "enabled_plugins": sum(1 for p in self._plugins.values() if p.enabled),
+            "plugin_names": list(self._plugins.keys()),
+        }

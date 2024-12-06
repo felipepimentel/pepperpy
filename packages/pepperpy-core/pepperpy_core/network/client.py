@@ -1,54 +1,34 @@
-"""Network client implementation"""
+"""Network client module."""
 
-from typing import Any, Protocol
-
-from bko.core.module import InitializableModule
-from bko.core.validation import ValidatorFactory
-
-from .config import NetworkConfig
-from .exceptions import NetworkError
+from dataclasses import dataclass, field
+from typing import Any
 
 
-class Session(Protocol):
-    """Network session protocol"""
+@dataclass
+class ClientConfig:
+    """HTTP client configuration."""
 
-    async def close(self) -> None:
-        """Close session"""
-        ...
-
-    async def request(self, method: str, url: str, **kwargs: Any) -> Any:
-        """Make HTTP request"""
-        ...
+    base_url: str
+    headers: dict[str, str] = field(default_factory=dict)
+    timeout: float = 30.0
+    verify_ssl: bool = True
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class NetworkClient(InitializableModule):
-    """Network client implementation"""
+class HTTPClient:
+    """HTTP client implementation."""
 
-    def __init__(self, config: NetworkConfig) -> None:
-        super().__init__()
-        self.config = config
-        self._config_validator = ValidatorFactory.create_schema_validator(NetworkConfig)
-        self._session: Session | None = None
+    def __init__(self, config: ClientConfig) -> None:
+        """Initialize client."""
+        self._config = config
+        self._session: Any | None = None
 
-    async def _initialize(self) -> None:
-        """Initialize network client"""
-        result = await self._config_validator.validate(self.config.model_dump())
-        if not result.is_valid:
-            raise NetworkError(f"Invalid configuration: {', '.join(result.errors)}")
+    async def _setup(self) -> None:
+        """Setup client resources."""
+        pass
 
-    async def _cleanup(self) -> None:
-        """Cleanup resources"""
+    async def _teardown(self) -> None:
+        """Teardown client resources."""
         if self._session:
             await self._session.close()
             self._session = None
-
-    async def request(self, method: str, url: str, **kwargs: Any) -> Any:
-        """Make HTTP request"""
-        self._ensure_initialized()
-        if not self._session:
-            raise NetworkError("Session not initialized")
-
-        try:
-            return await self._session.request(method, url, **kwargs)
-        except Exception as e:
-            raise NetworkError(f"Request failed: {e}", cause=e)

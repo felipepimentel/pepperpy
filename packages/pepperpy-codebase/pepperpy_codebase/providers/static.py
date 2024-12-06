@@ -1,100 +1,97 @@
-"""Static codebase provider implementation"""
+"""Static analysis provider implementation."""
 
-from pathlib import Path
-from typing import Any, AsyncGenerator, Sequence
+from collections.abc import Sequence
+from typing import Any
 
-from ..exceptions import CodebaseError
-from ..types import CodeFile, CodeSearchResult
-from .base import BaseProvider
+from ..config import CodebaseConfig
+from ..types import FileContent
+from .base import BaseProvider, SearchResult
 
 
-class StaticProvider(BaseProvider):
-    """Static codebase provider implementation"""
+class StaticProvider(BaseProvider[CodebaseConfig]):
+    """Static analysis provider implementation."""
 
-    async def _initialize(self) -> None:
-        """Initialize provider"""
-        try:
-            if not self.config.root_path.exists():
-                raise CodebaseError(f"Root path does not exist: {self.config.root_path}")
-        except Exception as e:
-            raise CodebaseError(f"Failed to initialize static provider: {e}", cause=e)
-
-    async def _cleanup(self) -> None:
-        """Cleanup provider resources"""
+    async def _setup(self) -> None:
+        """Setup provider resources."""
         pass
 
-    async def search(self, query: str, **kwargs: Any) -> AsyncGenerator[CodeSearchResult, None]:
-        """Search codebase"""
-        try:
-            for file in self._find_files():
-                if await self._matches_query(file, query):
-                    yield CodeSearchResult(
-                        file=file,
-                        score=1.0,
-                        metadata={"provider": "static"},
-                    )
-        except Exception as e:
-            raise CodebaseError(f"Static search failed: {e}", cause=e)
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
+        pass
 
-    async def get_file(self, path: str) -> CodeFile:
-        """Get file content"""
-        try:
-            file_path = Path(path)
-            if not file_path.exists():
-                raise CodebaseError(f"File not found: {path}")
+    async def get_file(self, path: str) -> FileContent | None:
+        """Get file content."""
+        self._ensure_initialized()
+        # TODO: Implement file retrieval
+        return None
 
-            content = await self._read_file(file_path)
-            return CodeFile(
-                path=str(file_path),
-                content=content,
-                metadata={"provider": "static"},
-            )
-        except Exception as e:
-            raise CodebaseError(f"Failed to get file: {e}", cause=e)
+    async def search(self, query: str, **kwargs: Any) -> Sequence[SearchResult]:
+        """Search files using static analysis.
 
-    async def get_files(self, pattern: str) -> Sequence[CodeFile]:
-        """Get files matching pattern"""
-        try:
-            files = []
-            for file_path in self.config.root_path.glob(pattern):
-                if file_path.is_file():
-                    content = await self._read_file(file_path)
-                    files.append(
-                        CodeFile(
-                            path=str(file_path),
-                            content=content,
-                            metadata={"provider": "static"},
-                        )
-                    )
-            return files
-        except Exception as e:
-            raise CodebaseError(f"Failed to get files: {e}", cause=e)
+        Args:
+            query: Search query
+            **kwargs: Additional arguments
 
-    def _find_files(self) -> Sequence[Path]:
-        """Find all files in codebase"""
-        files = []
-        for file_path in self.config.root_path.rglob("*"):
-            if file_path.is_file() and not self._is_ignored(file_path):
-                files.append(file_path)
-        return files
+        Returns:
+            Search results
 
-    def _is_ignored(self, path: Path) -> bool:
-        """Check if path should be ignored"""
-        for pattern in self.config.ignore_patterns:
-            if path.match(pattern):
-                return True
-        return False
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        self._ensure_initialized()
 
-    async def _read_file(self, path: Path) -> str:
-        """Read file content"""
-        if path.stat().st_size > self.config.max_file_size:
-            raise CodebaseError(f"File too large: {path}")
-        return path.read_text(encoding=self.config.encoding)
+        # TODO: Implement static code search
+        # This could include:
+        # - AST-based search
+        # - Regular expressions
+        # - Symbol table lookup
 
-    async def _matches_query(self, file: Path, query: str) -> bool:
-        """Check if file matches query"""
-        try:
-            content = await self._read_file(file)
-            return query.lower() in content.lower()
-        except Exception:
-            return False
+        return []
+
+    async def analyze_file(self, file: FileContent) -> dict[str, Any]:
+        """Analyze file using static analysis.
+
+        Args:
+            file: File to analyze
+
+        Returns:
+            Analysis results
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        self._ensure_initialized()
+
+        # TODO: Implement static analysis
+        # This could include:
+        # - AST analysis
+        # - Complexity metrics
+        # - Code style checks
+        # - Type checking
+
+        return {
+            "metrics": {
+                "complexity": 0.0,
+                "maintainability": 0.0,
+                "test_coverage": 0.0,
+            },
+            "issues": {
+                "style": [],
+                "type_errors": [],
+                "bugs": [],
+            },
+            "stats": {
+                "lines": 0,
+                "functions": 0,
+                "classes": 0,
+            },
+        }
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get provider statistics."""
+        self._ensure_initialized()
+        return {
+            "files_analyzed": 0,
+            "issues_found": 0,
+            "metrics_computed": 0,
+        }

@@ -1,84 +1,61 @@
-"""Input component for text entry"""
+"""Input component implementation."""
 
-from dataclasses import dataclass
-from typing import Any, Callable
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any
 
-from rich.text import Text
-
-from .base import Component
+from ..base.component import BaseComponent
+from ..base.console import Console
 
 
 @dataclass
 class InputConfig:
-    """Input configuration"""
+    """Input configuration."""
 
-    placeholder: str = ""
-    password: bool = False
-    max_length: int | None = None
+    prompt: str = "> "
+    default: str | None = None
     validator: Callable[[str], bool] | None = None
-    formatter: Callable[[str], str] | None = None
-    style: str = "default"
-    error_style: str = "red"
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class Input(Component):
-    """Input component for text entry"""
+class Input(BaseComponent):
+    """Input component."""
 
-    def __init__(self, config: InputConfig | None = None):
+    def __init__(self, console: Console, config: InputConfig | None = None) -> None:
+        """Initialize input component."""
         super().__init__()
+        self.console = console
         self.config = config or InputConfig()
         self._value: str = ""
-        self._focused: bool = False
-        self._error: str | None = None
 
     @property
     def value(self) -> str:
-        """Get current input value"""
+        """Get current input value."""
         return self._value
 
     @value.setter
-    def value(self, new_value: str) -> None:
-        """Set input value with validation and formatting"""
-        if self.config.max_length and len(new_value) > self.config.max_length:
-            self._error = f"Value exceeds maximum length of {self.config.max_length}"
-            return
+    def value(self, value: str) -> None:
+        """Set input value."""
+        self._value = value
 
-        if self.config.validator and not self.config.validator(new_value):
-            self._error = "Invalid value"
-            return
+    async def initialize(self) -> None:
+        """Initialize input component."""
+        await super().initialize()
 
-        self._value = self.config.formatter(new_value) if self.config.formatter else new_value
-        self._error = None
+    async def cleanup(self) -> None:
+        """Cleanup input component."""
+        await super().cleanup()
 
-    def focus(self) -> None:
-        """Focus input"""
-        self._focused = True
+    async def read(self, prompt: str | None = None) -> str:
+        """Read input from console."""
+        actual_prompt = prompt or self.config.prompt
+        value = input(actual_prompt)
 
-    def blur(self) -> None:
-        """Blur input"""
-        self._focused = False
+        if not value and self.config.default is not None:
+            return self.config.default
 
-    async def render(self) -> Any:
-        """Render input"""
-        await super().render()
+        if self.config.validator and not self.config.validator(value):
+            raise ValueError("Invalid input")
 
-        text = Text()
-
-        # Add placeholder if empty
-        if not self._value and self.config.placeholder:
-            text.append(self.config.placeholder, style="dim")
-            return text
-
-        # Render value (mask if password)
-        display_value = "*" * len(self._value) if self.config.password else self._value
-        text.append(display_value, style=self.config.style)
-
-        # Add cursor if focused
-        if self._focused:
-            text.append("_", style="blink")
-
-        # Add error if any
-        if self._error:
-            text.append(f"\n{self._error}", style=self.config.error_style)
-
-        return text
+        self._value = value
+        return value

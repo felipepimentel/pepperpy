@@ -1,43 +1,46 @@
-"""In-memory cache implementation"""
+"""Memory cache implementation."""
 
-from typing import Any, Optional
+from typing import Any
 
-from .base import BaseCache
+from .exceptions import CacheError
 
 
-class MemoryCache(BaseCache):
-    """Simple in-memory cache implementation"""
+class MemoryCache:
+    """Simple in-memory cache implementation."""
 
     def __init__(self) -> None:
-        super().__init__()
+        """Initialize memory cache."""
         self._cache: dict[str, Any] = {}
 
-    async def _initialize(self) -> None:
-        """Initialize cache"""
-        self._cache.clear()
-        self._initialized = True
+    def get(self, key: str) -> Any | None:
+        """Get value from cache.
 
-    async def _cleanup(self) -> None:
-        """Cleanup cache"""
-        self._cache.clear()
-        self._initialized = False
+        Args:
+            key: Cache key
 
-    async def get(self, key: str) -> Optional[Any]:
-        """Get value from cache"""
-        self._ensure_initialized()
-        return self._cache.get(key)
+        Returns:
+            Cached value if found, None otherwise
 
-    async def set(self, key: str, value: Any) -> None:
-        """Set value in cache"""
-        self._ensure_initialized()
-        self._cache[key] = value
+        Raises:
+            CacheError: If get operation fails
+        """
+        try:
+            return self._cache.get(key)
+        except Exception as e:
+            raise CacheError(f"Failed to get value: {e}", cause=e)
 
-    async def delete(self, key: str) -> None:
-        """Delete value from cache"""
-        self._ensure_initialized()
-        self._cache.pop(key, None)
+    def set(self, key: str, value: Any, ttl: int | float | None = None) -> None:
+        """Set value in cache.
 
-    async def clear(self) -> None:
-        """Clear cache"""
-        self._ensure_initialized()
-        self._cache.clear()
+        Args:
+            key: Cache key
+            value: Value to cache
+            ttl: Time to live in seconds
+
+        Raises:
+            CacheError: If set operation fails
+        """
+        try:
+            self._cache[key] = value
+        except Exception as e:
+            raise CacheError(f"Failed to set value: {e}", cause=e)

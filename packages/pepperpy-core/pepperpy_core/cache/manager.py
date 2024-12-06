@@ -1,85 +1,94 @@
-"""Cache manager implementation"""
+"""Cache management module."""
 
-from datetime import datetime, timedelta
-from typing import Any, Optional
+from dataclasses import dataclass, field
+from typing import Any
 
-from ..base.module import BaseModule
-from ..utils.datetime import utc_now
-from .base import CacheConfig, CacheEntry
+from ..module import BaseModule, ModuleConfig
 
 
-class CacheManager(BaseModule[CacheConfig]):
-    """Cache manager implementation"""
+@dataclass
+class CacheManagerConfig(ModuleConfig):
+    """Cache manager configuration."""
 
-    def __init__(self, config: Optional[CacheConfig] = None) -> None:
-        super().__init__(config or CacheConfig())
-        self._cache: dict[str, CacheEntry] = {}
-        self._last_cleanup: Optional[datetime] = None
+    # Required fields (herdado de ModuleConfig)
+    name: str
 
-    async def _initialize(self) -> None:
-        """Initialize cache manager"""
-        self._last_cleanup = utc_now()
+    # Optional fields
+    max_size: int = 1000
+    ttl: float = 60.0  # Time to live in seconds
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class CacheManager(BaseModule[CacheManagerConfig]):
+    """Cache manager implementation."""
+
+    def __init__(self, config: CacheManagerConfig | None = None) -> None:
+        """Initialize cache manager.
+
+        Args:
+            config: Cache manager configuration
+        """
+        super().__init__(config or CacheManagerConfig(name="cache-manager"))
+        self._cache: dict[str, Any] = {}
+
+    async def _setup(self) -> None:
+        """Setup cache manager."""
         self._cache.clear()
 
-    async def _cleanup(self) -> None:
-        """Cleanup expired entries"""
-        now = utc_now()
-        expired_keys = [
-            key for key, entry in self._cache.items() if entry.expires_at and entry.expires_at < now
-        ]
-        for key in expired_keys:
-            del self._cache[key]
-        self._last_cleanup = now
+    async def _teardown(self) -> None:
+        """Cleanup cache manager."""
+        self._cache.clear()
 
-    async def get(self, key: str) -> Optional[Any]:
-        """Get cache value"""
-        self._ensure_initialized()
-        entry = self._cache.get(key)
-        if not entry:
-            return None
+    async def get(self, key: str) -> Any:
+        """Get cache entry.
 
-        # Se a entrada estiver expirada, remova-a e retorne None
-        if entry.expires_at and entry.expires_at < utc_now():
-            del self._cache[key]
-            return None
+        Args:
+            key: Cache key
 
-        return entry
+        Returns:
+            Cache entry if found, None otherwise
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        return self._cache.get(key)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None, **metadata: Any) -> None:
-        """Set cache value"""
-        self._ensure_initialized()
+    async def set(self, key: str, value: Any) -> None:
+        """Set cache entry.
 
-        if isinstance(value, CacheEntry):
-            self._cache[key] = value
-            return
-
-        # Calcular expiração
-        expires_at = None
-        if ttl is not None:
-            expires_at = utc_now() + timedelta(seconds=ttl)
-        elif self.config.default_ttl:
-            expires_at = utc_now() + timedelta(seconds=self.config.default_ttl)
-
-        # Criar entrada
-        entry = CacheEntry(key=key, value=value, expires_at=expires_at, metadata=metadata)
-
-        # Verificar limite de tamanho do cache
-        if (
-            self.config.max_size
-            and len(self._cache) >= self.config.max_size
-            and key not in self._cache
-        ):
-            oldest_key = min(self._cache.keys(), key=lambda k: self._cache[k].created_at)
-            del self._cache[oldest_key]
-
-        self._cache[key] = entry
+        Args:
+            key: Cache key
+            value: Cache value
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        self._cache[key] = value
 
     async def delete(self, key: str) -> None:
-        """Delete cache value"""
-        self._ensure_initialized()
+        """Delete cache entry.
+
+        Args:
+            key: Cache key
+        """
+        if not self.is_initialized:
+            await self.initialize()
         self._cache.pop(key, None)
 
     async def clear(self) -> None:
-        """Clear all cache entries"""
-        self._ensure_initialized()
+        """Clear all cache entries."""
+        if not self.is_initialized:
+            await self.initialize()
         self._cache.clear()
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get cache statistics.
+
+        Returns:
+            Cache statistics
+        """
+        if not self.is_initialized:
+            await self.initialize()
+        return {
+            "size": len(self._cache),
+            "max_size": self.config.max_size,
+            "ttl": self.config.ttl,
+        }

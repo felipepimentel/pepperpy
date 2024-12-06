@@ -1,143 +1,106 @@
-"""OpenRouter AI provider implementation"""
+"""OpenRouter provider implementation."""
 
-import asyncio
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 
-import aiohttp
-from aiohttp import ClientTimeout
-from tenacity import retry, stop_after_attempt, wait_exponential
-
-from ..exceptions import AIError
-from ..types import AIMessage, AIResponse, MessageRole
-from .base import BaseProvider
-from .config import ProviderConfig  # Use local ProviderConfig
+from ..ai_types import AIMessage, AIResponse
+from ..llm.base import LLMClient
+from ..llm.config import LLMConfig
+from ..types import MessageRole
 
 
-class OpenRouterProvider(BaseProvider):
-    """OpenRouter provider implementation"""
+class OpenRouterProvider(LLMClient):
+    """OpenRouter provider implementation."""
 
-    def __init__(self, config: ProviderConfig) -> None:
-        """Initialize provider"""
+    def __init__(self, config: LLMConfig) -> None:
+        """Initialize provider."""
         super().__init__(config)
-        self._session: aiohttp.ClientSession | None = None
+        self._client: Any = None
         self._base_url = "https://openrouter.ai/api/v1"
-        self._semaphore = asyncio.Semaphore(10)  # Rate limiting
-        self.api_key = config.api_key  # Use the API key from the configuration
 
-    async def _initialize(self) -> None:
-        """Initialize provider"""
+    async def _setup(self) -> None:
+        """Setup provider resources."""
         # Implementação específica do OpenRouter
         pass
 
-    async def _cleanup(self) -> None:
-        """Cleanup provider"""
-        # Implementação específica do OpenRouter
-        pass
+    async def _teardown(self) -> None:
+        """Teardown provider resources."""
+        self._client = None
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        reraise=True,
-    )
-    async def complete(self, prompt: str, **kwargs: Any) -> AIResponse:
-        """Complete prompt using OpenRouter"""
-        self._ensure_initialized()
-        if not self._session:
-            raise AIError("Session not initialized")
+    async def complete(self, prompt: str) -> AIResponse:
+        """Complete prompt.
 
-        payload = {
-            "model": self.config.model,
-            "max_tokens": self.config.max_tokens,
-            "temperature": self.config.temperature,
-            "messages": [{"role": "user", "content": prompt}],
-            **self.config.provider_options,
-            **kwargs,
-        }
+        Args:
+            prompt: Prompt to complete
 
-        async with self._semaphore:
-            async with self._session.post(
-                f"{self._base_url}/chat/completions",
-                json=payload,
-                timeout=ClientTimeout(total=self.config.timeout),
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise AIError(f"OpenRouter API error: {error_text}")
+        Returns:
+            AI response
 
-                data = await response.json()
-                content = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-                ai_message = AIMessage(role=MessageRole.ASSISTANT, content=content)
-                return AIResponse(content=ai_message.content, messages=[ai_message])
-
-    async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]:
-        """Stream completion using OpenRouter"""
-        self._ensure_initialized()
-        if not self._session:
-            raise AIError("Session not initialized")
-
-        session = self._session
-
-        payload = {
-            "prompt": prompt,
-            "model": self.config.model,
-            "max_tokens": self.config.max_tokens,
-            "temperature": self.config.temperature,
-            "stream": True,
-            # Include other parameters if needed
-        }
-
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "HTTP-Referer": "https://github.com/your-repo/pepperpy",
-            "X-Title": "PepperPy Framework",
-        }
-
-        async with self._semaphore:
-            async with session.post(
-                f"{self._base_url}/completions",
-                json=payload,
-                headers=headers,
-                timeout=ClientTimeout(total=self.config.timeout),
-            ) as response:
-                response.raise_for_status()
-                async for line in response.content:
-                    if line:
-                        data = line.decode("utf-8")
-                        # Process the line to extract the content
-                        # This depends on the API's streaming format
-                        ai_message = AIMessage(role=MessageRole.ASSISTANT, content=data)
-                        yield AIResponse(content=ai_message.content, messages=[ai_message])
-
-    async def get_embedding(self, text: str) -> list[float]:
-        """Get text embedding"""
-        self._ensure_initialized()
-        if not self._session:
-            raise AIError("Session not initialized")
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        if not self.is_initialized or not self._client:
+            raise RuntimeError("Provider not initialized")
 
         try:
-            async with self._semaphore:
-                async with self._session.post(
-                    f"{self._base_url}/embeddings",
-                    json={
-                        "model": "text-embedding-ada-002",  # OpenRouter supports OpenAI models
-                        "input": text,
-                        **self.config.provider_options,
-                    },
-                    timeout=ClientTimeout(total=self.config.timeout),
-                ) as response:
-                    if response.status != 200:
-                        error_text = await response.text()
-                        raise AIError(f"OpenRouter API error: {error_text}")
+            response = await self._client.chat.completions.create(
+                model=self.config.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+                **self.config.settings,
+            )
 
-                    data = await response.json()
-                    return data["data"][0]["embedding"]
-
-        except asyncio.TimeoutError as e:
-            raise AIError(f"OpenRouter embedding timed out after {self.config.timeout}s", cause=e)
+            return AIResponse(
+                content=response.choices[0].message.content,
+                messages=[
+                    AIMessage(
+                        role=MessageRole.ASSISTANT,
+                        content=response.choices[0].message.content,
+                    )
+                ],
+            )
         except Exception as e:
-            raise AIError(f"OpenRouter embedding failed: {e}", cause=e)
+            raise RuntimeError("Completion failed") from e
 
-    def _ensure_initialized(self) -> None:
-        """Ensure provider is initialized"""
-        if not self._initialized:
-            raise RuntimeError("Provider is not initialized")
+    async def stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses.
+
+        Args:
+            prompt: Prompt to stream
+
+        Returns:
+            AsyncGenerator that yields AI response chunks
+
+        Raises:
+            RuntimeError: If provider not initialized
+        """
+        return self._stream(prompt)
+
+    async def _stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        if not self.is_initialized or not self._client:
+            raise RuntimeError("Provider not initialized")
+
+        try:
+            stream = await self._client.chat.completions.create(
+                model=self.config.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+                stream=True,
+                **self.config.settings,
+            )
+
+            async for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield AIResponse(
+                        content=chunk.choices[0].delta.content,
+                        messages=[
+                            AIMessage(
+                                role=MessageRole.ASSISTANT,
+                                content=chunk.choices[0].delta.content,
+                            )
+                        ],
+                    )
+        except Exception as e:
+            raise RuntimeError("Streaming failed") from e

@@ -1,10 +1,9 @@
 """Embedding types module"""
 
 from dataclasses import dataclass
-from typing import List
 
 # Define o tipo para vetores de embedding
-EmbeddingVector = List[float]
+EmbeddingVector = list[float]
 
 
 @dataclass

@@ -1,29 +1,15 @@
-"""Metrics type definitions"""
+"""Metrics types."""
 
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
+from dataclasses import dataclass, field
 from typing import Any
 
 
-class MetricType(Enum):
-    """Metric types"""
-
-    COUNTER = "counter"
-    GAUGE = "gauge"
-    HISTOGRAM = "histogram"
-
-
 @dataclass
-class Metric:
-    """Metric data"""
+class MetricsConfig:
+    """Metrics configuration."""
 
-    name: str
-    type: MetricType
-    value: float
-    timestamp: datetime
-    tags: dict[str, str]
-    metadata: dict[str, Any]
-
-
-MetricValue = int | float
+    name: str = ""
+    enabled: bool = True
+    collection_interval: float = 60.0
+    retention_period: float = 3600.0
+    metadata: dict[str, Any] = field(default_factory=dict)

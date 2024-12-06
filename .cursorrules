@@ -1,214 +1,183 @@
-# Cursor Rules for PepperPy Project
+# Cursor Rules for PepperPy Monorepo
 
-# Type Safety and Async Patterns
-rules:
-  - name: "Type Safety"
-    patterns:
-      - "from typing import Any, AsyncGenerator, Protocol, Sequence"
-      - "async def"
-      - "-> None"
-      - "-> Any"
-      - "-> AsyncGenerator[AIResponse, None]"
-    message: "Ensure proper type hints and async patterns"
+## General Guidelines
 
-# Async/Await Patterns
-async_patterns:
-  - name: "Async Generator Handling"
-    rules:
-      - "Use async for with AsyncGenerator[T, None]"
-      - "Don't await AsyncGenerator directly"
-      - "Yield chunks in stream methods"
-    examples:
-      - "async for chunk in generator:"
-      - "async def stream() -> AsyncGenerator[AIResponse, None]:"
+- **Monorepo Philosophy**:  
+  The structure is designed to support modularity and scalability. Every package or tool must have a clear purpose and follow the established structure.
 
-  - name: "Async Method Patterns"
-    rules:
-      - "Use await only for async methods"
-      - "Don't await synchronous methods (like logging)"
-      - "Handle cleanup in finally blocks"
-    examples:
-      - "await client.initialize()"
-      - "logger.info()  # No await for sync methods"
+- **Python Version Compatibility**:  
+  - Code must target Python `3.12` or higher.
+  - Use modern syntax and features:
+    - Replace `Union[X, Y]` with `X | Y`.
+    - Replace `Optional[X]` with `X | None`.
+    - Use `list[X]`, `dict[K, V]`, and `tuple[X, ...]` natively.
 
-# Module Structure
-module_structure:
-  core:
-    - "core/: Framework foundation and shared utilities"
-    - "db/: All database operations (including vectors)"
-    - "ai/: AI/ML operations"
-    - "files/: File system operations"
-    - "console/: Terminal interface"
-    - "ui/: User interface components"
+- **Code Ownership**:  
+  - Each `packages/<package_name>` directory must have clear ownership (e.g., a team or maintainer assigned in `CODEOWNERS`).
 
-# Module Base Classes
-base_classes:
-  - name: "InitializableModule"
-    methods:
-      - "async def _initialize(self) -> None"
-      - "async def _cleanup(self) -> None"
-      - "def _ensure_initialized(self) -> None"
-    properties:
-      - "is_initialized: bool"
+---
 
-# Provider Pattern
-providers:
-  base_pattern:
-    - "class {Name}Provider(AIProvider):"
-    - "async def initialize(self) -> None"
-    - "async def cleanup(self) -> None"
-    - "async def complete(self, prompt: str, **kwargs: Any) -> AIResponse"
-    - "async def stream(self, prompt: str, **kwargs: Any) -> AsyncGenerator[AIResponse, None]"
-    - "async def get_embedding(self, text: str) -> list[float]"
-    - "async def validate_response(self, response: Any) -> AIResponse"
+## Directory-Specific Rules
 
-# Team Pattern
-teams:
-  base_pattern:
-    - "class {Name}Team(BaseTeam):"
-    - "async def _initialize(self) -> None"
-    - "async def _cleanup(self) -> None"
-    - "async def execute_task(self, task: str, **kwargs: Any) -> AIResponse"
+### Rules for `packages/`
 
-# Factory Pattern
-factory_pattern:
-  - "class {Name}Factory:"
-  - "@staticmethod"
-  - "def create_{item}(config: {Name}Config) -> {Name}"
+- **Purpose**: Contains all modularized components of the project.
+- **Mandatory Files**:
+  - `pyproject.toml` for package configuration.
+  - `README.md` describing:
+    - Package purpose.
+    - How to install or use the package.
+  - `tests/` directory with both unit and integration tests.
 
-# Configuration Pattern
-configuration:
-  base_pattern:
-    - "class {Name}Config(BaseModel):"
-    - "class Config:"
-    - "    frozen = True"
-  validation:
-    - "from pydantic import BaseModel, Field"
-    - "metadata: JsonDict = Field(default_factory=dict)"
+- **Versioning**:
+  - Include a `__version__.py` or define the version in the `pyproject.toml`.
+  - Follow Semantic Versioning (`MAJOR.MINOR.PATCH`).
 
-# Validation Pattern
-validation:
-  base_pattern:
-    - "class {Name}Validator(Validator[T, V])"
-    - "async def validate(self, value: V) -> ValidationResult[T]"
-    - "async def validate_many(self, values: Sequence[V]) -> Sequence[ValidationResult[T]]"
+- **Imports and Structure**:
+  - Use relative imports within the package (`from .module import X`).
+  - Avoid circular dependencies by moving shared logic to `pepperpy-core`.
 
-# Error Handling
-error_handling:
-  pattern: |
-    try:
-        self._ensure_initialized()
-        # ... operation code ...
-    except Exception as e:
-        raise {Module}Error(f"Operation failed: {e}", cause=e)
+---
 
-# Documentation
-documentation:
-  - "\"\"\"Module docstring\"\"\""
-  - "\"\"\"Class docstring\"\"\""
-  - "\"\"\"Method docstring\"\"\""
+### Rules for `scripts/`
 
-# Testing Requirements
-testing:
-  - "100% test coverage"
-  - "Async test patterns"
-  - "Mock external services"
-  - "Test all error cases"
-  - "Test initialization/cleanup"
+- **Purpose**: Helper scripts for automating repetitive tasks.
+- **Best Practices**:
+  - All scripts must be executable via `python scripts/<script_name>.py`.
+  - Document the purpose of each script in the header comment.
+  - Scripts must be modular and reusable across packages.
+  - Avoid hardcoding paths; use environment variables or config files.
 
-# Quality Requirements
-quality:
-  - "mypy --strict mode"
-  - "ruff linting"
-  - "black formatting (line length: 100)"
-  - "pre-commit hooks"
-  - "Protocol for interfaces"
+---
 
-# Module Composition
-composition:
-  - "Use dependency injection"
-  - "Avoid circular dependencies"
-  - "Clear module boundaries"
-  - "Interface-based design"
-  - "Proper initialization order"
+### Rules for `tools/`
 
-# Resource Management
-resources:
-  - "Proper cleanup in _cleanup"
-  - "Resource validation in _initialize"
-  - "Connection pooling where applicable"
-  - "Proper error handling for resources"
+- **Purpose**: Contains reusable internal tools or utilities for maintenance.
+- **Standards**:
+  - Tools must have minimal dependencies.
+  - Include clear usage documentation in the source code and/or a `README.md`.
+  - Avoid duplicating functionality already covered by external libraries.
 
-# LLM Interaction Patterns
-llm_patterns:
-  - name: "Prompt Engineering"
-    rules:
-      - "Use structured prompts with clear sections"
-      - "Include role and context in prompts"
-      - "Specify expected output format"
-      - "Handle multi-turn conversations"
-    examples:
-      - |
-        f"As {role} with expertise in {domain}, analyze:\n\n{content}\n\n"
-        "Include:\n"
-        "- Key points\n"
-        "- Analysis\n"
-        "- Recommendations"
+---
 
-  - name: "Error Handling"
-    rules:
-      - "Wrap LLM calls in try-except blocks"
-      - "Provide specific error messages"
-      - "Include original error cause"
-      - "Handle rate limits and timeouts"
-    pattern: |
-      try:
-          return await self._client.complete(prompt)
-      except Exception as e:
-          raise AIError(f"LLM operation failed: {e}", cause=e)
+## Dependency Management
 
-  - name: "Response Processing"
-    rules:
-      - "Validate response structure"
-      - "Handle partial responses"
-      - "Process streaming chunks"
-      - "Implement retry logic"
-    examples:
-      - "async for chunk in response.stream():"
-      - "yield AIResponse(content=chunk, metadata=metadata)"
+- **Centralized and Modular Dependencies**:
+  - Shared dependencies are defined in the root `pyproject.toml`.
+  - Package-specific dependencies should be isolated to the package's `pyproject.toml`.
 
-# LLM Configuration
-llm_configuration:
-  base_pattern:
-    - "class {Name}Config(BaseModel):"
-    - "    model: str"
-    - "    temperature: float = 0.7"
-    - "    max_tokens: int | None = None"
-    - "    stop_sequences: list[str] | None = None"
-    - "    presence_penalty: float = 0.0"
-    - "    frequency_penalty: float = 0.0"
-    - "    metadata: dict[str, Any] = Field(default_factory=dict)"
-  validation:
-    - "from pydantic import BaseModel, Field, validator"
-    - "@validator('temperature')"
-    - "def validate_temperature(cls, v: float) -> float:"
-    - "    if not 0 <= v <= 2:"
-    - "        raise ValueError('Temperature must be between 0 and 2')"
-    - "    return v"
+- **Extras and Optional Groups**:
+  - Use `[tool.poetry.extras]` to group optional dependencies logically.
+  - Examples:
+    ```toml
+    [tool.poetry.extras]
+    ai = ["torch", "transformers"]
+    db = ["sqlalchemy", "psycopg2"]
+    ```
 
-# LLM Resource Management
-llm_resources:
-  - "Implement token counting"
-  - "Handle rate limiting"
-  - "Pool connections when possible"
-  - "Cleanup context after completion"
-  - "Monitor usage and costs"
+- **Dependency Updates**:
+  - Regularly update dependencies and ensure compatibility using tools like `poetry lock`.
 
-# LLM Testing
-llm_testing:
-  - "Mock LLM responses"
-  - "Test prompt templates"
-  - "Validate response parsing"
-  - "Test error scenarios"
-  - "Check token limits"
-  - "Verify streaming behavior"
+---
+
+## Testing Standards
+
+- **Test Organization**:
+  - Each package must include a `tests/` directory.
+  - Integration tests spanning multiple packages should reside in `tests/` at the root level.
+
+- **Test Frameworks**:
+  - Use `pytest` as the primary test framework.
+  - Enforce the use of `pytest-cov` for coverage reporting.
+
+- **Best Practices**:
+  - Test functions should follow `test_<functionality>.py` naming convention.
+  - Always mock external calls using `unittest.mock` or similar libraries.
+
+---
+
+## CI/CD Best Practices
+
+- **Pipeline Design**:
+  - Pipelines must support selective builds (e.g., build and test only affected packages).
+  - Use caching mechanisms for dependencies to speed up builds.
+
+- **Required CI Steps**:
+  - Linting (`ruff check .`).
+  - Formatting (`black .`).
+  - Type checking (`mypy .`).
+  - Unit tests (`pytest` with coverage).
+
+- **Deployment Rules**:
+  - Only publish packages that have changed.
+  - Publish packages to PyPI using `poetry publish`.
+
+- **Examples**:
+  ```yaml
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/setup-python@v5
+          with:
+            python-version: '3.12'
+        - run: poetry install
+        - run: poetry run pytest --cov
+  ```
+
+---
+
+## Code Quality Standards
+
+- **Linting**:
+  - Use `ruff` for enforcing style and catching errors.
+  - Ensure `ruff` is configured for all packages in the `pyproject.toml`.
+
+- **Formatting**:
+  - Code must follow `black` formatting rules.
+  - Enforce formatting checks in CI pipelines.
+
+- **Static Type Checks**:
+  - Type checking is mandatory using `mypy`.
+  - All public methods and functions must include type annotations.
+
+- **Pre-commit Hooks**:
+  - Configure pre-commit hooks to automate linting, formatting, and type checking.
+
+---
+
+## Documentation Standards
+
+- **Package Documentation**:
+  - Each package must include a `README.md` covering:
+    - Purpose of the package.
+    - Installation and usage instructions.
+    - Any relevant examples.
+
+- **Code Documentation**:
+  - Use Google-style docstrings for all public APIs.
+  - Examples:
+    ```python
+    """
+    Function to calculate the sum of two numbers.
+
+    Args:
+        a (int): The first number.
+        b (int): The second number.
+
+    Returns:
+        int: The sum of the two numbers.
+    """
+    ```
+
+---
+
+## Environment Configuration
+
+- **Environment Files**:
+  - `.env` files must follow a standard format and include only non-sensitive defaults.
+  - Provide a `.env.sample` file for documentation purposes.
+
+- **Containerization**:
+  - Docker must be used for containerizing the development and production environment.
+  - Maintain `Dockerfile` and `docker-compose.yml` with best practices for scalability and maintainability.

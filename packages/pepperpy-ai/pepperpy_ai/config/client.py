@@ -1,23 +1,23 @@
-"""AI client configuration"""
+"""Client configuration."""
 
-from typing import Optional
+from dataclasses import dataclass, field
 
-from bko.core.types import JsonDict
-from pydantic import BaseModel, Field
+from .base import BaseConfigData, JsonDict
 
 
-class AIConfig(BaseModel):
-    """AI configuration"""
+@dataclass
+class ClientConfig(BaseConfigData):
+    """Client configuration."""
 
-    provider: str = Field(default="openrouter")
-    model: Optional[str] = None
-    api_key: Optional[str] = None
-    api_base: Optional[str] = None
-    temperature: float = Field(default=0.7)
-    max_tokens: int = Field(default=1000)
-    metadata: JsonDict = Field(default_factory=dict)
+    # Required fields first (no defaults)
+    name: str
+    provider: str
+    model: str
+    api_key: str
 
-    class Config:
-        """Pydantic config"""
-
-        frozen = True
+    # Optional fields (with defaults)
+    api_base: str | None = None
+    temperature: float = 0.7
+    max_tokens: int = 1000
+    metadata: JsonDict = field(default_factory=dict)
+    settings: JsonDict = field(default_factory=dict)

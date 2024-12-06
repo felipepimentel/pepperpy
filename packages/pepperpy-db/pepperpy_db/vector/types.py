@@ -1,51 +1,30 @@
-"""Vector database types"""
+"""Vector database types."""
 
-from dataclasses import dataclass, field
-from typing import Sequence, TypedDict
-
-from bko.core.types import JsonDict
-from pydantic import BaseModel, Field, confloat, conint
-
-
-class VectorQuery(BaseModel):
-    """Vector similarity query"""
-
-    vector: list[float]
-    collection: str
-    limit: conint(gt=0) = Field(default=10)  # type: ignore
-    threshold: confloat(ge=0, le=1) = Field(default=0.8)  # type: ignore
-    filters: JsonDict = Field(default_factory=dict)
-
-    class Config:
-        """Pydantic config"""
-
-        frozen = True
-
-
-@dataclass
-class VectorResult:
-    """Vector similarity search result"""
-
-    id: int
-    vector: Sequence[float]
-    similarity: float
-    metadata: JsonDict = field(default_factory=dict)
-
-
-class VectorRow(TypedDict):
-    """Database row type for vector queries"""
-
-    id: int
-    vector: list[float]
-    similarity: float
-    metadata: JsonDict
+from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
 class VectorEntry:
-    """Vector entry with metadata"""
+    """Vector database entry."""
 
-    id: int
-    collection: str
-    vector: Sequence[float]
-    metadata: JsonDict = field(default_factory=dict)
+    id: str
+    vector: list[float]
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass
+class VectorQuery:
+    """Vector database query."""
+
+    vector: list[float]
+    limit: int = 10
+    threshold: float | None = None
+
+
+@dataclass
+class VectorResult:
+    """Vector database query result."""
+
+    entry: VectorEntry
+    score: float

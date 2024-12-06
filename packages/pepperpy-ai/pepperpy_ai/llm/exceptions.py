@@ -1,12 +1,12 @@
 """LLM exceptions module"""
 
-from typing import Any, Optional
+from typing import Any
 
 
 class LLMError(Exception):
     """Base exception for LLM errors"""
 
-    def __init__(self, message: str, cause: Optional[Exception] = None) -> None:
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
         """Initialize LLM error
 
         Args:
@@ -14,10 +14,10 @@ class LLMError(Exception):
             cause: Original exception that caused this error
 
         Raises:
-            ValueError: If message is None
+            ValueError: If message is empty
         """
-        if message is None:
-            raise ValueError("Message cannot be None")
+        if not message:
+            raise ValueError("Message cannot be empty")
         super().__init__(message)
         self._message = message
         self._cause = cause
@@ -28,7 +28,7 @@ class LLMError(Exception):
         return self._message
 
     @property
-    def cause(self) -> Optional[Exception]:
+    def cause(self) -> Exception | None:
         """Get original exception"""
         return self._cause
 
@@ -66,7 +66,9 @@ class TokenLimitError(LLMError):
         """Initialize error"""
         if max_tokens < 0 or actual_tokens < 0:
             raise ValueError("Token counts must be non-negative")
-        super().__init__(f"Token limit exceeded: {actual_tokens} tokens (max: {max_tokens})")
+        super().__init__(
+            f"Token limit exceeded: {actual_tokens} tokens (max: {max_tokens})"
+        )
 
 
 class PromptError(LLMError):

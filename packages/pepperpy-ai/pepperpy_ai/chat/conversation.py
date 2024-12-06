@@ -1,111 +1,119 @@
-"""Chat conversation implementation"""
+"""Chat conversation implementation."""
 
-from typing import Any
+from collections.abc import AsyncGenerator
+from typing import Protocol, runtime_checkable
 
-from bko.ai.chat.types import ChatHistory, ChatMessage, ChatMetadata, ChatRole
-from bko.ai.providers.base import AIProvider as BaseAIProvider
-from bko.ai.types import AIResponse
-from bko.core.exceptions import PepperPyError
+from ..ai_types import AIResponse
+from ..client import AIClient
+from .config import ChatConfig
+from .types import ChatHistory, ChatMessage
 
 
-class Conversation:
-    """Chat conversation manager"""
+@runtime_checkable
+class StreamingClient(Protocol):
+    """Protocol for clients that support streaming."""
 
-    def __init__(self, client: BaseAIProvider, metadata: ChatMetadata) -> None:
-        """Initialize conversation.
+    async def stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
+        """Stream responses."""
+        ...
 
-        Args:
-            client: AI client
-            metadata: Chat metadata
-        """
+
+class ChatConversation:
+    """Chat conversation implementation."""
+
+    def __init__(self, config: ChatConfig, client: AIClient) -> None:
+        """Initialize conversation."""
+        self.config = config
         self._client = client
-        self._metadata = metadata
-        self._history = ChatHistory(
-            messages=[],
-            metadata={
-                "session_id": metadata.session_id,
-                "user_id": metadata.user_id,
-                "context": metadata.context,
-                "settings": metadata.settings,
-            },
-        )
+        self._history = ChatHistory()
         self._initialized = False
 
     @property
-    def is_initialized(self) -> bool:
-        """Check if conversation is initialized"""
-        return self._initialized
-
-    @property
-    def history(self) -> ChatHistory:
-        """Get conversation history"""
-        return self._history
+    def history(self) -> list[ChatMessage]:
+        """Get conversation history."""
+        return self._history.messages
 
     async def initialize(self) -> None:
-        """Initialize conversation"""
-        if not self._client.is_initialized:
+        """Initialize conversation."""
+        if not self._initialized:
             await self._client.initialize()
-        self._initialized = True
+            if self.config.system_message:
+                self._history.messages.append(
+                    ChatMessage(
+                        role=self.config.system_role, content=self.config.system_message
+                    )
+                )
+            self._initialized = True
 
     async def cleanup(self) -> None:
-        """Cleanup conversation resources"""
-        if self._client.is_initialized:
+        """Cleanup conversation."""
+        if self._initialized:
             await self._client.cleanup()
-        self._initialized = False
+            self._initialized = False
 
-    def add_message(self, message: ChatMessage) -> None:
-        """Add message to history.
-
-        Args:
-            message: Message to add
-        """
-        self._history.add_message(message)
-
-    def clear_history(self) -> None:
-        """Clear conversation history"""
-        self._history.clear()
-
-    def get_history(self) -> ChatHistory:
-        """Get conversation history.
-
-        Returns:
-            ChatHistory: Current conversation history
-        """
-        return self._history
-
-    async def send(self, message: str, **kwargs: Any) -> AIResponse:
-        """Send message and get response.
+    async def send(self, message: str) -> AIResponse:
+        """Send message to conversation.
 
         Args:
-            message: Message content
-            **kwargs: Additional arguments for completion
+            message: Message to send
 
         Returns:
-            AIResponse: AI response
+            AI response
 
         Raises:
-            PepperPyError: If sending fails
             RuntimeError: If conversation is not initialized
         """
         if not self._initialized:
-            raise RuntimeError("Conversation is not initialized")
+            raise RuntimeError("Conversation not initialized")
 
-        # Add user message to history
-        user_message = ChatMessage(
-            role=ChatRole.USER, content=message, metadata=kwargs.get("metadata", {})
+        # Add user message
+        self._history.messages.append(
+            ChatMessage(role=self.config.user_role, content=message)
         )
-        self.add_message(user_message)
 
-        try:
-            # Get AI response
-            response = await self._client.complete(message, **kwargs)
+        # Get response from client and ensure correct type
+        response = await self._client.complete(message)
 
-            # Add assistant message to history
-            assistant_message = ChatMessage(
-                role=ChatRole.ASSISTANT, content=response.content, metadata=response.metadata
-            )
-            self.add_message(assistant_message)
+        # Add assistant message
+        self._history.messages.append(
+            ChatMessage(role=self.config.assistant_role, content=response.content)
+        )
 
-            return response
-        except Exception as e:
-            raise PepperPyError(f"Failed to send message: {e}", cause=e)
+        return response
+
+    async def stream(self, message: str) -> AsyncGenerator[AIResponse, None]:
+        """Stream conversation response.
+
+        Args:
+            message: Message to send
+
+        Yields:
+            AI response chunks
+
+        Raises:
+            RuntimeError: If conversation is not initialized
+            TypeError: If client doesn't support streaming
+        """
+        if not self._initialized:
+            raise RuntimeError("Conversation not initialized")
+
+        if not hasattr(self._client, "stream"):
+            raise TypeError("Client does not support streaming")
+
+        # Add user message
+        self._history.messages.append(
+            ChatMessage(role=self.config.user_role, content=message)
+        )
+
+        # Stream response
+        content = ""
+        # Get response stream from client
+        async for chunk in self._client.stream(message):
+            response = chunk
+            content += response.content
+            yield response
+
+        # Add complete assistant message
+        self._history.messages.append(
+            ChatMessage(role=self.config.assistant_role, content=content)
+        )

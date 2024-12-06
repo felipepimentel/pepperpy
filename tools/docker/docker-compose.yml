@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: .
+      target: python-deps
+    volumes:
+      - .:/app
+    command: poetry run pytest --watch
+    environment:
+      - PYTHONPATH=/app
+      - POETRY_VIRTUALENVS_CREATE=false
+    ports:
+      - "8000:8000"
+
+  docs:
+    build:
+      context: .
+      target: python-deps
+    volumes:
+      - .:/app
+    command: poetry run mkdocs serve -a 0.0.0.0:8000
+    ports:
+      - "8001:8000"
+
+  lint:
+    build:
+      context: .
+      target: python-deps
+    volumes:
+      - .:/app
+    command: poetry run pre-commit run --all-files
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  grafana_data: {}

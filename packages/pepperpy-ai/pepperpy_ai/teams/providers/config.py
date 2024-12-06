@@ -1,34 +1,28 @@
-"""Team provider configuration"""
+"""Provider configuration."""
 
+from collections.abc import Sequence
+from dataclasses import dataclass, field
 from typing import Any
 
-from bko.core.types import JsonDict
-from pydantic import BaseModel, Field
+from pepperpy_core.base import BaseData
+from pepperpy_core.types import JsonDict
 
 
-class TeamConfig(BaseModel):
-    """Team provider configuration"""
+@dataclass
+class ProviderConfig(BaseData):
+    """Base provider configuration."""
 
-    name: str
-    enabled: bool = Field(default=True)
-    max_retries: int = Field(default=3, ge=0)
-    timeout: float = Field(default=60.0, gt=0)
-    provider_options: dict[str, Any] = Field(default_factory=dict)
-    metadata: JsonDict = Field(default_factory=dict)
+    provider: str = ""
+    model: str = ""
+    api_key: str = ""
+    api_base: str | None = None
+    settings: JsonDict = field(default_factory=dict)
 
-    class Config:
-        """Pydantic config"""
 
-        frozen = True
+@dataclass
+class TeamProviderConfig:
+    """Team provider configuration."""
 
-    @classmethod
-    def get_default(cls) -> "TeamConfig":
-        """Get default configuration"""
-        return cls(
-            name="default",
-            enabled=True,
-            max_retries=3,
-            timeout=60.0,
-            provider_options={},
-            metadata={},
-        )
+    members: Sequence[str]
+    roles: dict[str, str] = field(default_factory=dict)
+    tools: dict[str, Any] = field(default_factory=dict)

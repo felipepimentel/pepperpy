@@ -1,6 +1,13 @@
-"""Chat module initialization"""
+"""Chat module exports."""
 
-from .conversation import Conversation
-from .types import ChatHistory, ChatMessage, ChatMetadata, ChatRole
+from .config import ChatConfig
+from .conversation import ChatConversation
+from .types import ChatHistory, ChatMessage, ChatRole
 
-__all__ = ["ChatMessage", "ChatHistory", "ChatRole", "ChatMetadata", "Conversation"]
+__all__ = [
+    "ChatConfig",
+    "ChatConversation",
+    "ChatHistory",
+    "ChatMessage",
+    "ChatRole",
+]

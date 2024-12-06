@@ -1,60 +1,86 @@
-"""Chat view component for console UI"""
+"""Chat component implementation."""
 
-from typing import Literal
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from typing import Any
 
-from rich.box import ROUNDED
-from rich.panel import Panel as RichPanel
-from rich.text import Text
-
-from .base import Component
+from ..base.component import BaseComponent
 
 
-class ChatView(Component):
-    """Chat view component for displaying messages"""
+@dataclass
+class Message:
+    """Chat message."""
 
-    def __init__(self):
+    content: str
+    sender: str
+    timestamp: float
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ChatConfig:
+    """Chat configuration."""
+
+    max_messages: int = 100
+    show_timestamp: bool = True
+    show_sender: bool = True
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class ChatView(BaseComponent):
+    """Chat view component."""
+
+    def __init__(self, config: ChatConfig | None = None) -> None:
+        """Initialize chat view.
+
+        Args:
+            config: Chat configuration
+        """
         super().__init__()
-        self.messages: list[tuple[str, str]] = []
+        self.config = config or ChatConfig()
+        self._messages: list[Message] = []
 
     async def initialize(self) -> None:
-        """Initialize chat view"""
+        """Initialize chat view."""
         await super().initialize()
 
-    async def cleanup(self) -> None:
-        """Cleanup chat view resources"""
-        await super().cleanup()
+    async def render(self) -> Any:
+        """Render chat view.
 
-    def add_message(self, content: str, role: Literal["system", "assistant", "user"]) -> None:
-        """Add a message to the chat view.
+        Returns:
+            Rendered chat content
+        """
+        await super().render()
+        # TODO: Implement chat rendering
+        return None
+
+    async def cleanup(self) -> None:
+        """Cleanup chat view."""
+        await super().cleanup()
+        self._messages.clear()
+
+    def add_message(self, content: str, sender: str) -> None:
+        """Add message to chat.
 
         Args:
             content: Message content
-            role: Role of the message sender (system/assistant/user)
+            sender: Message sender
         """
-        self.messages.append((content, role))
+        self._ensure_initialized()
+        message = Message(
+            content=content,
+            sender=sender,
+            timestamp=0.0,  # TODO: Add real timestamp
+        )
+        self._messages.append(message)
+        if len(self._messages) > self.config.max_messages:
+            self._messages.pop(0)
 
-    async def render(self) -> RichPanel:
-        """Render chat messages in a panel"""
-        await super().render()
+    def get_messages(self) -> Sequence[Message]:
+        """Get chat messages.
 
-        # Create formatted text for all messages
-        text = Text()
-
-        for i, (content, role) in enumerate(self.messages):
-            # Add role prefix with appropriate color
-            prefix = {
-                "system": Text("🔧 System: ", style="bold blue"),
-                "assistant": Text("🤖 Assistant: ", style="bold green"),
-                "user": Text("👤 User: ", style="bold yellow"),
-            }.get(role, Text(f"{role}: ", style="bold"))
-
-            # Add message content
-            text.append(prefix)
-            text.append(content)
-
-            # Add newline between messages
-            if i < len(self.messages) - 1:
-                text.append("\n\n")
-
-        # Return panel containing messages
-        return RichPanel(text, title="Chat", style="blue", box=ROUNDED)
+        Returns:
+            List of messages
+        """
+        self._ensure_initialized()
+        return self._messages

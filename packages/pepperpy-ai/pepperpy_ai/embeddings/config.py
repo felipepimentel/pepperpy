@@ -1,24 +1,22 @@
-"""Embedding configuration module"""
+"""Embedding configuration."""
 
-from typing import Any, Dict
+from dataclasses import dataclass, field
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from ..config.base import BaseConfigData, JsonDict
 
 
-class EmbeddingConfig(BaseModel):
-    """Configuration for embedding operations"""
+@dataclass
+class EmbeddingConfig(BaseConfigData):
+    """Embedding configuration."""
 
-    model_config = ConfigDict(frozen=True, validate_assignment=True, extra="forbid")
+    # Required fields first (no defaults)
+    name: str
+    model_name: str
+    dimension: int
+    batch_size: int
 
-    model_name: str = Field(..., description="Name of the model to use")
-    dimension: int = Field(..., gt=0, description="Embedding dimension")
-    provider_type: str = Field("sentence-transformers", description="Type of embedding provider")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
-
-    @field_validator("model_name")
-    @classmethod
-    def validate_model_name(cls, v: str) -> str:
-        """Validate model name"""
-        if not v:
-            raise ValueError("Model name cannot be empty")
-        return v
+    # Optional fields (with defaults)
+    device: str = "cpu"
+    normalize_embeddings: bool = True
+    metadata: JsonDict = field(default_factory=dict)
+    settings: JsonDict = field(default_factory=dict)

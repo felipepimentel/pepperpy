@@ -1,38 +1,21 @@
-"""Provider configuration module"""
+"""Provider configuration."""
 
-from typing import Any, Dict
+from dataclasses import dataclass, field
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from ..config.base import BaseConfigData
 
 
-class ProviderConfig(BaseModel):
-    """Configuration for AI providers"""
+@dataclass
+class ProviderConfig(BaseConfigData):
+    """Provider configuration."""
 
-    model_config = ConfigDict(frozen=True, validate_assignment=True, extra="forbid")
-
-    provider: str = Field(..., description="Provider type")
-    api_key: str = Field(..., min_length=1, description="API key for authentication")
-    model: str = Field(..., min_length=1, description="Model name")
-    max_tokens: int = Field(default=1000, gt=0, description="Maximum tokens per request")
-    temperature: float = Field(default=0.7, ge=0.0, le=1.0, description="Temperature for sampling")
-    timeout: float = Field(default=30.0, gt=0, description="Request timeout in seconds")
-    provider_options: Dict[str, Any] = Field(
-        default_factory=dict, description="Provider-specific options"
-    )
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
-
-    @field_validator("api_key")
-    @classmethod
-    def validate_api_key(cls, v: str) -> str:
-        """Validate API key"""
-        if not v.strip():
-            raise ValueError("API key cannot be empty")
-        return v
-
-    @field_validator("model")
-    @classmethod
-    def validate_model(cls, v: str) -> str:
-        """Validate model name"""
-        if not v.strip():
-            raise ValueError("Model name cannot be empty")
-        return v
+    name: str
+    provider: str
+    model: str
+    api_key: str
+    api_base: str | None = None
+    temperature: float = 0.7
+    max_tokens: int = 1000
+    metadata: dict[str, Any] = field(default_factory=dict)
+    settings: dict[str, Any] = field(default_factory=dict)

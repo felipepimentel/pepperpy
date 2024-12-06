@@ -1,44 +1,62 @@
-"""Example demonstrating logging functionality"""
+"""Logging example."""
 
-import asyncio
+import sys
+from dataclasses import dataclass, field
+from typing import Any
 
-from pepperpy_core.logging import LogConfig, LogManager
-
-
-async def demonstrate_logging() -> None:
-    """Demonstrate logging functionality"""
-    # Create log config
-    config = LogConfig(level="DEBUG", handlers=["console"])
-
-    # Create log manager
-    log_manager = LogManager(config)
-
-    try:
-        # Initialize
-        await log_manager.initialize()
-
-        # Log messages with different levels
-        log_manager.debug("This is a debug message", component="example")
-        log_manager.info("This is an info message", user="test_user")
-        log_manager.warning("This is a warning message", action="test_action")
-        log_manager.error("This is an error message", error_code=500)
-
-        # Log with structured data
-        log_manager.info(
-            "Processing request",
-            request_id="123",
-            user="test_user",
-            action="login",
-            metadata={"ip": "127.0.0.1", "browser": "Chrome"},
-        )
-
-        # Get logger for specific module
-        module_logger = log_manager.get_logger("module.submodule")
-        module_logger.info("Module specific log", component="submodule")
-
-    finally:
-        await log_manager.cleanup()
+from pepperpy_core.logging import BaseLogger, LogLevel
+from pepperpy_core.types import JsonDict
 
 
-if __name__ == "__main__":
-    asyncio.run(demonstrate_logging())
+@dataclass
+class LogConfig:
+    """Example logger configuration."""
+
+    name: str
+    level: LogLevel = LogLevel.INFO
+    enabled: bool = True
+    metadata: JsonDict = field(default_factory=dict)
+
+
+class ExampleLogger(BaseLogger):
+    """Example logger implementation."""
+
+    def __init__(self, config: LogConfig) -> None:
+        """Initialize logger.
+
+        Args:
+            config: Logger configuration
+        """
+        self.config = config
+
+    def log(self, level: LogLevel, message: str, **kwargs: Any) -> None:
+        """Log message.
+
+        Args:
+            level: Log level
+            message: Log message
+            **kwargs: Additional log data
+        """
+        if not self.config.enabled:
+            return
+
+        if level.value < self.config.level.value:
+            return
+
+        # Format message with metadata
+        metadata = {**self.config.metadata, **kwargs}
+        formatted = f"{level.value.upper()}: {message}"
+        if metadata:
+            formatted += f" | {metadata}"
+
+        # Write to stderr
+        print(formatted, file=sys.stderr)
+
+    def get_stats(self) -> dict[str, Any]:
+        """Get logger statistics."""
+        return {
+            "name": self.config.name,
+            "enabled": self.config.enabled,
+            "level": self.config.level.value,
+            "metadata": self.config.metadata,
+        }

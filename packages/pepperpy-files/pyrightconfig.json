@@ -1,0 +1,15 @@
+{
+  "extends": "../../pyrightconfig.json",
+  "include": ["pepperpy_files"],
+  "exclude": ["**/__pycache__"],
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "warning",
+  "pythonVersion": "3.12",
+  "venvPath": ".",
+  "extraPaths": [
+    ".venv/lib/python3.12/site-packages",
+    ".."
+  ]
+}

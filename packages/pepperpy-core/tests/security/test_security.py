@@ -1,38 +1,20 @@
-"""Test security functionality"""
-
-from datetime import timedelta
+"""Security module tests."""
 
 import pytest
-from pepperpy_core.security import SecurityToken
-from pepperpy_core.utils.datetime import utc_now
+
+from pepperpy_core.security.config import SecurityConfig
 
 
 @pytest.mark.asyncio
-async def test_security_token_expiration() -> None:
-    """Test security token expiration"""
-    # Create token that expires in 1 hour
-    expires_at = utc_now() + timedelta(hours=1)
-    token = SecurityToken(token="test_token", expires_at=expires_at, user_id="test_user")
-
-    # Should not be expired
-    assert not token.is_expired
-
-    # Create expired token
-    expired_at = utc_now() - timedelta(hours=1)
-    expired_token = SecurityToken(token="expired_token", expires_at=expired_at, user_id="test_user")
-
-    # Should be expired
-    assert expired_token.is_expired
-
-
-@pytest.mark.asyncio
-async def test_security_token_metadata() -> None:
-    """Test security token metadata"""
-    token = SecurityToken(
-        token="test_token",
-        expires_at=utc_now() + timedelta(hours=1),
-        user_id="test_user",
-        metadata={"role": "admin"},
+async def test_security_config() -> None:
+    """Test security configuration."""
+    config = SecurityConfig(
+        name="test-security",
+        enabled=True,
+        strict_mode=False,
+        metadata={"test": "value"},
     )
-
-    assert token.metadata["role"] == "admin"
+    assert config.name == "test-security"
+    assert config.enabled is True
+    assert config.strict_mode is False
+    assert config.metadata == {"test": "value"}

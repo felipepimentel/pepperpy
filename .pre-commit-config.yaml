@@ -2,21 +2,85 @@ default_stages: [pre-commit, pre-push]
 files: ^packages/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-toml
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.0
-    hooks:
-      - id: ruff
-        args: ["--fix", "--config=pyproject.toml"]
+      - id: check-added-large-files
 
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 23.12.1
     hooks:
       - id: black
-        args: ["--config", "pyproject.toml"]
+        language_version: python3.12
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        name: mypy (package code)
+        files: ^packages/.+/(?!tests/).+\.py$
+        exclude: conftest\.py$
+        additional_dependencies:
+          - types-toml
+          - types-PyYAML
+          - types-setuptools
+          - types-click
+          - types-requests
+          - types-aiofiles
+          - types-Pillow
+          - types-cryptography
+          - types-docutils
+          - types-filelock
+          - types-mock
+          - types-paramiko
+          - mypy-extensions>=1.0.0
+          - typing-extensions>=4.1.0
+          - pydantic>=2.5.3
+        args:
+          - --python-version=3.12
+          - --warn-return-any
+          - --warn-unused-configs
+          - --disallow-untyped-defs
+          - --disallow-incomplete-defs
+          - --check-untyped-defs
+          - --disallow-untyped-decorators
+          - --no-implicit-optional
+          - --warn-redundant-casts
+          - --warn-unused-ignores
+          - --warn-no-return
+          - --warn-unreachable
+          - --namespace-packages
+          - --explicit-package-bases
+          - --ignore-missing-imports
+          - --follow-imports=silent
+          - --disable-error-code=misc
+          - --disable-error-code=attr-defined
+          - --disable-error-code=unreachable
+          - --disable-error-code=override
+          - --disable-error-code=redundant-cast
+          - --disable-error-code=unused-ignore
+
+      - id: mypy
+        name: mypy (test code)
+        files: ^packages/.+/tests/.+\.py$
+        exclude: conftest\.py$
+        additional_dependencies:
+          - types-toml
+          - types-PyYAML
+          - types-setuptools
+          - pytest
+        args:
+          - --python-version=3.12
+          - --ignore-missing-imports
+          - --follow-imports=silent
+          - --disable-error-code=no-untyped-def
+          - --disable-error-code=unused-ignore

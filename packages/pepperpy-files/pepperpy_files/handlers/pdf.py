@@ -2,20 +2,28 @@
 
 from pathlib import Path
 
+from ..base import BaseHandler, FileHandlerConfig
+from ..enums import FileType
 from ..exceptions import FileError
-from ..types import FileContent, FileType, PathLike
-from .base import BaseFileHandler, FileHandlerConfig
+from ..types import FileContent, FileMetadata
 
 
-class PDFFileHandler(BaseFileHandler[bytes]):
+class PDFError(FileError):
+    """PDF specific error"""
+
+    def __init__(self, message: str, cause: Exception | None = None) -> None:
+        super().__init__(message)
+        self.cause = cause
+
+
+class PDFHandler(BaseHandler):
     """PDF file handler implementation"""
 
     def __init__(self) -> None:
         """Initialize handler"""
         super().__init__(
             config=FileHandlerConfig(
-                base_path=Path("."),
-                allowed_extensions={".pdf"},
+                allowed_extensions=self._convert_extensions([".pdf"]),
                 max_file_size=100 * 1024 * 1024,  # 100MB
                 metadata={
                     "type": FileType.DOCUMENT,
@@ -25,8 +33,15 @@ class PDFFileHandler(BaseFileHandler[bytes]):
         )
         self._initialized = True
 
-    def _to_path(self, file: PathLike) -> Path:
-        """Convert PathLike to Path"""
+    def _to_path(self, file: str | Path) -> Path:
+        """Convert to Path object.
+
+        Args:
+            file: Path-like object to convert
+
+        Returns:
+            Converted Path object
+        """
         return Path(file) if isinstance(file, str) else file
 
     def _get_mime_type(self, path: Path) -> str:
@@ -44,26 +59,26 @@ class PDFFileHandler(BaseFileHandler[bytes]):
     def _validate_path(self, path: Path) -> None:
         """Validate file path"""
         if not path.exists():
-            raise FileError(f"File not found: {path}")
+            raise PDFError(f"File not found: {path}")
         if not path.is_file():
-            raise FileError(f"Not a file: {path}")
+            raise PDFError(f"Not a file: {path}")
         if path.suffix not in self.config.allowed_extensions:
-            raise FileError(f"Invalid file extension: {path.suffix}")
+            raise PDFError(f"Invalid file extension: {path.suffix}")
 
     def _validate_size(self, path: Path) -> None:
         """Validate file size"""
         size = path.stat().st_size
         if size > self.config.max_file_size:
-            raise FileError(
+            raise PDFError(
                 f"File size ({size} bytes) exceeds limit ({self.config.max_file_size} bytes)"
             )
 
     def _validate_pdf_content(self, content: bytes) -> None:
         """Validate PDF content"""
         if not content.startswith(b"%PDF-"):
-            raise FileError("Invalid PDF content")
+            raise PDFError("Invalid PDF content")
 
-    async def read(self, file: PathLike) -> FileContent[bytes]:
+    async def read(self, file: str | Path) -> FileContent:
         """Read PDF file"""
         try:
             path = self._to_path(file)
@@ -75,13 +90,19 @@ class PDFFileHandler(BaseFileHandler[bytes]):
 
             self._validate_pdf_content(content)
 
-            metadata = self._create_metadata(path=path, size=len(content))
+            file_metadata = FileMetadata(
+                name=path.name,
+                mime_type=self._get_mime_type(path),
+                size=len(content),
+                format=self._get_format(path),
+                additional_metadata={},
+            )
 
-            return FileContent(content=content, metadata=metadata)
+            return FileContent(path=path, content=content, metadata=file_metadata)
         except Exception as e:
-            raise FileError(f"Failed to read PDF file: {e}", cause=e)
+            raise PDFError(f"Failed to read PDF file: {e}", cause=e)
 
-    async def write(self, content: bytes, output: PathLike) -> None:
+    async def write(self, content: bytes, output: str | Path) -> None:
         """Write PDF file"""
         try:
             path = self._to_path(output)
@@ -91,7 +112,7 @@ class PDFFileHandler(BaseFileHandler[bytes]):
             with open(path, "wb") as f:
                 f.write(content)
         except Exception as e:
-            raise FileError(f"Failed to write PDF file: {e}", cause=e)
+            raise PDFError(f"Failed to write PDF file: {e}", cause=e)
 
     async def cleanup(self) -> None:
         """Cleanup resources"""

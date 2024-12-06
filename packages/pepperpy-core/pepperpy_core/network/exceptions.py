@@ -1,35 +1,47 @@
-"""Network-related exceptions"""
+"""Network exceptions."""
 
-from bko.core.exceptions import PepperPyError
+from ..exceptions import PepperpyError
 
 
-class NetworkError(PepperPyError):
-    """Base exception for network-related errors"""
+class NetworkError(PepperpyError):
+    """Base network error."""
 
 
 class ConnectionError(NetworkError):
-    """Connection error"""
+    """Connection error."""
 
 
 class RequestError(NetworkError):
-    """Request error"""
+    """Request error."""
 
 
 class ResponseError(NetworkError):
-    """Response error"""
+    """Response error."""
 
 
 class TimeoutError(NetworkError):
-    """Timeout error"""
+    """Timeout error."""
 
 
 class SSLError(NetworkError):
-    """SSL error"""
+    """SSL error."""
 
 
 class ProxyError(NetworkError):
-    """Proxy error"""
+    """Proxy error."""
 
 
 class DNSError(NetworkError):
-    """DNS resolution error"""
+    """DNS resolution error."""
+
+
+__all__ = [
+    "NetworkError",
+    "ConnectionError",
+    "RequestError",
+    "ResponseError",
+    "TimeoutError",
+    "SSLError",
+    "ProxyError",
+    "DNSError",
+]
