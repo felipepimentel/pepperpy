@@ -2,17 +2,29 @@
 
 from typing import Any
 
-from ..ai_types import AIMessage, AIResponse
-from .base import BaseAgent
-from .types import AgentConfig, AgentRole
+from ..base.message import MessageHandler
+from .types import AgentConfig
 
 
-class ReviewerAgent(BaseAgent):
-    """Reviewer agent implementation."""
+class ReviewerAgent(MessageHandler):
+    """Reviewer agent for code and design reviews."""
 
     def __init__(self, config: AgentConfig) -> None:
         """Initialize agent."""
-        super().__init__(config)
+        self.config = config
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize the agent."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup agent resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
     async def _setup(self) -> None:
         """Setup agent resources."""
@@ -22,60 +34,34 @@ class ReviewerAgent(BaseAgent):
         """Teardown agent resources."""
         pass
 
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute review task."""
+    async def handle_message(
+        self,
+        *,
+        system_message: str,
+        user_message: str,
+        conversation_history: list[dict[str, Any]] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Handle a review message.
+
+        Args:
+            system_message: The system message
+            user_message: The user message
+            conversation_history: Optional conversation history
+            metadata: Optional metadata
+
+        Returns:
+            The review response
+        """
         self._ensure_initialized()
-        return AIResponse(
-            content=f"Review task: {task}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
-        )
+        return f"Review analysis for: {user_message}"
 
     def _ensure_initialized(self) -> None:
         """Ensure agent is initialized."""
-        if not self.is_initialized:
+        if not self._initialized:
             raise RuntimeError("Agent not initialized")
 
-    async def review_code(self, code: str) -> AIResponse:
-        """Review code.
-
-        Args:
-            code: Code to review
-
-        Returns:
-            Review response
-        """
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Code review: {code}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=code)],
-        )
-
-    async def review_pr(self, pr_description: str) -> AIResponse:
-        """Review pull request.
-
-        Args:
-            pr_description: Pull request description
-
-        Returns:
-            Review response
-        """
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"PR review: {pr_description}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=pr_description)],
-        )
-
-    async def review_design(self, design_doc: str) -> AIResponse:
-        """Review design document.
-
-        Args:
-            design_doc: Design document to review
-
-        Returns:
-            Review response
-        """
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Design review: {design_doc}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=design_doc)],
-        )
+    @property
+    def is_initialized(self) -> bool:
+        """Check if agent is initialized."""
+        return self._initialized

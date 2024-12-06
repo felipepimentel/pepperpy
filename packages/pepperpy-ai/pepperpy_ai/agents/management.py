@@ -1,123 +1,78 @@
-"""Management agent implementations"""
+"""Management agent implementation."""
 
 from typing import Any
 
-from ..ai_types import AIMessage, AIResponse
-from .base import BaseAgent
-from .types import AgentConfig, AgentRole
+from ..base.message import MessageHandler
+from .types import AgentConfig
 
 
-class ProjectManagerAgent(BaseAgent):
-    """Project manager agent implementation"""
+class ManagementAgent(MessageHandler):
+    """Management agent for project and team coordination."""
 
     def __init__(self, config: AgentConfig) -> None:
-        """Initialize agent"""
-        super().__init__(config)
+        """Initialize agent."""
+        self.config = config
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize the agent."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup agent resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
     async def _setup(self) -> None:
-        """Setup agent resources"""
+        """Setup agent resources."""
         pass
 
     async def _teardown(self) -> None:
-        """Teardown agent resources"""
+        """Teardown agent resources."""
         pass
 
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute project management task"""
+    async def handle_message(
+        self,
+        *,
+        system_message: str,
+        user_message: str,
+        conversation_history: list[dict[str, Any]] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Handle a management message.
+
+        Args:
+            system_message: The system message
+            user_message: The user message
+            conversation_history: Optional conversation history
+            metadata: Optional metadata
+
+        Returns:
+            The management response
+        """
         self._ensure_initialized()
-        return AIResponse(
-            content=f"Project management task: {task}",
-            messages=[AIMessage(role=AgentRole.PLANNER, content=task)],
-        )
+
+        # Use metadata to determine management action
+        action = metadata.get("action") if metadata else None
+
+        if action == "planning":
+            return f"Project planning for: {user_message}"
+        elif action == "review":
+            return f"Project review for: {user_message}"
+        elif action == "execution":
+            return f"Project execution for: {user_message}"
+        else:
+            return f"General management for: {user_message}"
 
     def _ensure_initialized(self) -> None:
-        """Ensure agent is initialized"""
-        if not self.is_initialized:
+        """Ensure agent is initialized."""
+        if not self._initialized:
             raise RuntimeError("Agent not initialized")
 
-
-class QualityEngineerAgent(BaseAgent):
-    """Quality engineer agent implementation"""
-
-    def __init__(self, config: AgentConfig) -> None:
-        """Initialize agent"""
-        super().__init__(config)
-
-    async def _setup(self) -> None:
-        """Setup agent resources"""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown agent resources"""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute quality engineering task"""
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Quality engineering task: {task}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
-        )
-
-    def _ensure_initialized(self) -> None:
-        """Ensure agent is initialized"""
-        if not self.is_initialized:
-            raise RuntimeError("Agent not initialized")
-
-
-class DevOpsAgent(BaseAgent):
-    """DevOps agent implementation"""
-
-    def __init__(self, config: AgentConfig) -> None:
-        """Initialize agent"""
-        super().__init__(config)
-
-    async def _setup(self) -> None:
-        """Setup agent resources"""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown agent resources"""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute DevOps task"""
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"DevOps task: {task}",
-            messages=[AIMessage(role=AgentRole.EXECUTOR, content=task)],
-        )
-
-    def _ensure_initialized(self) -> None:
-        """Ensure agent is initialized"""
-        if not self.is_initialized:
-            raise RuntimeError("Agent not initialized")
-
-
-class ComplianceAgent(BaseAgent):
-    """Compliance agent implementation"""
-
-    def __init__(self, config: AgentConfig) -> None:
-        """Initialize agent"""
-        super().__init__(config)
-
-    async def _setup(self) -> None:
-        """Setup agent resources"""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown agent resources"""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute compliance task"""
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Compliance task: {task}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
-        )
-
-    def _ensure_initialized(self) -> None:
-        """Ensure agent is initialized"""
-        if not self.is_initialized:
-            raise RuntimeError("Agent not initialized")
+    @property
+    def is_initialized(self) -> bool:
+        """Check if agent is initialized."""
+        return self._initialized

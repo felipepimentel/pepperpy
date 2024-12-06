@@ -41,26 +41,39 @@ update-locks:
 	cd packages/pepperpy-ai && poetry lock
 	cd tools && poetry lock
 
+.PHONY: clean
+clean:
+	rm -rf .pytest_cache
+	rm -rf .coverage
+	rm -rf htmlcov
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name "*.egg-info" -exec rm -rf {} +
+	find . -type d -name ".eggs" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type d -name ".coverage" -exec rm -rf {} +
+	find . -type d -name "htmlcov" -exec rm -rf {} +
+
 .PHONY: setup
-setup: update-locks setup-core setup-db setup-console setup-codebase setup-files setup-ai setup-tools
+setup: clean
+	poetry install --all-extras
 
 # Linting
 .PHONY: lint
 lint:
-	@ruff check . --config=ruff.toml
-	@black --check . --config=.black.toml
-	@mypy .
+	poetry run ruff check .
+	poetry run black --check .
+	poetry run mypy .
 
 # Formatting
 .PHONY: format
 format:
-	@ruff check . --fix --config=ruff.toml
-	@black . --config=.black.toml
+	poetry run ruff check . --fix
+	poetry run black .
 
 # Testing
 .PHONY: test
 test:
-	@pytest
+	poetry run pytest --verbose
 
 # Documentation
 .PHONY: docs

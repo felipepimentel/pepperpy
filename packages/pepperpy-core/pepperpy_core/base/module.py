@@ -8,8 +8,8 @@ from .config import BaseConfigData
 ConfigT = TypeVar("ConfigT", bound=BaseConfigData)
 
 
-class BaseModule(Generic[ConfigT], ABC):
-    """Base module implementation."""
+class BaseModule(ABC, Generic[ConfigT]):
+    """Base module class."""
 
     def __init__(self, config: ConfigT) -> None:
         """Initialize module.
@@ -19,11 +19,6 @@ class BaseModule(Generic[ConfigT], ABC):
         """
         self.config = config
         self._initialized = False
-
-    @property
-    def is_initialized(self) -> bool:
-        """Check if module is initialized."""
-        return self._initialized
 
     async def initialize(self) -> None:
         """Initialize module."""
@@ -53,8 +48,27 @@ class BaseModule(Generic[ConfigT], ABC):
 
         Returns:
             Module statistics
+
+        Raises:
+            RuntimeError: If module is not initialized
         """
-        pass
+        if not self._initialized:
+            raise RuntimeError("Module not initialized")
+        return {}
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if module is initialized."""
+        return self._initialized
+
+    def _ensure_initialized(self) -> None:
+        """Ensure module is initialized.
+
+        Raises:
+            RuntimeError: If module is not initialized
+        """
+        if not self._initialized:
+            raise RuntimeError("Module not initialized")
 
 
 class BaseManager(BaseModule[ConfigT], ABC):

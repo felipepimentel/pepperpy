@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "pepperpy-console"
 version = "0.1.0"
-description = "PepperPy pepperpy-console package"
+description = "Console utilities for PepperPy Framework"
 authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
 readme = "README.md"
 packages = [
@@ -20,6 +20,3 @@ pytest-cov = "^4.1.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.setuptools.package-data]
-"pepperpy_console" = ["py.typed", "*.pyi"]

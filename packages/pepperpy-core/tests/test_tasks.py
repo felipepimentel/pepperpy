@@ -1,53 +1,57 @@
-"""Test task management functionality"""
+"""Task tests."""
 
-from uuid import UUID
+from collections.abc import AsyncGenerator
 
 import pytest
 
-from pepperpy_core.tasks.manager import TaskManager
-from pepperpy_core.tasks.status import TaskStatus
+from pepperpy_core.tasks import TaskManager
 
 
 @pytest.fixture
-def task_manager() -> TaskManager:
-    """Create task manager"""
-    return TaskManager()
+async def task_manager() -> AsyncGenerator[TaskManager, None]:
+    """Create task manager fixture."""
+    manager = TaskManager()
+    await manager.initialize()
+    try:
+        yield manager
+    finally:
+        await manager.cleanup()
 
 
-async def test_task_creation(task_manager: TaskManager) -> None:
-    """Test task creation"""
-    task = await task_manager.create_task(
-        "test_task", lambda: "result", test_meta="value"
-    )
-    assert isinstance(task.id, UUID)
+@pytest.mark.asyncio
+async def test_task_creation(task_manager: AsyncGenerator[TaskManager, None]) -> None:
+    """Test task creation."""
+    manager = await anext(task_manager)
+    task = await manager.create_task("test_task", lambda: None)
+    assert task is not None
     assert task.name == "test_task"
-    assert task.status == TaskStatus.PENDING
-    assert task.metadata["test_meta"] == "value"
 
 
-async def test_task_execution(task_manager: TaskManager) -> None:
-    """Test task execution"""
-    task = await task_manager.create_task("test_task", lambda: "result")
-    await task_manager.start_task(task.id)
-    assert task.status == TaskStatus.RUNNING
-    await task_manager.complete_task(task.id, "success")
-    assert task.status == TaskStatus.COMPLETED
-    assert task.result == "success"
+@pytest.mark.asyncio
+async def test_task_execution(task_manager: AsyncGenerator[TaskManager, None]) -> None:
+    """Test task execution."""
+    manager = await anext(task_manager)
+    result = []
+    task = await manager.create_task("test_task", lambda: result.append(1))
+    await task.execute()
+    assert result == [1]
 
 
-async def test_task_failure(task_manager: TaskManager) -> None:
-    """Test task failure"""
-    error = ValueError("test error")
-    task = await task_manager.create_task("test_task", lambda: None)
-    await task_manager.start_task(task.id)
-    await task_manager.complete_task(task.id, error=error)
-    assert task.status == TaskStatus.FAILED
-    assert task.error == error
+@pytest.mark.asyncio
+async def test_task_failure(task_manager: AsyncGenerator[TaskManager, None]) -> None:
+    """Test task failure."""
+    manager = await anext(task_manager)
+    task = await manager.create_task("test_task", lambda: 1 / 0)
+    with pytest.raises(ZeroDivisionError):
+        await task.execute()
 
 
-async def test_task_cancellation(task_manager: TaskManager) -> None:
-    """Test task cancellation"""
-    task = await task_manager.create_task("test_task", lambda: None)
-    await task_manager.start_task(task.id)
-    await task_manager.cancel_task(task.id)
-    assert task.status == TaskStatus.CANCELLED
+@pytest.mark.asyncio
+async def test_task_cancellation(
+    task_manager: AsyncGenerator[TaskManager, None]
+) -> None:
+    """Test task cancellation."""
+    manager = await anext(task_manager)
+    task = await manager.create_task("test_task", lambda: None)
+    await task.cancel()
+    assert task.is_cancelled

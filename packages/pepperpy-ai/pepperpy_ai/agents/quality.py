@@ -1,4 +1,4 @@
-"""Development agent implementation."""
+"""Quality engineer agent implementation."""
 
 from typing import Any
 
@@ -6,8 +6,8 @@ from ..base.message import MessageHandler
 from .types import AgentConfig
 
 
-class DevelopmentAgent(MessageHandler):
-    """Development agent for implementing features."""
+class QualityEngineerAgent(MessageHandler):
+    """Quality engineer agent for testing and QA."""
 
     def __init__(self, config: AgentConfig) -> None:
         """Initialize agent."""
@@ -42,7 +42,7 @@ class DevelopmentAgent(MessageHandler):
         conversation_history: list[dict[str, Any]] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> str:
-        """Handle a development message.
+        """Handle a QA message.
 
         Args:
             system_message: The system message
@@ -51,10 +51,10 @@ class DevelopmentAgent(MessageHandler):
             metadata: Optional metadata
 
         Returns:
-            The development response
+            The QA response
         """
         self._ensure_initialized()
-        return f"Development implementation for: {user_message}"
+        return f"Quality analysis for: {user_message}"
 
     def _ensure_initialized(self) -> None:
         """Ensure agent is initialized."""

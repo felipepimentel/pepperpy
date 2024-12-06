@@ -1,93 +1,56 @@
-"""Test configuration and fixtures for pepperpy-core.
+"""Test configuration module."""
 
-Note: It's normal to have multiple conftest.py files in different test directories.
-Each one provides fixtures specific to its package's tests.
-"""
-
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
 
-from pepperpy_core.base import BaseConfigData
-from pepperpy_core.exceptions import PepperpyError
-from pepperpy_core.module import BaseModule
-
-
-class TestError(PepperpyError):
-    """Test specific error."""
-
-    pass
+from pepperpy_core.base import BaseConfigData, BaseModule
 
 
 @dataclass
-class TestConfig(BaseConfigData):
+class _TestConfig(BaseConfigData):  # Inherit from BaseConfigData
     """Test configuration."""
 
-    # Required fields (herdado de BaseConfigData)
     name: str = "test"
-
-    # Optional fields
-    enabled: bool = True
-    test_data: list[str] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
+    value: str = "test_value"
+    enabled: bool = True  # Required by BaseConfigData
+    metadata: dict[str, Any] = field(default_factory=dict)  # Required by BaseConfigData
 
 
-class TestModule(BaseModule[TestConfig]):
+class _TestModule(BaseModule[_TestConfig]):
     """Test module implementation."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: _TestConfig) -> None:
         """Initialize test module."""
-        config = TestConfig()
         super().__init__(config)
         self._data: dict[str, Any] = {}
 
     async def _setup(self) -> None:
-        """Setup test module."""
-        pass
+        """Setup module resources."""
+        self._data = {}
 
     async def _teardown(self) -> None:
-        """Teardown test module."""
+        """Teardown module resources."""
         self._data.clear()
 
     async def get_stats(self) -> dict[str, Any]:
-        """Get test module statistics.
-
-        Returns:
-            Test module statistics
-        """
+        """Get module statistics."""
+        self._ensure_initialized()
         return {
             "total_data": len(self._data),
             "data_keys": list(self._data.keys()),
-            "test_data": self.config.test_data,
+            "test_value": self.config.value,
         }
 
 
 @pytest.fixture
-def test_config() -> TestConfig:
-    """Create test configuration.
-
-    Returns:
-        Test configuration
-    """
-    return TestConfig(
-        name="test",
-        enabled=True,
-        test_data=["test1", "test2"],
-    )
-
-
-@pytest.fixture
-async def test_module(test_config: TestConfig) -> TestModule:
-    """Create and initialize test module.
-
-    Args:
-        test_config: Test configuration
-
-    Returns:
-        Initialized test module
-    """
-    module = TestModule()
-    module.config = test_config  # Substituir a configuração padrão
+async def test_module() -> AsyncGenerator[_TestModule, None]:
+    """Create test module fixture."""
+    module = _TestModule(_TestConfig())
     await module.initialize()
-    return module
+    try:
+        yield module
+    finally:
+        await module.cleanup()

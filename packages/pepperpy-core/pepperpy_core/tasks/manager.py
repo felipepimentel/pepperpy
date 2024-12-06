@@ -1,59 +1,55 @@
 """Task manager module."""
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from typing import Any
-from uuid import UUID, uuid4
 
-from .status import TaskStatus
-
-
-@dataclass
-class Task:
-    """Task data class."""
-
-    id: UUID
-    name: str
-    func: Callable[[], Any]
-    status: TaskStatus = TaskStatus.PENDING
-    result: Any | None = None
-    error: Exception | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
+from ..base import BaseModule
+from .config import TaskConfig
+from .task import Task
 
 
-class TaskManager:
+class TaskManager(BaseModule[TaskConfig]):
     """Task manager implementation."""
 
     def __init__(self) -> None:
         """Initialize task manager."""
-        self._tasks: dict[UUID, Task] = {}
+        config = TaskConfig(name="task_manager")
+        super().__init__(config)
+        self._tasks: dict[str, Task] = {}
+
+    async def _setup(self) -> None:
+        """Setup task manager."""
+        self._tasks.clear()
+
+    async def _teardown(self) -> None:
+        """Teardown task manager."""
+        for task in self._tasks.values():
+            await task.cancel()
+        self._tasks.clear()
+
+    async def get_stats(self) -> dict[str, Any]:
+        """Get task manager statistics."""
+        self._ensure_initialized()
+        return {
+            "total_tasks": len(self._tasks),
+            "task_names": list(self._tasks.keys()),
+            "active_tasks": sum(1 for t in self._tasks.values() if not t.is_cancelled),
+        }
 
     async def create_task(
-        self, name: str, func: Callable[[], Any], **metadata: Any
+        self, name: str, func: Callable[..., Any], **kwargs: Any
     ) -> Task:
-        """Create a new task."""
-        task = Task(id=uuid4(), name=name, func=func, metadata=metadata)
-        self._tasks[task.id] = task
+        """Create a new task.
+
+        Args:
+            name: Task name
+            func: Task function
+            **kwargs: Additional task arguments
+
+        Returns:
+            Created task
+        """
+        self._ensure_initialized()
+        task = Task(name=name, func=func, **kwargs)
+        self._tasks[task.name] = task
         return task
-
-    async def start_task(self, task_id: UUID) -> None:
-        """Start task execution."""
-        task = self._tasks[task_id]
-        task.status = TaskStatus.RUNNING
-
-    async def complete_task(
-        self, task_id: UUID, result: Any | None = None, error: Exception | None = None
-    ) -> None:
-        """Complete task execution."""
-        task = self._tasks[task_id]
-        if error:
-            task.status = TaskStatus.FAILED
-            task.error = error
-        else:
-            task.status = TaskStatus.COMPLETED
-            task.result = result
-
-    async def cancel_task(self, task_id: UUID) -> None:
-        """Cancel task execution."""
-        task = self._tasks[task_id]
-        task.status = TaskStatus.CANCELLED

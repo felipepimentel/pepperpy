@@ -1,20 +1,30 @@
-"""Team agent implementations."""
+"""Team agent implementation."""
 
 from typing import Any
 
-from ..ai_types import AIMessage, AIResponse
-from .base import BaseAgent
-from .team_types import TeamConfig, TeamMessage
-from .types import AgentConfig, AgentRole
+from ..base.message import MessageHandler
+from .types import AgentConfig
 
 
-class TeamAgent(BaseAgent):
-    """Team agent implementation."""
+class TeamAgent(MessageHandler):
+    """Team agent for coordinating multiple agents."""
 
     def __init__(self, config: AgentConfig) -> None:
         """Initialize agent."""
-        super().__init__(config)
-        self._team_config: TeamConfig | None = None
+        self.config = config
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize the agent."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup agent resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
     async def _setup(self) -> None:
         """Setup agent resources."""
@@ -24,80 +34,45 @@ class TeamAgent(BaseAgent):
         """Teardown agent resources."""
         pass
 
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute team task."""
+    async def handle_message(
+        self,
+        *,
+        system_message: str,
+        user_message: str,
+        conversation_history: list[dict[str, Any]] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Handle a team message.
+
+        Args:
+            system_message: The system message
+            user_message: The user message
+            conversation_history: Optional conversation history
+            metadata: Optional metadata
+
+        Returns:
+            The team response
+        """
         self._ensure_initialized()
-        return AIResponse(
-            content=f"Team task: {task}",
-            messages=[AIMessage(role=AgentRole.PLANNER, content=task)],
-        )
+
+        # Use metadata to determine team operation type
+        operation = metadata.get("operation") if metadata else None
+
+        if operation == "planning":
+            return f"Team planning for: {user_message}"
+        elif operation == "coordination":
+            return f"Team coordination for: {user_message}"
+        elif operation == "review":
+            return f"Team review for: {user_message}"
+        else:
+            return f"General team response for: {user_message}"
 
     def _ensure_initialized(self) -> None:
         """Ensure agent is initialized."""
-        if not self.is_initialized:
+        if not self._initialized:
             raise RuntimeError("Agent not initialized")
 
-    async def coordinate(self, messages: list[TeamMessage]) -> AIResponse:
-        """Coordinate team communication.
-
-        Args:
-            messages: Team messages to coordinate
-
-        Returns:
-            Coordination response
-        """
-        self._ensure_initialized()
-        return AIResponse(
-            content="Team coordination",
-            messages=[
-                AIMessage(role=AgentRole.PLANNER, content=msg.content)
-                for msg in messages
-            ],
-        )
-
-
-class TeamCoordinator(BaseAgent):
-    """Team coordinator implementation."""
-
-    def __init__(self, config: AgentConfig) -> None:
-        """Initialize coordinator."""
-        super().__init__(config)
-        self._team_config: TeamConfig | None = None
-
-    async def _setup(self) -> None:
-        """Setup coordinator resources."""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown coordinator resources."""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute coordination task."""
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Coordination task: {task}",
-            messages=[AIMessage(role=AgentRole.PLANNER, content=task)],
-        )
-
-    def _ensure_initialized(self) -> None:
-        """Ensure coordinator is initialized."""
-        if not self.is_initialized:
-            raise RuntimeError("Coordinator not initialized")
-
-    async def assign_tasks(self, tasks: list[str]) -> AIResponse:
-        """Assign tasks to team members.
-
-        Args:
-            tasks: Tasks to assign
-
-        Returns:
-            Task assignment response
-        """
-        self._ensure_initialized()
-        return AIResponse(
-            content="Task assignments",
-            messages=[
-                AIMessage(role=AgentRole.PLANNER, content=task) for task in tasks
-            ],
-        )
+    @property
+    def is_initialized(self) -> bool:
+        """Check if agent is initialized."""
+        return self._initialized

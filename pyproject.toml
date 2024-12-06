@@ -8,13 +8,15 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 prometheus-client = "^0.19.0"
-pydantic = "^2.0.0"
+pydantic = "^2.6.3"
 sqlalchemy = "^2.0.0"
 asyncpg = "^0.29.0"
 Pillow = "^10.0.0"
 pandas = "^2.0.0"
 numpy = "^1.24.0"
 pydub = "^0.25.1"
+python-dotenv = "^1.0.1"
+rich = "^13.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
@@ -24,70 +26,33 @@ black = "^24.0.0"
 ruff = "^0.8.2"
 mypy = "^1.8.0"
 
-[tool.ruff]
-extend = "ruff.toml"
+# Add local packages as development dependencies
+[tool.poetry.group.local.dependencies]
+pepperpy-core = { path = "packages/pepperpy-core", develop = true }
+pepperpy-console = { path = "packages/pepperpy-console", develop = true }
+pepperpy-db = { path = "packages/pepperpy-db", develop = true }
+pepperpy-codebase = { path = "packages/pepperpy-codebase", develop = true }
+pepperpy-files = { path = "packages/pepperpy-files", develop = true }
+pepperpy-ai = { path = "packages/pepperpy-ai", develop = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.pyright]
-include = ["packages/*"]
-exclude = [
-    "**/node_modules",
-    "**/__pycache__",
-    "**/.*",
+[tool.pytest.ini_options]
+pythonpath = [
+    "packages/pepperpy-core",
+    "packages/pepperpy-console",
+    "packages/pepperpy-db",
+    "packages/pepperpy-codebase",
+    "packages/pepperpy-files",
+    "packages/pepperpy-ai"
 ]
-reportDuplicateImport = true
-reportUnusedImport = true
-reportUnusedClass = true
-reportUnusedFunction = true
-reportUnusedVariable = true
-reportPrivateUsage = "warning"
-reportUntypedFunctionDecorator = "warning"
-reportMissingTypeStubs = false
-# Ignorar erro de módulo duplicado para conftest.py
-reportDuplicateModule = "warning"
-reportDuplicateModuleSourceWarnings = [
-    { pattern = "tests/conftest.py", exclude = true }
+testpaths = [
+    "packages/pepperpy-*/tests"
 ]
-
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-
-# Configuração de exclusão usando regex para conftest.py
-exclude = '''(?x)(
-    ^tests/conftest\.py$  # Exclui conftest.py na raiz de tests/
-    | .*/tests/conftest\.py$  # Exclui conftest.py em qualquer diretório tests/
-)'''
-
-# Configuração explícita de bases de pacotes
-explicit_package_bases = true
-namespace_packages = true
-
-# Paths para procurar módulos
-mypy_path = ["packages"]
-
-# Configuração para pacotes específicos
-[[tool.mypy.overrides]]
-module = ["tests.*"]
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-check_untyped_defs = false
-
-# Configuração específica para arquivos de teste
-[[tool.mypy.overrides]]
-module = ["*/tests/*"]
-ignore_missing_imports = true
-follow_imports = "silent"
+markers = [
+    "asyncio: mark test as an async test",
+]
+asyncio_mode = "strict"
+addopts = "--asyncio-mode=strict --capture=no"

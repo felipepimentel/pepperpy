@@ -1,11 +1,6 @@
-"""Configuration module exports."""
+"""Configuration management package."""
 
-from .base import BaseConfig
-from .manager import ConfigManager
 from .types import ConfigManagerConfig
+from .manager import ConfigManager
 
-__all__ = [
-    "BaseConfig",
-    "ConfigManager",
-    "ConfigManagerConfig",
-]
+__all__ = ["ConfigManager", "ConfigManagerConfig"]

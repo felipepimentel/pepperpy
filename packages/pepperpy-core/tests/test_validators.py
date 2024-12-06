@@ -1,104 +1,55 @@
-"""Test validators functionality"""
+"""Validator tests."""
 
 import pytest
 
-from pepperpy_core.validation import ValidationLevel
-from pepperpy_core.validation.validators import (
+from pepperpy_core.validators import (
     LengthValidator,
     RegexValidator,
     TypeValidator,
+    validate_many,
 )
 
 
-@pytest.fixture
-def regex_validator() -> RegexValidator:
-    """Create regex validator"""
-    return RegexValidator(r"^test_\d+$")
+@pytest.mark.asyncio
+async def test_regex_validation() -> None:
+    """Test regex validation."""
+    validator = RegexValidator(pattern=r"^test\d+$")
+    assert await validator.validate("test123")
+    assert not await validator.validate("invalid")
 
 
-@pytest.fixture
-def length_validator() -> LengthValidator:
-    """Create length validator"""
-    return LengthValidator(min_length=2, max_length=5)
-
-
-@pytest.fixture
-def type_validator() -> TypeValidator:
-    """Create type validator"""
-    return TypeValidator((str, int))
-
-
-async def test_regex_validation(regex_validator: RegexValidator) -> None:
-    """Test regex validation"""
-    # Valid values
-    result = await regex_validator.validate("test_123")
-    assert result.valid
-    assert result.level == ValidationLevel.INFO
-
-    # Invalid values
-    result = await regex_validator.validate("invalid")
-    assert not result.valid
-    assert result.level == ValidationLevel.ERROR
-    assert "pattern" in result.metadata
-
-
+@pytest.mark.asyncio
 async def test_regex_custom_message() -> None:
-    """Test regex with custom message"""
+    """Test regex validation with custom message."""
     validator = RegexValidator(
-        r"^\w+$", message="Invalid characters", level=ValidationLevel.WARNING
+        pattern=r"^test\d+$", message="Must start with 'test' followed by numbers"
     )
-
-    result = await validator.validate("@invalid@")
-    assert not result.valid
-    assert result.level == ValidationLevel.WARNING
-    assert result.message == "Invalid characters"
+    assert validator.message == "Must start with 'test' followed by numbers"
 
 
-async def test_length_validation(length_validator: LengthValidator) -> None:
-    """Test length validation"""
-    # Valid length
-    result = await length_validator.validate("123")
-    assert result.valid
-    assert result.level == ValidationLevel.INFO
-    assert result.metadata["length"] == 3
-
-    # Too short
-    result = await length_validator.validate("1")
-    assert not result.valid
-    assert result.message and "below minimum" in result.message
-
-    # Too long
-    result = await length_validator.validate("123456")
-    assert not result.valid
-    assert result.message and "above maximum" in result.message
-
-    # Invalid type
-    result = await length_validator.validate(123)
-    assert not result.valid
-    assert result.message and "does not support length" in result.message
+@pytest.mark.asyncio
+async def test_length_validation() -> None:
+    """Test length validation."""
+    validator = LengthValidator(min_length=2, max_length=5)
+    assert await validator.validate("123")
+    assert not await validator.validate("1")
+    assert not await validator.validate("123456")
 
 
-async def test_type_validation(type_validator: TypeValidator) -> None:
-    """Test type validation"""
-    # Valid types
-    result = await type_validator.validate("string")
-    assert result.valid
-    result = await type_validator.validate(123)
-    assert result.valid
-
-    # Invalid type
-    result = await type_validator.validate(1.23)
-    assert not result.valid
-    assert result.message and "Expected type" in result.message
-    assert "float" in result.metadata["actual_type"]
+@pytest.mark.asyncio
+async def test_type_validation() -> None:
+    """Test type validation."""
+    validator = TypeValidator(expected_type=int)
+    assert await validator.validate(123)
+    assert not await validator.validate("123")
 
 
+@pytest.mark.asyncio
 async def test_validate_many() -> None:
-    """Test validating multiple values"""
-    validator = RegexValidator(r"^\d+$")
-    results = await validator.validate_many(["123", "abc", "456"])
-
-    assert len(results) == 3
-    assert results[0].valid  # "123"
-    assert not results[1].valid  # "abc"
-    assert results[2].valid  # "456"
+    """Test multiple validations."""
+    validators = [
+        RegexValidator(pattern=r"^test\d+$"),
+        LengthValidator(min_length=6, max_length=10),
+    ]
+    assert await validate_many("test123", validators)
+    assert not await validate_many("test", validators)

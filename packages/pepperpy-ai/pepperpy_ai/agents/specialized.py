@@ -1,18 +1,30 @@
-"""Specialized agent implementations."""
+"""Specialized agent implementation."""
 
 from typing import Any
 
-from ..ai_types import AIMessage, AIResponse
-from .base import BaseAgent
-from .types import AgentConfig, AgentRole
+from ..base.message import MessageHandler
+from .types import AgentConfig
 
 
-class DocumentationAgent(BaseAgent):
-    """Documentation agent implementation."""
+class SpecializedAgent(MessageHandler):
+    """Specialized agent for specific domain tasks."""
 
     def __init__(self, config: AgentConfig) -> None:
         """Initialize agent."""
-        super().__init__(config)
+        self.config = config
+        self._initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize the agent."""
+        if not self._initialized:
+            await self._setup()
+            self._initialized = True
+
+    async def cleanup(self) -> None:
+        """Cleanup agent resources."""
+        if self._initialized:
+            await self._teardown()
+            self._initialized = False
 
     async def _setup(self) -> None:
         """Setup agent resources."""
@@ -22,102 +34,43 @@ class DocumentationAgent(BaseAgent):
         """Teardown agent resources."""
         pass
 
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute documentation task."""
+    async def handle_message(
+        self,
+        *,
+        system_message: str,
+        user_message: str,
+        conversation_history: list[dict[str, Any]] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Handle a specialized message.
+
+        Args:
+            system_message: The system message
+            user_message: The user message
+            conversation_history: Optional conversation history
+            metadata: Optional metadata
+
+        Returns:
+            The specialized response
+        """
         self._ensure_initialized()
-        return AIResponse(
-            content=f"Documentation task: {task}",
-            messages=[AIMessage(role=AgentRole.DEVELOPER, content=task)],
-        )
+
+        # Use metadata to determine the type of specialization
+        specialization = metadata.get("specialization") if metadata else None
+
+        if specialization == "development":
+            return f"Specialized development for: {user_message}"
+        elif specialization == "review":
+            return f"Specialized review for: {user_message}"
+        else:
+            return f"General specialized response for: {user_message}"
 
     def _ensure_initialized(self) -> None:
         """Ensure agent is initialized."""
-        if not self.is_initialized:
+        if not self._initialized:
             raise RuntimeError("Agent not initialized")
 
-
-class AutomatedTestingAgent(BaseAgent):
-    """Automated testing agent implementation."""
-
-    def __init__(self, config: AgentConfig) -> None:
-        """Initialize agent."""
-        super().__init__(config)
-
-    async def _setup(self) -> None:
-        """Setup agent resources."""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown agent resources."""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute testing task."""
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Testing task: {task}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
-        )
-
-    def _ensure_initialized(self) -> None:
-        """Ensure agent is initialized."""
-        if not self.is_initialized:
-            raise RuntimeError("Agent not initialized")
-
-
-class OptimizationAgent(BaseAgent):
-    """Optimization agent implementation."""
-
-    def __init__(self, config: AgentConfig) -> None:
-        """Initialize agent."""
-        super().__init__(config)
-
-    async def _setup(self) -> None:
-        """Setup agent resources."""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown agent resources."""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute optimization task."""
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Optimization task: {task}",
-            messages=[AIMessage(role=AgentRole.DEVELOPER, content=task)],
-        )
-
-    def _ensure_initialized(self) -> None:
-        """Ensure agent is initialized."""
-        if not self.is_initialized:
-            raise RuntimeError("Agent not initialized")
-
-
-class SecurityAgent(BaseAgent):
-    """Security agent implementation."""
-
-    def __init__(self, config: AgentConfig) -> None:
-        """Initialize agent."""
-        super().__init__(config)
-
-    async def _setup(self) -> None:
-        """Setup agent resources."""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown agent resources."""
-        pass
-
-    async def execute(self, task: str, **kwargs: Any) -> AIResponse:
-        """Execute security task."""
-        self._ensure_initialized()
-        return AIResponse(
-            content=f"Security task: {task}",
-            messages=[AIMessage(role=AgentRole.REVIEWER, content=task)],
-        )
-
-    def _ensure_initialized(self) -> None:
-        """Ensure agent is initialized."""
-        if not self.is_initialized:
-            raise RuntimeError("Agent not initialized")
+    @property
+    def is_initialized(self) -> bool:
+        """Check if agent is initialized."""
+        return self._initialized

@@ -1,36 +1,50 @@
 """Agent factory implementation."""
 
 
+from typing import Any
+
+from ..base.message import MessageHandler
 from .analysis import AnalysisAgent
 from .architect import ArchitectAgent
-from .base import BaseAgent
 from .development import DevelopmentAgent
-from .management import ProjectManagerAgent, QualityEngineerAgent
-from .types import AgentConfig, AgentRole
-
-AGENT_TYPES: dict[AgentRole, type[BaseAgent]] = {
-    AgentRole.ARCHITECT: ArchitectAgent,
-    AgentRole.DEVELOPER: DevelopmentAgent,
-    AgentRole.RESEARCHER: AnalysisAgent,
-    AgentRole.PLANNER: ProjectManagerAgent,
-    AgentRole.REVIEWER: QualityEngineerAgent,
-}
+from .project_manager import ProjectManagerAgent
+from .quality import QualityEngineerAgent
+from .research import ResearchAgent
+from .specialized import SpecializedAgent
+from .team import TeamAgent
+from .types import AgentRole
 
 
-def create_agent(config: AgentConfig) -> BaseAgent:
-    """Create agent instance.
+class AgentFactory:
+    """Factory for creating agents."""
 
-    Args:
-        config: Agent configuration
+    _agent_types: dict[AgentRole, type[MessageHandler]] = {
+        AgentRole.ARCHITECT: ArchitectAgent,
+        AgentRole.DEVELOPMENT: DevelopmentAgent,
+        AgentRole.ANALYSIS: AnalysisAgent,
+        AgentRole.PROJECT_MANAGER: ProjectManagerAgent,
+        AgentRole.QA: QualityEngineerAgent,
+        AgentRole.TEAM: TeamAgent,
+        AgentRole.SPECIALIZED: SpecializedAgent,
+        AgentRole.RESEARCH: ResearchAgent,
+    }
 
-    Returns:
-        Agent instance
+    @classmethod
+    def create_agent(cls, role: AgentRole, **kwargs: Any) -> MessageHandler:
+        """Create an agent instance.
 
-    Raises:
-        ValueError: If agent type is unknown
-    """
-    agent_class = AGENT_TYPES.get(config.role)
-    if not agent_class:
-        raise ValueError(f"Unknown agent role: {config.role}")
+        Args:
+            role: The role of the agent to create
+            **kwargs: Additional arguments to pass to the agent constructor
 
-    return agent_class(config)
+        Returns:
+            An initialized agent instance
+
+        Raises:
+            ValueError: If the role is not supported
+        """
+        if role not in cls._agent_types:
+            raise ValueError(f"Unsupported agent role: {role}")
+
+        agent_class = cls._agent_types[role]
+        return agent_class(**kwargs)

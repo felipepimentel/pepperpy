@@ -1,43 +1,50 @@
 """Module tests."""
 
+from collections.abc import AsyncGenerator
+
 import pytest
 
-from .conftest import TestConfig, TestModule
+from .conftest import _TestModule
 
 
-async def test_module_initialization(test_module: TestModule) -> None:
+@pytest.mark.asyncio
+async def test_module_initialization(
+    test_module: AsyncGenerator[_TestModule, None]
+) -> None:
     """Test module initialization."""
-    assert test_module.is_initialized
-    assert test_module.config.name == "test"
-    assert test_module.config.enabled
+    module = await anext(test_module)
+    assert module.is_initialized
+    assert module.config.name == "test"
+    assert module.config.enabled
 
 
-async def test_module_cleanup(test_module: TestModule) -> None:
+@pytest.mark.asyncio
+async def test_module_cleanup(test_module: AsyncGenerator[_TestModule, None]) -> None:
     """Test module cleanup."""
-    await test_module.cleanup()
-    assert not test_module.is_initialized
+    module = await anext(test_module)
+    await module.cleanup()
+    assert not module.is_initialized
 
 
-async def test_module_stats(test_module: TestModule) -> None:
+@pytest.mark.asyncio
+async def test_module_stats(test_module: AsyncGenerator[_TestModule, None]) -> None:
     """Test module statistics."""
-    stats = await test_module.get_stats()
+    module = await anext(test_module)
+    stats = await module.get_stats()
     assert isinstance(stats, dict)
     assert "total_data" in stats
     assert "data_keys" in stats
-    assert "test_data" in stats
+    assert "test_value" in stats
 
 
-async def test_module_error_handling(test_config: TestConfig) -> None:
+@pytest.mark.asyncio
+async def test_module_error_handling(
+    test_module: AsyncGenerator[_TestModule, None]
+) -> None:
     """Test module error handling."""
-    module = TestModule()
-    module.config = test_config
+    module = await anext(test_module)
 
-    with pytest.raises(RuntimeError):
-        await module.get_stats()
-
-    await module.initialize()
-    assert module.is_initialized
-
+    # Test uninitialized state
     await module.cleanup()
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match="Module not initialized"):
         await module.get_stats()

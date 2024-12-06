@@ -62,7 +62,7 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.analysis.extraPaths": [
-        "packages/pepperpy-console/pepperpy_console"
+        "packages/pepperpy-core/pepperpy_core"
     ],
     "python.analysis.packageIndexDepths": [
         {

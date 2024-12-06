@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
-from typing import Generic, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
 
 from ..ai_types import AIResponse
 from .config import ProviderConfig
@@ -58,3 +58,28 @@ class BaseProvider(Generic[ConfigT], ABC):
     async def stream(self, prompt: str) -> AsyncGenerator[AIResponse, None]:
         """Stream responses."""
         pass
+
+
+class AIProvider(Protocol):
+    """Protocol for AI providers."""
+
+    async def generate_response(
+        self,
+        *,  # Force keyword arguments
+        prompt: str,
+        system_message: str | None = None,
+        conversation_history: list[dict[str, Any]] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Generate a response from the AI provider.
+
+        Args:
+            prompt: The prompt to send
+            system_message: Optional system message
+            conversation_history: Optional conversation history
+            metadata: Optional metadata
+
+        Returns:
+            The generated response
+        """
+        ...

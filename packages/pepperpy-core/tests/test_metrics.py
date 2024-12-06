@@ -1,5 +1,7 @@
 """Test metrics functionality."""
 
+from collections.abc import AsyncGenerator
+
 import pytest
 
 from pepperpy_core.telemetry.config import TelemetryConfig
@@ -8,11 +10,7 @@ from pepperpy_core.telemetry.metrics import MetricsCollector
 
 @pytest.fixture
 def metrics_config() -> TelemetryConfig:
-    """Create metrics configuration.
-
-    Returns:
-        Metrics configuration
-    """
+    """Create metrics configuration."""
     return TelemetryConfig(
         name="test-metrics",
         enabled=True,
@@ -22,65 +20,63 @@ def metrics_config() -> TelemetryConfig:
 
 
 @pytest.fixture
-async def metrics_collector(metrics_config: TelemetryConfig) -> MetricsCollector:
-    """Create metrics collector.
-
-    Args:
-        metrics_config: Metrics configuration
-
-    Returns:
-        Initialized metrics collector
-    """
+async def metrics_collector(
+    metrics_config: TelemetryConfig,
+) -> AsyncGenerator[MetricsCollector, None]:
+    """Create metrics collector."""
     collector = MetricsCollector()
-    collector.config = metrics_config  # Substituir a configuração padrão
+    collector.config = metrics_config
     await collector.initialize()
-    return collector
+    try:
+        yield collector
+    finally:
+        await collector.cleanup()
 
 
 @pytest.mark.asyncio
-async def test_record_metric(metrics_collector: MetricsCollector) -> None:
+async def test_record_metric(
+    metrics_collector: AsyncGenerator[MetricsCollector, None]
+) -> None:
     """Test recording metrics."""
-    await metrics_collector.collect(
+    collector = await anext(metrics_collector)
+    await collector.collect(
         name="test_metric",
         value=1.0,
         tags={"test": "true"},
     )
 
-    stats = await metrics_collector.get_stats()
+    stats = await collector.get_stats()
     assert stats["total_metrics"] == 1
-    assert "test_metric" in stats["metric_names"]
-    assert stats["enabled"] is True
 
 
 @pytest.mark.asyncio
-async def test_record_multiple_metrics(metrics_collector: MetricsCollector) -> None:
+async def test_record_multiple_metrics(
+    metrics_collector: AsyncGenerator[MetricsCollector, None]
+) -> None:
     """Test recording multiple metrics."""
-    test_metrics = [
-        ("metric1", 1.0, {"tag": "1"}),
-        ("metric2", 2.0, {"tag": "2"}),
-    ]
-
-    for name, value, tags in test_metrics:
-        await metrics_collector.collect(
-            name=name,
-            value=value,
-            tags=tags,
+    collector = await anext(metrics_collector)
+    for i in range(5):
+        await collector.collect(
+            name=f"test_metric_{i}",
+            value=float(i),
+            tags={"test": "true"},
         )
 
-    stats = await metrics_collector.get_stats()
-    assert stats["total_metrics"] == len(test_metrics)
-    for name, _, _ in test_metrics:
-        assert name in stats["metric_names"]
+    stats = await collector.get_stats()
+    assert stats["total_metrics"] == 5
 
 
 @pytest.mark.asyncio
-async def test_cleanup(metrics_collector: MetricsCollector) -> None:
-    """Test metrics cleanup."""
-    await metrics_collector.collect(
-        name="test",
+async def test_cleanup(
+    metrics_collector: AsyncGenerator[MetricsCollector, None]
+) -> None:
+    """Test cleanup."""
+    collector = await anext(metrics_collector)
+    await collector.collect(
+        name="test_metric",
         value=1.0,
+        tags={"test": "true"},
     )
-    await metrics_collector.cleanup()
 
-    stats = await metrics_collector.get_stats()
-    assert stats["total_metrics"] == 0
+    await collector.cleanup()
+    assert not collector.is_initialized

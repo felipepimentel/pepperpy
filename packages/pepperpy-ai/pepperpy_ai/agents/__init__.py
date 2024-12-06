@@ -1,10 +1,6 @@
-"""Agent module exports."""
+"""Agent package initialization."""
 
-from .factory import create_agent
-from .types import AgentConfig, AgentRole
+from .factory import AgentFactory
+from .types import AgentRole
 
-__all__ = [
-    "create_agent",
-    "AgentConfig",
-    "AgentRole",
-]
+__all__ = ["AgentFactory", "AgentRole"]
