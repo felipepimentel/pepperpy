@@ -1,6 +1,6 @@
 {
     "folders": [
-        {
+        /* {
             "name": "PepperPy (root)",
             "path": ".",
             "settings": {
@@ -14,7 +14,7 @@
                 "ruff.configPath": "../ruff.toml",
                 "python.defaultInterpreterPath": "${workspaceFolder}/tools/.venv/bin/python"
             }
-        },
+        }, */
         {
             "name": "PepperPy Files",
             "path": "packages/pepperpy-files",
