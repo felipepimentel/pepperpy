@@ -6,6 +6,14 @@
             "settings": {
                 "python.defaultInterpreterPath": null
             }
+        }, */
+        {
+            "name": "PepperPy (docs)",
+            "path": "docs"
+        },
+        {
+            "name": "PepperPy (CI/CD)",
+            "path": ".github"
         },
         {
             "name": "PepperPy (tools)",
@@ -14,13 +22,13 @@
                 "ruff.configPath": "../ruff.toml",
                 "python.defaultInterpreterPath": "${workspaceFolder}/tools/.venv/bin/python"
             }
-        }, */
+        },
         {
-            "name": "PepperPy Files",
-            "path": "packages/pepperpy-files",
+            "name": "PepperPy Core",
+            "path": "packages/pepperpy-core",
             "settings": {
                 "ruff.configPath": "../../ruff.toml",
-                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-files/.venv/bin/python",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-core/.venv/bin/python",
                 "python.testing.pytestArgs": ["tests"]
             }
         },
@@ -34,11 +42,11 @@
             }
         },
         {
-            "name": "PepperPy Core",
-            "path": "packages/pepperpy-core",
+            "name": "PepperPy Files",
+            "path": "packages/pepperpy-files",
             "settings": {
                 "ruff.configPath": "../../ruff.toml",
-                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-core/.venv/bin/python",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-files/.venv/bin/python",
                 "python.testing.pytestArgs": ["tests"]
             }
         },
@@ -102,7 +110,7 @@
         "python.analysis.autoSearchPaths": true,
         "python.analysis.diagnosticMode": "workspace",
         "python.analysis.extraPaths": [
-            "tests"
+            "docs"
         ],
         "python.testing.pytestEnabled": true
     }
