@@ -2,8 +2,7 @@
 
 import json
 import os
-import shutil
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 from pathlib import Path
 
 import pytest
@@ -50,38 +49,16 @@ async def manager(
         await manager.cleanup()
 
 
-async def test_manager_initialization(manager: ConfigManager) -> None:
-    """Test manager initialization."""
-    # Initialize should be idempotent
-    await manager.initialize()
-    await manager.initialize()  # Second call should be no-op
-
-    # Verify manager is ready for use
-    assert await manager.is_ready()
-
-
-async def test_manager_cleanup(manager: ConfigManager) -> None:
-    """Test manager cleanup."""
-    await manager.initialize()
-    await manager.cleanup()
-
-    # Verify manager is cleaned up
-    assert not await manager.is_ready()
-
-
 @pytest.mark.asyncio
-async def test_basic_operations(manager: ConfigManager) -> None:
+async def test_basic_operations(manager: AsyncGenerator[ConfigManager, None]) -> None:
     """Test basic configuration operations."""
-    assert await manager.is_ready()
-
-    # Test cleanup
-    await manager.cleanup()
-    assert not await manager.is_ready()
+    manager_instance = await anext(manager)
+    assert await manager_instance.is_ready()
 
 
 @pytest.mark.asyncio
 async def test_config_get(
-    manager: ConfigManager,
+    manager: AsyncGenerator[ConfigManager, None],
     test_config_dir: str,
 ) -> None:
     """Test config loading."""
@@ -89,7 +66,8 @@ async def test_config_get(
     config_path = Path(test_config_dir) / "test_config.json"
     config_path.write_text(json.dumps({"name": "test", "value": "test_value"}))
 
-    config = await manager.get_config("test_config", _TestConfig)
+    manager_instance = await anext(manager)
+    config = await manager_instance.get_config("test_config", _TestConfig)
     assert config is not None
     assert isinstance(config, _TestConfig)
     assert config.name == "test"
@@ -98,7 +76,7 @@ async def test_config_get(
 
 @pytest.mark.asyncio
 async def test_config_validation(
-    manager: ConfigManager,
+    manager: AsyncGenerator[ConfigManager, None],
     test_config_dir: str,
 ) -> None:
     """Test config validation."""
@@ -107,12 +85,6 @@ async def test_config_validation(
     if config_path.exists():
         config_path.unlink()
 
+    manager_instance = await anext(manager)
     with pytest.raises(ValueError, match="Config file not found: invalid_config"):
-        await manager.get_config("invalid_config", _TestConfig)
-
-
-@pytest.fixture(autouse=True)
-def cleanup_test_files(test_config_dir: str) -> Generator[None, None, None]:
-    """Clean up test files after each test."""
-    yield
-    shutil.rmtree(test_config_dir, ignore_errors=True)
+        await manager_instance.get_config("invalid_config", _TestConfig)

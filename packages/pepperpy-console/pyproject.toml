@@ -8,7 +8,7 @@ packages = [{ include = "pepperpy_console" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-rich = "^13.0.0"
+rich = "^13.7.0"
 pepperpy-core = { path = "../pepperpy-core", develop = true }
 
 [tool.poetry.group.dev.dependencies]

@@ -1,27 +1,20 @@
 #!/bin/bash
+set -e
 
-# Função para instalar um pacote
-install_package() {
-    local package=$1
-    echo "Installing dependencies for $package..."
-    cd "$package" || exit
-    
-    # Limpa qualquer ambiente virtual existente
-    poetry env remove --all
-    
-    # Instala as dependências
-    poetry install --no-root
-    
-    cd - || exit
-}
+# Install core package first
+echo "Installing pepperpy-core..."
+cd packages/pepperpy-core
+poetry env remove --all
+poetry install --no-interaction --no-root
+cd ../..
 
-# Instala primeiro o pepperpy-core
-echo "Installing core package first..."
-install_package "packages/pepperpy-core"
-
-# Instala os outros pacotes
-for package in packages/*; do
-    if [ -d "$package" ] && [ "$(basename "$package")" != "pepperpy-core" ]; then
-        install_package "$package"
+# Install other packages
+for dir in packages/*; do
+    if [ -d "$dir" ] && [ "$(basename $dir)" != "pepperpy-core" ]; then
+        echo "Installing $(basename $dir)..."
+        cd "$dir"
+        poetry env remove --all
+        poetry install --no-interaction --no-root
+        cd ../..
     fi
 done 

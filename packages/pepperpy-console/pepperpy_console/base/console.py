@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal, TextIO
 if TYPE_CHECKING:
     from rich.console import Console as ConsoleType
 else:
-    from rich._console import Console as ConsoleType
+    from rich.console import Console as ConsoleType
 
 from rich.style import Style
 
