@@ -7,25 +7,25 @@ import pytest
 from pepperpy_core.base import BaseConfigData, BaseModule
 
 
-class TestModuleConfig(BaseConfigData):
-    """Test module configuration."""
+class MockModuleConfig(BaseConfigData):
+    """Mock module configuration for testing."""
 
     name: str = "test"
 
 
-class TestModule(BaseModule[TestModuleConfig]):
-    """Test module implementation."""
+class MockModule(BaseModule[MockModuleConfig]):
+    """Mock module implementation for testing."""
 
     async def _setup(self) -> None:
-        """Setup test module."""
+        """Setup mock module."""
         pass
 
     async def _teardown(self) -> None:
-        """Teardown test module."""
+        """Teardown mock module."""
         pass
 
     async def get_stats(self) -> dict[str, Any]:
-        """Get test module statistics."""
+        """Get mock module statistics."""
         return {
             "name": self.config.name,
             "total_data": 0,
@@ -35,10 +35,10 @@ class TestModule(BaseModule[TestModuleConfig]):
 
 
 @pytest.fixture
-async def test_module() -> AsyncGenerator[TestModule, None]:
+async def test_module() -> AsyncGenerator[MockModule, None]:
     """Create test module fixture."""
-    config = TestModuleConfig(name="test", enabled=True)
-    module = TestModule(config)
+    config = MockModuleConfig(name="test", enabled=True)
+    module = MockModule(config)
     await module.initialize()
     try:
         yield module
@@ -48,7 +48,7 @@ async def test_module() -> AsyncGenerator[TestModule, None]:
 
 @pytest.mark.asyncio
 async def test_module_initialization(
-    test_module: AsyncGenerator[TestModule, None]
+    test_module: AsyncGenerator[MockModule, None]
 ) -> None:
     """Test module initialization."""
     module = await anext(test_module)
@@ -58,7 +58,7 @@ async def test_module_initialization(
 
 
 @pytest.mark.asyncio
-async def test_module_cleanup(test_module: AsyncGenerator[TestModule, None]) -> None:
+async def test_module_cleanup(test_module: AsyncGenerator[MockModule, None]) -> None:
     """Test module cleanup."""
     module = await anext(test_module)
     assert module.is_initialized
@@ -67,7 +67,7 @@ async def test_module_cleanup(test_module: AsyncGenerator[TestModule, None]) -> 
 
 
 @pytest.mark.asyncio
-async def test_module_stats(test_module: AsyncGenerator[TestModule, None]) -> None:
+async def test_module_stats(test_module: AsyncGenerator[MockModule, None]) -> None:
     """Test module statistics."""
     module = await anext(test_module)
     stats = await module.get_stats()
@@ -80,7 +80,7 @@ async def test_module_stats(test_module: AsyncGenerator[TestModule, None]) -> No
 
 @pytest.mark.asyncio
 async def test_module_error_handling(
-    test_module: AsyncGenerator[TestModule, None]
+    test_module: AsyncGenerator[MockModule, None]
 ) -> None:
     """Test module error handling."""
     module = await anext(test_module)

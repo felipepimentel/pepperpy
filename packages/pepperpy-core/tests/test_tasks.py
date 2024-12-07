@@ -1,49 +1,32 @@
-"""Test task functionality."""
+"""Test tasks functionality."""
 
-from dataclasses import dataclass
 from typing import Any
 
 import pytest
 from pepperpy_core.tasks import Task
 
 
-@dataclass
-class TaskResult:
-    """Task result data."""
-
-    name: str
-    success: bool
-    message: str
-
-
-class TestTask(Task):
-    """Test task implementation."""
+class MockTask(Task):
+    """Mock task for testing."""
 
     def __init__(self) -> None:
-        """Initialize test task."""
-        self.results: list[TaskResult] = []
+        """Initialize mock task."""
+        self.was_run = False
 
-    async def run(self, *args: Any, **kwargs: Any) -> TaskResult:
-        """Run test task."""
-        result = TaskResult(
-            name=self.__class__.__name__,
-            success=True,
-            message="Test task completed",
-        )
-        self.results.append(result)
-        return result
+    async def run(self, *args: Any, **kwargs: Any) -> None:
+        """Run mock task."""
+        self.was_run = True
 
 
 @pytest.fixture
-def test_task() -> TestTask:
-    """Create test task fixture."""
-    return TestTask()
+def mock_task() -> MockTask:
+    """Create mock task fixture."""
+    return MockTask()
 
 
 @pytest.mark.asyncio
-async def test_task_run(test_task: TestTask) -> None:
+async def test_task_run(mock_task: MockTask) -> None:
     """Test task run."""
-    result = await test_task.run()
-    assert result.success
-    assert result.message == "Test task completed"
-    assert len(test_task.results) == 1
+    assert not mock_task.was_run
+    await mock_task.run()
+    assert mock_task.was_run
