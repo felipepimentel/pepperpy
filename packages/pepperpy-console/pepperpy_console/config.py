@@ -1,104 +1,75 @@
-"""Console configuration."""
+"""Console configuration module."""
 
-from dataclasses import dataclass
+from .console_types import ConsoleConfig, LayoutConfig, Theme, ThemeColors
 
-from .types import ConsoleConfig, LayoutConfig, Theme, ThemeColors
-
-DEFAULT_THEME = Theme(
+# Default theme configuration
+DEFAULT_THEME: Theme = Theme(
     name="default",
     colors=ThemeColors(
-        primary="#00ff00",
-        secondary="#0000ff",
-        accent="#ff0000",
-        background="#000000",
-        foreground="#ffffff",
+        primary="#007acc",
+        secondary="#6c757d",
+        success="#28a745",
+        warning="#ffc107",
+        error="#dc3545",
+        info="#17a2b8",
+        background="#ffffff",
+        text="#212529",
     ),
 )
 
-DEFAULT_LAYOUT = LayoutConfig(
+# Default layout configuration
+DEFAULT_LAYOUT: LayoutConfig = LayoutConfig(
     width=80,
     height=24,
+    padding=1,
 )
 
-DEFAULT_CONFIG = ConsoleConfig(
+# Default console configuration
+DEFAULT_CONFIG: ConsoleConfig = ConsoleConfig(
     theme=DEFAULT_THEME,
     layout=DEFAULT_LAYOUT,
 )
 
 
-@dataclass
-class ConfigManager:
-    """Configuration manager."""
+class ConsoleManager:
+    """Console manager."""
 
     def __init__(self, config: ConsoleConfig | None = None) -> None:
-        """Initialize configuration manager.
+        """Initialize console manager.
 
         Args:
             config: Console configuration
         """
         self.config = config or DEFAULT_CONFIG
-        self._initialized = False
-
-    @property
-    def is_initialized(self) -> bool:
-        """Check if manager is initialized."""
-        return self._initialized
-
-    async def initialize(self) -> None:
-        """Initialize manager."""
-        if not self._initialized:
-            await self._setup()
-            self._initialized = True
-
-    async def cleanup(self) -> None:
-        """Cleanup manager resources."""
-        if self._initialized:
-            await self._teardown()
-            self._initialized = False
-
-    def _ensure_initialized(self) -> None:
-        """Ensure manager is initialized."""
-        if not self._initialized:
-            raise RuntimeError("Manager not initialized")
-
-    async def _setup(self) -> None:
-        """Setup manager resources."""
-        pass
-
-    async def _teardown(self) -> None:
-        """Teardown manager resources."""
-        pass
 
     def get_theme(self) -> Theme:
-        """Get current theme."""
-        self._ensure_initialized()
+        """Get current theme.
+
+        Returns:
+            Current theme
+        """
         return self.config.theme
 
     def get_layout(self) -> LayoutConfig:
-        """Get current layout."""
-        self._ensure_initialized()
+        """Get current layout.
+
+        Returns:
+            Current layout
+        """
         return self.config.layout
 
-    def update_theme(self, theme: Theme) -> None:
-        """Update theme.
+    def set_theme(self, theme: Theme) -> None:
+        """Set theme.
 
         Args:
             theme: New theme
-
-        Raises:
-            RuntimeError: If manager not initialized
         """
-        self._ensure_initialized()
         self.config.theme = theme
 
-    def update_layout(self, layout: LayoutConfig) -> None:
-        """Update layout.
+    def set_layout(self, layout: LayoutConfig) -> None:
+        """Set layout.
 
         Args:
             layout: New layout
-
-        Raises:
-            RuntimeError: If manager not initialized
         """
-        self._ensure_initialized()
         self.config.layout = layout

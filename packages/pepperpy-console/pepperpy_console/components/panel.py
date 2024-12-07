@@ -32,10 +32,17 @@ class Panel(BaseComponent):
         """Initialize panel."""
         super().__init__()
         self.config = config or PanelConfig()
+        self._initialized = False
+
+    @property
+    def is_initialized(self) -> bool:
+        """Check if panel is initialized."""
+        return self._initialized
 
     async def initialize(self) -> None:
         """Initialize panel."""
         await super().initialize()
+        self._initialized = True
 
     async def render(self) -> Any:
         """Render panel."""
@@ -50,3 +57,4 @@ class Panel(BaseComponent):
     async def cleanup(self) -> None:
         """Cleanup panel."""
         await super().cleanup()
+        self._initialized = False

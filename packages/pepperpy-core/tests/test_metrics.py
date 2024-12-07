@@ -3,7 +3,6 @@
 from collections.abc import AsyncGenerator
 
 import pytest
-
 from pepperpy_core.telemetry.config import TelemetryConfig
 from pepperpy_core.telemetry.metrics import MetricsCollector
 

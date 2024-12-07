@@ -1,35 +1,58 @@
 """Base console module."""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Literal, TextIO
+from typing import TYPE_CHECKING, Any, Literal, TextIO
 
-from rich.console import Console as RichConsole
+if TYPE_CHECKING:
+    from rich.console import Console as ConsoleType
+else:
+    from rich._console import Console as ConsoleType
+
 from rich.style import Style
+
+from ..rich.types import RichConsoleProtocol
 
 # Define valid color system types
 ColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 
 
-@dataclass
 class ConsoleConfig:
     """Console configuration."""
 
-    stderr: bool = False
-    file: TextIO | None = None
-    force_terminal: bool | None = None
-    color_system: ColorSystem | None = "auto"
-    record: bool = False
-    markup: bool = True
-    emoji: bool = True
-    highlight: bool = True
-    width: int | None = None
-    height: int | None = None
-    metadata: dict[str, Any] = field(default_factory=dict)
+    def __init__(self) -> None:
+        """Initialize console configuration."""
+        self.stderr: bool = False
+        self.file: TextIO | None = None
+        self.force_terminal: bool | None = None
+        self.color_system: ColorSystem | None = "auto"
+        self.record: bool = False
+        self.markup: bool = True
+        self.emoji: bool = True
+        self.highlight: bool = True
+        self.width: int | None = None
+        self.height: int | None = None
+        self.metadata: dict[str, Any] = {}
+
+    def to_kwargs(self) -> dict[str, Any]:
+        """Convert to rich console kwargs."""
+        return {
+            "stderr": self.stderr,
+            "file": self.file,
+            "force_terminal": self.force_terminal,
+            "color_system": self.color_system,
+            "record": self.record,
+            "markup": self.markup,
+            "emoji": self.emoji,
+            "highlight": self.highlight,
+            "width": self.width,
+            "height": self.height,
+        }
 
 
 class BaseConsole(ABC):
     """Base console interface."""
+
+    _console: RichConsoleProtocol
 
     @abstractmethod
     def print(self, *args: Any, **kwargs: Any) -> None:
@@ -59,30 +82,21 @@ class Console(BaseConsole):
         """Initialize console."""
         super().__init__()
         self.config = config or ConsoleConfig()
-        self._console: RichConsole = RichConsole(
-            stderr=self.config.stderr,
-            file=self.config.file,
-            force_terminal=self.config.force_terminal,
-            color_system=self.config.color_system,
-            record=self.config.record,
-            markup=self.config.markup,
-            emoji=self.config.emoji,
-            highlight=self.config.highlight,
-            width=self.config.width,
-            height=self.config.height,
-        )
+        self._console = ConsoleType(**self.config.to_kwargs())  # type: ignore
         self._width = self.config.width
         self._height = self.config.height
 
     @property
     def width(self) -> int:
         """Get console width."""
-        return self._width or self._console.width or 80
+        console_width: int = getattr(self._console, "width", 80)
+        return self._width or console_width or 80
 
     @property
     def height(self) -> int:
         """Get console height."""
-        return self._height or self._console.height or 24
+        console_height: int = getattr(self._console, "height", 24)
+        return self._height or console_height or 24
 
     def print(self, *args: Any, **kwargs: Any) -> None:
         """Print to console."""

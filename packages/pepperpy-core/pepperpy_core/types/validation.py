@@ -21,10 +21,7 @@ class ValidationResult(BaseConfigData):
 
     def validate(self) -> None:
         """Validate result data."""
-        if not isinstance(self.errors, list):
-            raise ValueError("errors must be a list")
-        if not isinstance(self.warnings, list):
-            raise ValueError("warnings must be a list")
+        pass
 
     def get_stats(self) -> dict[str, Any]:
         """Get validation result statistics."""

@@ -1,49 +1,28 @@
-"""Base console application"""
+"""Base application module."""
 
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .console import Console, ConsoleConfig
 
-
-class ConsoleApp(ABC):
-    """Base console application"""
-
-    def __init__(self, config: ConsoleConfig | None = None):
-        self.config = config or ConsoleConfig()
-        self.console = Console(self.config)
-        self._initialized = False
+class BaseApp(ABC):
+    """Base application interface."""
 
     @abstractmethod
-    async def initialize(self) -> None:
-        """Initialize application"""
-        self._initialized = True
-
-    @abstractmethod
-    async def render(self) -> Any:
-        """Render application"""
-        if not self._initialized:
-            await self.initialize()
-
-    @abstractmethod
-    async def handle_input(self) -> None:
-        """Handle user input"""
+    def print(self, *args: Any, **kwargs: Any) -> None:
+        """Print to console."""
         pass
 
     @abstractmethod
-    async def run(self) -> None:
-        """Run application"""
-        try:
-            await self.initialize()
-            while True:
-                await self.render()
-                await self.handle_input()
-        except Exception:
-            await self.cleanup()
-            raise
+    def clear(self) -> None:
+        """Clear console."""
+        pass
 
     @abstractmethod
-    async def cleanup(self) -> None:
-        """Cleanup application resources"""
-        self.console.clear()
-        self._initialized = False
+    def get_width(self) -> int:
+        """Get console width."""
+        pass
+
+    @abstractmethod
+    def get_height(self) -> int:
+        """Get console height."""
+        pass

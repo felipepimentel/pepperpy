@@ -108,7 +108,7 @@ class BaseManager(BaseModule[ConfigT], ABC):
 class InitializableModule(BaseModule[ConfigT], ABC):
     """Initializable module implementation."""
 
-    async def _ensure_initialized(self) -> None:
+    def _ensure_initialized(self) -> None:
         """Ensure module is initialized."""
         if not self.is_initialized:
-            await self.initialize()
+            raise RuntimeError("Module not initialized")

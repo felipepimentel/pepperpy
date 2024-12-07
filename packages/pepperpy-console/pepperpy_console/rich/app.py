@@ -1,24 +1,42 @@
-"""Rich console application."""
+"""Rich console application module."""
 
-from rich.console import Console
+from typing import TYPE_CHECKING, Any
 
-from .config import RichConfig
+if TYPE_CHECKING:
+    from rich.console import Console
+else:
+    from rich._console import Console
+
+from ..base.app import BaseApp
+from ..base.console import ConsoleConfig
+from ..rich.types import RichConsoleProtocol
 
 
-class RichApp:
+class RichApp(BaseApp):
     """Rich console application."""
 
-    def __init__(self, config: RichConfig | None = None) -> None:
-        """Initialize rich console application."""
-        self.config = config or RichConfig()
-        self.console = Console(
-            style=self.config.style,
-            highlight=self.config.highlight,
-            markup=self.config.markup,
-            emoji=self.config.emoji,
-            color_system=self.config.color_system,
-            width=self.config.width,
-            height=self.config.height,
-            tab_size=self.config.tab_size,
-            soft_wrap=self.config.soft_wrap,
-        )
+    _console: RichConsoleProtocol
+
+    def __init__(self, config: ConsoleConfig | None = None) -> None:
+        """Initialize rich app."""
+        super().__init__()
+        self.config = config or ConsoleConfig()
+        self._console = Console(**self.config.to_kwargs())  # type: ignore
+
+    def print(self, *args: Any, **kwargs: Any) -> None:
+        """Print to console."""
+        self._console.print(*args, **kwargs)
+
+    def clear(self) -> None:
+        """Clear console."""
+        self._console.clear()
+
+    def get_width(self) -> int:
+        """Get console width."""
+        console_width: int = getattr(self._console, "width", 80)
+        return console_width
+
+    def get_height(self) -> int:
+        """Get console height."""
+        console_height: int = getattr(self._console, "height", 24)
+        return console_height

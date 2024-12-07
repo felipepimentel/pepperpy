@@ -29,3 +29,9 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.setuptools.package-data]
 "pepperpy_db" = ["py.typed"]
+
+[tool.mypy]
+ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "../"

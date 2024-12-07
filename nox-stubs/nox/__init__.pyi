@@ -1,9 +1,10 @@
 """Type stubs for nox"""
+
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 class Session:
     def install(self, *args: str) -> None: ...
@@ -18,4 +19,4 @@ class Options:
 
 options: Options
 
-def session(python: str | list[str]) -> Callable[[T], T]: ... 
+def session(python: str | list[str]) -> Callable[[T], T]: ...

@@ -1,28 +1,40 @@
-"""Legacy console implementation"""
+"""Legacy console implementation."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from rich.console import Console as RichConsole
+if TYPE_CHECKING:
+    from rich.console import Console as ConsoleType
+else:
+    from rich._console import Console as ConsoleType
+
 from rich.markup import escape
 from rich.panel import Panel
 from rich.text import Text
 
+from .base.console import BaseConsole, ConsoleConfig
+from .rich.types import RichConsoleProtocol
 
-class LegacyConsole:
-    """Legacy console wrapper for backward compatibility"""
 
-    def __init__(self) -> None:
+class LegacyConsole(BaseConsole):
+    """Legacy console implementation."""
+
+    _console: RichConsoleProtocol
+
+    def __init__(self, config: ConsoleConfig | None = None) -> None:
         """Initialize legacy console."""
-        self._console = RichConsole()
+        super().__init__()
+        self.config = config or ConsoleConfig()
+        self._console = ConsoleType(**self.config.to_kwargs())  # type: ignore
 
     def clear(self) -> None:
-        """Clear console screen"""
+        """Clear console screen."""
         self._console.clear()
 
-    async def print(self, content: Any) -> None:
-        """Print content to console"""
+    def print(self, content: Any) -> None:  # type: ignore
+        """Print content to console."""
         if hasattr(content, "render"):
-            rendered_content = await content.render()
+            # Handle async rendering in a sync context
+            rendered_content = content.render()  # type: ignore
             self._console.print(rendered_content)
         else:
             self._console.print(content)
@@ -30,7 +42,7 @@ class LegacyConsole:
     def success(
         self, message: str, *, title: str | None = None, content: str | None = None
     ) -> None:
-        """Print success message with optional title and content"""
+        """Print success message with optional title and content."""
         if title or content:
             text = Text()
             if title:

@@ -1,8 +1,10 @@
 """Rich library stubs."""
+
 from typing import Any, TextIO
 
 class Console:
     """Rich console stub."""
+
     def __init__(
         self,
         *,
@@ -17,11 +19,8 @@ class Console:
         width: int | None = None,
         height: int | None = None,
     ) -> None: ...
-
     @property
     def width(self) -> int: ...
-
     @property
     def height(self) -> int: ...
-
-    def print(self, *args: Any, **kwargs: Any) -> None: ... 
+    def print(self, *args: Any, **kwargs: Any) -> None: ...

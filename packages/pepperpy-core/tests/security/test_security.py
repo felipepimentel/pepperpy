@@ -1,7 +1,6 @@
 """Security module tests."""
 
 import pytest
-
 from pepperpy_core.security.config import SecurityConfig
 
 

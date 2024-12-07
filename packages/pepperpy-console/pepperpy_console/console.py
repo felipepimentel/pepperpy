@@ -1,36 +1,61 @@
-"""Console implementation"""
+"""Console implementation."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from rich.console import Console as RichConsole
+if TYPE_CHECKING:
+    from rich.console import Console as ConsoleType
+else:
+    from rich._console import Console as ConsoleType
+
+from rich.style import Style
+
+from .base.console import BaseConsole, ConsoleConfig
+from .rich.types import RichConsoleProtocol
 
 
-class Console:
-    """Console interface with async support"""
+class Console(BaseConsole):
+    """Console implementation."""
 
-    def __init__(self) -> None:
-        self._console = RichConsole()
+    _console: RichConsoleProtocol
+
+    def __init__(self, config: ConsoleConfig | None = None) -> None:
+        """Initialize console."""
+        super().__init__()
+        self.config = config or ConsoleConfig()
+        self._console = ConsoleType(**self.config.to_kwargs())  # type: ignore
+        self._width = self.config.width
+        self._height = self.config.height
 
     def print(self, *args: Any, **kwargs: Any) -> None:
-        """Synchronous print"""
+        """Print to console."""
         self._console.print(*args, **kwargs)
 
     def clear(self) -> None:
-        """Clear console screen"""
+        """Clear console."""
         self._console.clear()
 
-    def info(self, *args: Any, **kwargs: Any) -> None:
-        """Print info message"""
-        self._console.print("ℹ️", *args, **kwargs)
+    def get_width(self) -> int:
+        """Get console width."""
+        console_width: int = getattr(self._console, "width", 80)
+        return console_width
 
-    def error(self, *args: Any, **kwargs: Any) -> None:
-        """Print error message"""
-        self._console.print("❌", *args, style="red", **kwargs)
+    def get_height(self) -> int:
+        """Get console height."""
+        console_height: int = getattr(self._console, "height", 24)
+        return console_height
 
-    def success(self, *args: Any, **kwargs: Any) -> None:
-        """Print success message"""
-        self._console.print("✅", *args, style="green", **kwargs)
+    def info(self, message: str) -> None:
+        """Print info message."""
+        self.print(f"ℹ️ {message}", style=Style(color="blue"))
 
-    def warning(self, *args: Any, **kwargs: Any) -> None:
-        """Print warning message"""
-        self._console.print("⚠️", *args, style="yellow", **kwargs)
+    def success(self, message: str) -> None:
+        """Print success message."""
+        self.print(f"✅ {message}", style=Style(color="green"))
+
+    def warning(self, message: str) -> None:
+        """Print warning message."""
+        self.print(f"⚠️ {message}", style=Style(color="yellow"))
+
+    def error(self, message: str) -> None:
+        """Print error message."""
+        self.print(f"❌ {message}", style=Style(color="red"))

@@ -1,8 +1,5 @@
-"""Logging module."""
+"""Logging module exports."""
 
-from .base import BaseLogger, LogLevel
+from .settings import LoggingSettings
 
-__all__ = [
-    "BaseLogger",
-    "LogLevel",
-]
+__all__ = ["LoggingSettings"]

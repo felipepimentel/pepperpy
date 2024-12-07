@@ -5,10 +5,9 @@ from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel
-
 from pepperpy_core.config import ConfigManager
 from pepperpy_core.config.types import ConfigManagerConfig
+from pydantic import BaseModel
 
 
 class _TestConfig(BaseModel):

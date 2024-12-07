@@ -1,7 +1,6 @@
 """Console tests."""
 
 import pytest
-
 from pepperpy_console.base.console import ConsoleConfig
 
 

@@ -1,93 +1,70 @@
-"""Settings module for PepperPy Core."""
+"""Settings configuration."""
 
+import importlib.util
 import os
-from dataclasses import dataclass, field
-from enum import Enum
 from pathlib import Path
 from typing import Any
 
-try:
-    from dotenv import load_dotenv
-
-    HAS_DOTENV = True
-except ImportError:
-    HAS_DOTENV = False
+# Verificar disponibilidade do python-dotenv
+_dotenv_spec = importlib.util.find_spec("dotenv")
+has_dotenv = bool(_dotenv_spec)
 
 
-class Environment(Enum):
-    """Environment enum."""
+class Settings:
+    """Settings configuration."""
 
-    DEVELOPMENT = "development"
-    STAGING = "staging"
-    PRODUCTION = "production"
-
-    @classmethod
-    def from_string(cls, value: str) -> "Environment":
-        """Create Environment from string.
+    def __init__(self, env_file: str | Path | None = None) -> None:
+        """Initialize settings.
 
         Args:
-            value: Environment string value
+            env_file: Path to .env file
+        """
+        self._env_file = env_file
+        self._values: dict[str, Any] = {}
+        self._initialized = False
+
+    def load(self) -> None:
+        """Load settings from environment."""
+        if has_dotenv and self._env_file:
+            try:
+                from dotenv import load_dotenv
+
+                load_dotenv(self._env_file)
+            except ImportError:
+                pass  # Ignorar erro se dotenv não estiver disponível
+
+        # Carregar variáveis de ambiente
+        for key, value in os.environ.items():
+            self._values[key] = value
+
+        self._initialized = True
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get setting value.
+
+        Args:
+            key: Setting key
+            default: Default value if key not found
 
         Returns:
-            Environment enum value
+            Setting value
+        """
+        if not self._initialized:
+            self.load()
+        return self._values.get(key, default)
+
+    def __getitem__(self, key: str) -> Any:
+        """Get setting value.
+
+        Args:
+            key: Setting key
+
+        Returns:
+            Setting value
 
         Raises:
-            ValueError: If value is invalid
+            KeyError: If key not found
         """
-        try:
-            return cls(value.lower())
-        except ValueError:
-            return cls.DEVELOPMENT
-
-
-@dataclass
-class Settings:
-    """Settings class."""
-
-    debug: bool | None = None
-    testing: bool | None = None
-    env_name: str | None = None
-    environment: Environment | None = None
-
-    # Paths
-    base_path: Path = field(default_factory=lambda: Path.cwd())
-    config_path: Path = field(default_factory=lambda: Path.cwd() / "config")
-
-    def __post_init__(self) -> None:
-        """Post init hook."""
-        if HAS_DOTENV:
-            load_dotenv()
-
-        self.debug = os.getenv("DEBUG", "false").lower() == "true"
-        self.testing = os.getenv("TESTING", "false").lower() == "true"
-        self.env_name = os.getenv("ENV_NAME", "development")
-        self.environment = Environment.from_string(self.env_name)
-
-    def get_path(self, *parts: str) -> Path:
-        """Get path relative to base path.
-
-        Args:
-            *parts: Path parts
-
-        Returns:
-            Absolute path
-        """
-        return self.base_path.joinpath(*parts)
-
-    def get_config(self, name: str) -> dict[str, Any]:
-        """Get configuration by name.
-
-        Args:
-            name: Configuration name
-
-        Returns:
-            Configuration dictionary
-        """
-        config_file = self.config_path / f"{name}.json"
-        if not config_file.exists():
-            return {}
-
-        return {}  # TODO: Implement config loading
-
-
-settings = Settings()
+        if not self._initialized:
+            self.load()
+        return self._values[key]

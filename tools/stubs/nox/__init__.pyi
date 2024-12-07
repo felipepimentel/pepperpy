@@ -1,4 +1,5 @@
 """Type stubs for nox."""
+
 from collections.abc import Callable
 from typing import TypeVar, overload
 
@@ -6,6 +7,7 @@ T = TypeVar("T")
 
 class Options:
     """Nox options configuration."""
+
     sessions: list[str]
     reuse_existing_virtualenvs: bool
     error_on_external_run: bool
@@ -18,4 +20,4 @@ options: Options
 @overload
 def session(*, python: str | list[str], venv_backend: str | None = None) -> Callable[[T], T]: ...
 @overload
-def session(func: T) -> T: ... 
+def session(func: T) -> T: ...

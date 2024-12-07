@@ -1,24 +1,42 @@
-"""Benchmark management utilities"""
+"""Benchmark management utilities."""
 
 import json
+import toml
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
-
-import toml
+from typing import Any, TypedDict, NotRequired
 
 from .base import BenchmarkBase
 
 
+class RegressionInfo(TypedDict):
+    """Regression information."""
+
+    metric: str
+    current: float
+    baseline: float
+    regression: float
+
+
+class ComparisonResult(TypedDict):
+    """Benchmark comparison result."""
+
+    current: dict[str, Any]
+    baseline: NotRequired[dict[str, Any]]
+    regressions: NotRequired[dict[str, RegressionInfo]]
+
+
 class BenchmarkManager:
-    """Manages benchmark execution and results"""
+    """Manages benchmark execution and results."""
 
     def __init__(self, config_path: Path | None = None) -> None:
+        """Initialize benchmark manager."""
         self.config = self._load_config(config_path)
-        self.base = BenchmarkBase(Path(self.config["output_dir"]))
+        output_dir = Path(self.config["output_dir"])
+        self.base = BenchmarkBase(output_dir=output_dir)
 
     def _load_config(self, config_path: Path | None = None) -> dict[str, Any]:
-        """Load benchmark configuration"""
+        """Load benchmark configuration."""
         default_config = Path("tools/config/benchmark.toml")
         config_file = config_path or default_config
 
@@ -31,26 +49,16 @@ class BenchmarkManager:
 
         return toml.load(config_file)["tool"]["benchmark"]
 
-    def run_benchmarks(
-        self, packages: Sequence[str] | None = None, markers: Sequence[str] | None = None
-    ) -> None:
-        """Run benchmarks for specified packages"""
-        import pytest
+    def compare_results(self, current: Path, baseline: Path | None = None) -> ComparisonResult:
+        """Compare benchmark results.
 
-        packages = packages or [p.name for p in Path("packages").iterdir() if p.is_dir()]
+        Args:
+            current: Path to current benchmark results
+            baseline: Optional path to baseline benchmark results
 
-        for package in packages:
-            args = ["--benchmark-only"]
-            if markers:
-                args.extend(["-m", " or ".join(markers)])
-
-            try:
-                pytest.main(args, plugins=["pytest-benchmark"])
-            except Exception as e:
-                print(f"Benchmark failed for {package}: {e}")
-
-    def compare_results(self, current: Path, baseline: Path | None = None) -> dict[str, Any]:
-        """Compare benchmark results"""
+        Returns:
+            Dictionary containing comparison results
+        """
         with open(current) as f:
             current_data = json.load(f)
 
@@ -68,9 +76,17 @@ class BenchmarkManager:
 
     def _check_regressions(
         self, current: dict[str, Any], baseline: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Check for performance regressions"""
-        regressions = {}
+    ) -> dict[str, RegressionInfo]:
+        """Check for performance regressions.
+
+        Args:
+            current: Current benchmark results
+            baseline: Baseline benchmark results
+
+        Returns:
+            Dictionary mapping benchmark names to regression details
+        """
+        regressions: dict[str, RegressionInfo] = {}
         thresholds = self.config["thresholds"]
 
         for benchmark in current["benchmarks"]:
@@ -89,4 +105,4 @@ class BenchmarkManager:
                         "regression": benchmark[metric] / baseline_stats[metric],
                     }
 
-        return regressions
+        return regressions 

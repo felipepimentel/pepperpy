@@ -1,4 +1,5 @@
 """OpenRouter provider implementation."""
+
 from typing import Any
 
 from .base import AIProvider

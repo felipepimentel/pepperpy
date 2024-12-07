@@ -1,20 +1,26 @@
 """Rich console type definitions."""
 
-from dataclasses import dataclass
-from typing import TextIO
+from typing import Any, Protocol, runtime_checkable
 
 
-@dataclass
-class ConsoleConfig:
-    """Rich console configuration."""
+@runtime_checkable
+class RichConsoleProtocol(Protocol):
+    """Protocol for Rich console interface."""
 
-    stderr: bool = False
-    file: TextIO | None = None
-    force_terminal: bool | None = None
-    color_system: str | None = "auto"
-    record: bool = False
-    markup: bool = True
-    emoji: bool = True
-    highlight: bool = True
-    width: int | None = None
-    height: int | None = None
+    def print(self, *args: Any, **kwargs: Any) -> None:
+        """Print to console."""
+        ...
+
+    def clear(self) -> None:
+        """Clear console."""
+        ...
+
+    @property
+    def width(self) -> int:
+        """Get console width."""
+        ...
+
+    @property
+    def height(self) -> int:
+        """Get console height."""
+        ...

@@ -1,27 +1,58 @@
 """Serialization utilities."""
 
-import json
-from dataclasses import asdict, is_dataclass
-from typing import Any, TypeVar, cast
-
-T = TypeVar("T")
+from typing import Any, Protocol, TypeVar, runtime_checkable
 
 
-def serialize(obj: Any) -> bytes:
-    """Serialize object to bytes."""
-    if is_dataclass(obj):
-        data = asdict(cast(Any, obj))
-    elif isinstance(obj, dict):
-        data = obj
+@runtime_checkable
+class Serializable(Protocol):
+    """Protocol for serializable objects."""
+
+    def to_dict(self) -> dict[str, Any]:
+        ...
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "Serializable":
+        ...
+
+
+T = TypeVar("T", bound=Serializable)
+
+
+def serialize(obj: Any) -> dict[str, Any]:
+    """Serialize object to dictionary.
+
+    Args:
+        obj: Object to serialize
+
+    Returns:
+        Serialized object
+    """
+    data: dict[str, Any] = {}
+
+    if hasattr(obj, "__dict__"):
+        data.update(obj.__dict__)
+    elif hasattr(obj, "to_dict"):
+        data.update(obj.to_dict())  # type: ignore
     else:
         data = {"value": obj}
 
-    return json.dumps(data).encode()
+    return data
 
 
-def deserialize(data: bytes, cls: type[T] | None = None) -> T | dict[str, Any]:
-    """Deserialize bytes to object."""
-    result = json.loads(data.decode())
-    if cls and is_dataclass(cls):
-        return cast(T, cls(**result))
-    return cast(dict[str, Any], result)
+def deserialize(data: dict[str, Any], cls: type[T]) -> T:
+    """Deserialize dictionary to object.
+
+    Args:
+        data: Dictionary to deserialize
+        cls: Target class that implements Serializable protocol
+
+    Returns:
+        Deserialized object
+
+    Raises:
+        TypeError: If cls doesn't implement Serializable protocol
+    """
+    if not hasattr(cls, "from_dict"):
+        raise TypeError(f"Class {cls.__name__} must implement from_dict method")
+
+    return cls.from_dict(data)  # type: ignore

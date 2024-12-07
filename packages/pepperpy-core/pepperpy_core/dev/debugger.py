@@ -1,98 +1,78 @@
 """Debugger utilities."""
 
-import inspect
-from dataclasses import dataclass, field
-from typing import Any
-
-from ..logging import BaseLogger
-from ..types import JsonDict
+from typing import Any, Protocol, TypeVar
 
 
-@dataclass
-class DebugInfo:
-    """Debug information."""
+class LoggerProtocol(Protocol):
+    """Protocol for logger interface."""
 
-    name: str
-    module: str
-    function: str
-    line: int
-    message: str
-    metadata: JsonDict = field(default_factory=dict)
+    def debug(self, message: str, **kwargs: Any) -> None:
+        """Log debug message."""
+        ...
+
+
+T = TypeVar("T")
 
 
 class Debugger:
-    """Debug utility."""
+    """Debugger utility class."""
 
-    def __init__(
-        self,
-        name: str,
-        logger: BaseLogger | None = None,
-        metadata: JsonDict | None = None,
-    ) -> None:
+    def __init__(self, logger: LoggerProtocol | None = None) -> None:
         """Initialize debugger.
 
         Args:
-            name: Debugger name
-            logger: Optional logger
-            metadata: Optional metadata
+            logger: Optional logger instance
         """
-        self.name = name
         self.logger = logger
-        self.metadata = metadata or {}
 
-    def get_caller_info(self, depth: int = 1) -> dict[str, Any]:
-        """Get caller information.
-
-        Args:
-            depth: Call stack depth
-
-        Returns:
-            Caller information
-        """
-        frame = inspect.currentframe()
-        try:
-            for _ in range(depth + 1):
-                if not frame:
-                    break
-                frame = frame.f_back
-
-            if not frame:
-                return {}
-
-            info = inspect.getframeinfo(frame)
-            return {
-                "module": info.filename,
-                "function": info.function,
-                "line": info.lineno,
-            }
-        finally:
-            del frame
-
-    def debug(
-        self,
-        message: str,
-        depth: int = 1,
-        metadata: JsonDict | None = None,
-    ) -> None:
+    def log_debug(self, message: str, **kwargs: Any) -> None:
         """Log debug message.
 
         Args:
-            message: Debug message
-            depth: Call stack depth
-            metadata: Optional metadata
+            message: Message to log
+            **kwargs: Additional log data
         """
-        info = self.get_caller_info(depth)
-        debug_info = DebugInfo(
-            name=self.name,
-            module=info.get("module", "unknown"),
-            function=info.get("function", "unknown"),
-            line=info.get("line", 0),
-            message=message,
-            metadata={**self.metadata, **(metadata or {})},
-        )
+        if self.logger is not None:
+            self.logger.debug(message, **kwargs)
 
-        if self.logger:
+    def debug_call(self, func_name: str, *args: Any, **kwargs: Any) -> None:
+        """Log function call debug information.
+
+        Args:
+            func_name: Function name
+            *args: Function arguments
+            **kwargs: Function keyword arguments
+        """
+        if self.logger is not None:
             self.logger.debug(
-                f"{debug_info.module}:{debug_info.function}:{debug_info.line} - {message}",
-                debug=debug_info.__dict__,
+                f"Calling {func_name}",
+                args=args,
+                kwargs=kwargs,
+            )
+
+    def debug_result(self, func_name: str, result: Any) -> None:
+        """Log function result debug information.
+
+        Args:
+            func_name: Function name
+            result: Function result
+        """
+        if self.logger is not None:
+            self.logger.debug(
+                f"Result from {func_name}",
+                result=result,
+            )
+
+    def debug_error(self, func_name: str, error: Exception) -> None:
+        """Log function error debug information.
+
+        Args:
+            func_name: Function name
+            error: Exception that occurred
+        """
+        if self.logger is not None:
+            self.logger.debug(
+                f"Error in {func_name}",
+                error=str(error),
+                error_type=type(error).__name__,
             )

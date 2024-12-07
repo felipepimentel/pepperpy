@@ -3,9 +3,8 @@
 import asyncio
 from pathlib import Path
 
-from pydantic import BaseModel
-
 from pepperpy_core.config import ConfigManager, ConfigManagerConfig
+from pydantic import BaseModel
 
 
 class ExampleConfig(BaseModel):

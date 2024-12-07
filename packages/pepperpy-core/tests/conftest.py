@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
-
 from pepperpy_core.base import BaseConfigData, BaseModule
 
 

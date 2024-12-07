@@ -1,15 +1,16 @@
 """CI/CD management utilities"""
+
 import subprocess
 from pathlib import Path
 
 
 class CIManager:
     """Manages CI/CD operations"""
-    
+
     def __init__(self, root_dir: Path):
         self.root_dir = root_dir
         self.packages_dir = root_dir / "packages"
-        
+
     def validate_all(self) -> bool:
         """Run all validations"""
         checks = [
@@ -17,10 +18,10 @@ class CIManager:
             self.check_types(),
             self.run_tests(),
             self.check_dependencies(),
-            self.validate_docker()
+            self.validate_docker(),
         ]
         return all(checks)
-        
+
     def check_formatting(self) -> bool:
         """Check code formatting"""
         try:
@@ -29,7 +30,7 @@ class CIManager:
             return True
         except subprocess.CalledProcessError:
             return False
-            
+
     def check_types(self) -> bool:
         """Check type annotations"""
         try:

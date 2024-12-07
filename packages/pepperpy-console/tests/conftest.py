@@ -5,7 +5,6 @@ Each one provides fixtures specific to its package's tests.
 """
 
 import pytest
-
 from pepperpy_console import (
     ChatConfig,
     ChatView,

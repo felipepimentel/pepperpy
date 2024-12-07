@@ -3,7 +3,6 @@
 from typing import Literal, cast
 
 import pytest
-
 from pepperpy_console.components import Panel, PanelConfig
 
 
@@ -34,9 +33,9 @@ async def test_panel_lifecycle() -> None:
     )
 
     # Test initialization
-    assert not panel._initialized
+    assert not panel.is_initialized
     await panel.initialize()
-    assert panel._initialized
+    assert panel.is_initialized
 
     # Test rendering
     rendered = await panel.render()
@@ -44,7 +43,7 @@ async def test_panel_lifecycle() -> None:
 
     # Test cleanup
     await panel.cleanup()
-    assert not panel._initialized
+    assert not panel.is_initialized
 
 
 @pytest.mark.asyncio

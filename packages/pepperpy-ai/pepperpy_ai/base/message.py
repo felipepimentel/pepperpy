@@ -1,4 +1,5 @@
 """Base message handling for AI components."""
+
 from typing import Any, Protocol
 
 

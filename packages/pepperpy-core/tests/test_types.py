@@ -1,8 +1,6 @@
 """Test core types"""
 
-
 import pytest
-
 from pepperpy_core.base.types import JsonDict, JsonValue
 
 

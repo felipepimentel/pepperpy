@@ -29,19 +29,22 @@ define warn
 	@echo "$(YELLOW)>>> Warning: $(1)$(NC)"
 endef
 
-# Common targets
-.PHONY: clean
-clean:
+# Common cleanup functions
+define clean-python
 	@find . -type d -name "__pycache__" -exec rm -rf {} +
 	@find . -type f -name "*.pyc" -delete
 	@find . -type f -name "*.pyo" -delete
 	@find . -type f -name "*.pyd" -delete
-	@find . -type f -name ".coverage" -delete
 	@find . -type d -name "*.egg-info" -exec rm -rf {} +
 	@find . -type d -name "*.egg" -exec rm -rf {} +
 	@find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	@find . -type d -name ".ruff_cache" -exec rm -rf {} +
 	@find . -type d -name ".mypy_cache" -exec rm -rf {} +
+endef
+
+define clean-build
 	@find . -type d -name "build" -exec rm -rf {} +
 	@find . -type d -name "dist" -exec rm -rf {} +
-	$(call log,"Cleaned up python cache and build files") 
+	@find . -type f -name ".coverage" -delete
+	@find . -type d -name "htmlcov" -exec rm -rf {} +
+endef

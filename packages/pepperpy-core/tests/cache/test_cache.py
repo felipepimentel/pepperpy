@@ -3,7 +3,6 @@
 from collections.abc import AsyncGenerator
 
 import pytest
-
 from pepperpy_core.cache import BaseCache, CacheConfig
 
 

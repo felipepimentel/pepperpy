@@ -12,22 +12,19 @@
         "*.egg-info": true,
         "build": true,
         "dist": true,
-        "venv": true,
-        ".venv": true,
-        "**/.git": false
+        "**/.mypy_cache": true,
+        "**/.nox": true
     },
     "[python]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit",
-            "source.fixAll": "explicit"
+            "source.organizeImports": "always",
+            "source.fixAll": "always"
         }
     },
     "ruff.enable": true,
     "ruff.nativeServer": "on",
-    "ruff.configPath": "${workspaceFolder}/ruff.toml",
-    "ruff.experimental.useCache": true,
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
     "python.analysis.exclude": [
         "**/.pyenv",
@@ -35,39 +32,21 @@
         "**/dist",
         "**/build",
         "**/__pycache__",
-        "venv",
-        "env",
-        ".venv",
-        ".env",
         "**/.ruff_cache"
     ],
-    "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.useLibraryCodeForTypes": true,
-    "python.analysis.diagnosticSeverityOverrides": {
-        "reportMissingImports": "warning",
-        "reportMissingModuleSource": "warning"
-    },
     "python.analysis.include": [
-        "packages/pepperpy-core",
-        "packages/pepperpy-ai",
-        "packages/pepperpy-codebase",
-        "packages/pepperpy-files",
-        "packages/pepperpy-console",
-        "packages/pepperpy-db"
+        "packages/**/*",
+        "tools/**/*"
     ],
     "python.testing.pytestArgs": [
         "tests"
     ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
     "python.analysis.extraPaths": [
-        "packages/pepperpy-core/pepperpy_core"
-    ],
-    "python.analysis.packageIndexDepths": [
-        {
-            "name": "pepperpy-core",
-            "depth": 4
-        }
+        "packages/pepperpy-core/",
+        "packages/pepperpy-ai/",
+        "packages/pepperpy-codebase/",
+        "packages/pepperpy-files/",
+        "packages/pepperpy-console/",
+        "packages/pepperpy-db/"
     ]
 }

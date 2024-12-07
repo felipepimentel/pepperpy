@@ -1,86 +1,107 @@
 include tools/make/common.mk
+include tools/make/examples.mk
+
+# Find all package directories
+PACKAGES := $(notdir $(wildcard packages/*))
+
+# Package management targets
+.PHONY: list-packages
+list-packages:
+	$(call log,"Available packages:")
+	@for pkg in $(PACKAGES); do \
+		echo "  $$pkg"; \
+	done
 
 # Setup targets for each package
-.PHONY: setup-core
-setup-core:
-	cd packages/pepperpy-core && poetry lock --no-update && poetry install
+define make-setup-target
+.PHONY: setup-$(1)
+setup-$(1):
+	$$(call log,"Setting up $(1)...")
+	@cd packages/$(1) && $$(POETRY) lock --no-update && $$(POETRY) install
+endef
 
-.PHONY: setup-db
-setup-db:
-	cd packages/pepperpy-db && poetry lock --no-update && poetry install
+$(foreach pkg,$(PACKAGES),$(eval $(call make-setup-target,$(pkg))))
 
-.PHONY: setup-console
-setup-console:
-	cd packages/pepperpy-console && poetry lock --no-update && poetry install
-
-.PHONY: setup-codebase
-setup-codebase:
-	cd packages/pepperpy-codebase && poetry lock --no-update && poetry install
-
-.PHONY: setup-files
-setup-files:
-	cd packages/pepperpy-files && poetry lock --no-update && poetry install
-
-.PHONY: setup-ai
-setup-ai:
-	cd packages/pepperpy-ai && poetry lock --no-update && poetry install
-
-.PHONY: setup-tools
-setup-tools:
-	cd tools && poetry lock && poetry install
-
-# Target para atualizar todos os locks
-.PHONY: update-locks
-update-locks:
-	@echo "Updating poetry.lock files..."
-	cd packages/pepperpy-core && poetry lock
-	cd packages/pepperpy-db && poetry lock
-	cd packages/pepperpy-console && poetry lock
-	cd packages/pepperpy-codebase && poetry lock
-	cd packages/pepperpy-files && poetry lock
-	cd packages/pepperpy-ai && poetry lock
-	cd tools && poetry lock
-
+# Clean target
 .PHONY: clean
 clean:
-	rm -rf .pytest_cache
-	rm -rf .coverage
-	rm -rf htmlcov
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	find . -type d -name "*.egg-info" -exec rm -rf {} +
-	find . -type d -name ".eggs" -exec rm -rf {} +
-	find . -type d -name ".pytest_cache" -exec rm -rf {} +
-	find . -type d -name ".coverage" -exec rm -rf {} +
-	find . -type d -name "htmlcov" -exec rm -rf {} +
+	$(call log,"Cleaning project...")
+	$(call clean-python)
+	$(call clean-build)
 
+# Setup target
 .PHONY: setup
 setup: clean
-	poetry install --all-extras
+	$(call log,"Installing dependencies...")
+	@$(POETRY) lock --no-update
+	@$(POETRY) install --no-root
+	$(call log,"Setting up packages...")
+	@for pkg in $(PACKAGES); do \
+		$(MAKE) setup-$$pkg; \
+	done
+
+# Update locks target
+.PHONY: update-locks
+update-locks:
+	$(call log,"Updating poetry.lock files...")
+	@for pkg in $(PACKAGES); do \
+		cd packages/$$pkg && $(POETRY) lock && cd ../..; \
+	done
 
 # Linting
 .PHONY: lint
 lint:
-	poetry run ruff check .
-	poetry run black --check .
-	poetry run mypy .
+	$(call log,"Running linters...")
+	@$(POETRY) run ruff check .
+	@$(POETRY) run black --check .
+	@$(POETRY) run mypy .
 
 # Formatting
 .PHONY: format
 format:
-	poetry run ruff check . --fix
-	poetry run black .
+	$(call log,"Formatting code...")
+	@$(POETRY) run ruff check . --fix
+	@$(POETRY) run black .
 
 # Testing
 .PHONY: test
 test:
-	poetry run pytest --verbose
+	$(call log,"Running tests...")
+	@$(POETRY) run pytest --verbose
 
 # Documentation
 .PHONY: docs
 docs:
+	$(call log,"Starting documentation server...")
 	@mkdocs serve
 
 # Build
 .PHONY: build
 build:
+	$(call log,"Building packages...")
 	@python -m tools.build.poetry
+
+# Help target
+.PHONY: help
+help:
+	@echo "Available commands:"
+	@echo ""
+	@echo "Package management:"
+	@echo "  list-packages    List available packages"
+	@echo "  setup           Install all dependencies and packages"
+	@echo "  setup-<pkg>     Setup specific package"
+	@echo "  update-locks    Update poetry.lock files"
+	@echo ""
+	@echo "Examples:"
+	@echo "  examples-core    Run pepperpy-core examples"
+	@echo "  examples-console Run pepperpy-console examples"
+	@echo "  examples-ai      Run pepperpy-ai examples"
+	@echo "  examples-all     Run all examples"
+	@echo ""
+	@echo "Development:"
+	@echo "  clean           Clean build artifacts"
+	@echo "  lint            Run linters"
+	@echo "  format          Format code"
+	@echo "  test            Run tests"
+	@echo "  docs            Start documentation server"
+	@echo "  build           Build packages"

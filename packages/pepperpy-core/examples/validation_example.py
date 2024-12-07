@@ -45,11 +45,11 @@ class DataValidator(BaseValidator):
         if not self._initialized:
             raise RuntimeError("Validator not initialized")
 
-    async def validate(self, data: Any) -> ValidationResult:
+    async def validate(self, value: Any) -> ValidationResult:
         """Validate data.
 
         Args:
-            data: Data to validate
+            value: Value to validate
 
         Returns:
             Validation result
@@ -62,7 +62,7 @@ class DataValidator(BaseValidator):
         self._validations += 1
         errors: list[str] = []
 
-        if not data:
+        if not value:
             errors.append("Data cannot be empty")
             self._errors += 1
 

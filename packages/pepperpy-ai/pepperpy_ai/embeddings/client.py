@@ -1,6 +1,5 @@
 """Embedding client implementation."""
 
-
 from .base import EmbeddingProvider
 
 

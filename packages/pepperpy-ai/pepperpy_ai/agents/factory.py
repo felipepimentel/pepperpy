@@ -1,6 +1,5 @@
 """Agent factory implementation."""
 
-
 from typing import Any
 
 from ..base.message import MessageHandler

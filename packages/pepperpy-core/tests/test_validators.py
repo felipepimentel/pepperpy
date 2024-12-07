@@ -1,7 +1,6 @@
 """Validator tests."""
 
 import pytest
-
 from pepperpy_core.validators import (
     LengthValidator,
     RegexValidator,

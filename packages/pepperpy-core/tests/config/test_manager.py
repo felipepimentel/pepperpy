@@ -7,10 +7,9 @@ from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel
-
 from pepperpy_core.config import ConfigManager
 from pepperpy_core.config.types import ConfigManagerConfig
+from pydantic import BaseModel
 
 
 class _TestConfig(BaseModel):
@@ -39,7 +38,7 @@ def manager_config(test_config_dir: str) -> ConfigManagerConfig:
 
 
 @pytest.fixture
-async def config_manager(
+async def manager(
     manager_config: ConfigManagerConfig,
 ) -> AsyncGenerator[ConfigManager, None]:
     """Create config manager fixture."""
@@ -51,27 +50,41 @@ async def config_manager(
         await manager.cleanup()
 
 
+async def test_manager_initialization(manager: ConfigManager) -> None:
+    """Test manager initialization."""
+    # Initialize should be idempotent
+    await manager.initialize()
+    await manager.initialize()  # Second call should be no-op
+
+    # Verify manager is ready for use
+    assert await manager.is_ready()
+
+
+async def test_manager_cleanup(manager: ConfigManager) -> None:
+    """Test manager cleanup."""
+    await manager.initialize()
+    await manager.cleanup()
+
+    # Verify manager is cleaned up
+    assert not await manager.is_ready()
+
+
 @pytest.mark.asyncio
-async def test_basic_operations(
-    config_manager: AsyncGenerator[ConfigManager, None]
-) -> None:
+async def test_basic_operations(manager: ConfigManager) -> None:
     """Test basic configuration operations."""
-    manager = await anext(config_manager)
-    assert manager._initialized
+    assert await manager.is_ready()
 
     # Test cleanup
     await manager.cleanup()
-    assert not manager._initialized
+    assert not await manager.is_ready()
 
 
 @pytest.mark.asyncio
 async def test_config_get(
-    config_manager: AsyncGenerator[ConfigManager, None],
+    manager: ConfigManager,
     test_config_dir: str,
 ) -> None:
     """Test config loading."""
-    manager = await anext(config_manager)
-
     # Create a test config file
     config_path = Path(test_config_dir) / "test_config.json"
     config_path.write_text(json.dumps({"name": "test", "value": "test_value"}))
@@ -85,12 +98,10 @@ async def test_config_get(
 
 @pytest.mark.asyncio
 async def test_config_validation(
-    config_manager: AsyncGenerator[ConfigManager, None],
+    manager: ConfigManager,
     test_config_dir: str,
 ) -> None:
     """Test config validation."""
-    manager = await anext(config_manager)
-
     # Ensure the config file doesn't exist
     config_path = Path(test_config_dir) / "invalid_config.json"
     if config_path.exists():

@@ -1,4 +1,4 @@
-"""Configuration manager."""
+"""Configuration manager module."""
 
 import json
 import os
@@ -18,19 +18,25 @@ class ConfigManager:
     def __init__(self, config: ConfigManagerConfig) -> None:
         """Initialize configuration manager."""
         self.config = config
-        self._initialized = False
+        self.__initialized = False
 
     async def initialize(self) -> None:
         """Initialize manager."""
-        if not self._initialized:
-            await self._setup()
-            self._initialized = True
+        if self.__initialized:
+            return
+        await self._setup()
+        self.__initialized = True
 
     async def cleanup(self) -> None:
-        """Cleanup manager resources."""
-        if self._initialized:
-            await self._teardown()
-            self._initialized = False
+        """Cleanup manager."""
+        if not self.__initialized:
+            return
+        await self._teardown()
+        self.__initialized = False
+
+    async def is_ready(self) -> bool:
+        """Check if manager is initialized."""
+        return self.__initialized
 
     async def _setup(self) -> None:
         """Setup manager resources."""
@@ -40,7 +46,7 @@ class ConfigManager:
         """Teardown manager resources."""
         pass
 
-    async def get_config(self, name: str, config_type: type[T]) -> T | None:
+    async def get_config(self, name: str, config_type: type[T]) -> T:
         """Get configuration by name.
 
         Args:
@@ -48,7 +54,7 @@ class ConfigManager:
             config_type: Configuration type
 
         Returns:
-            Configuration instance or None if not found
+            Configuration instance
 
         Raises:
             ValueError: If config file not found
@@ -57,5 +63,6 @@ class ConfigManager:
         if not config_path.exists():
             raise ValueError(f"Config file not found: {name}")
 
-        config_data = json.loads(config_path.read_text())
+        config_text = config_path.read_text()
+        config_data = json.loads(config_text)
         return config_type.model_validate(config_data)

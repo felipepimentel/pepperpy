@@ -1,86 +1,83 @@
-"""Profiling utilities for performance analysis."""
+"""Development profiler utilities."""
 
 import cProfile
-import io
-import logging
 import pstats
-from collections.abc import Callable, Generator
-from contextlib import contextmanager
-from functools import wraps
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, TextIO, TypeVar
+from typing import ParamSpec, TypeVar
 
-logger = logging.getLogger(__name__)
+P = ParamSpec("P")
+R = TypeVar("R")
 
-T = TypeVar("T")
 
+class Profiler:
+    """Code profiler implementation."""
 
-def profile_to_file(
-    output_file: str | Path, sort_by: str = "cumulative"
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    """Decorator to profile a function and save results to a file.
+    def __init__(self, output_dir: str | Path = "profiles") -> None:
+        """Initialize profiler.
 
-    Args:
-        output_file: Path to save profiling results
-        sort_by: Stats sorting key (default: cumulative)
+        Args:
+            output_dir: Directory to store profile results
+        """
+        self.output_dir = Path(output_dir)
+        self.output_dir.mkdir(exist_ok=True)
+        self._profiler = cProfile.Profile()
+        self._stats: pstats.Stats | None = None
 
-    Returns:
-        Decorated function
-    """
+    def start(self) -> None:
+        """Start profiling."""
+        self._profiler.enable()
 
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
-            profiler = cProfile.Profile()
+    def stop(self) -> None:
+        """Stop profiling."""
+        self._profiler.disable()
+        self._stats = pstats.Stats(self._profiler)
+
+    def save(self, name: str) -> None:
+        """Save profile results.
+
+        Args:
+            name: Profile name
+
+        Raises:
+            RuntimeError: If profiler not stopped
+        """
+        if self._stats is None:
+            raise RuntimeError("Profiler not stopped")
+
+        # Converter o caminho de saída para Path
+        output_file = self.output_dir / f"{name}.prof"
+        self._stats.dump_stats(str(output_file))
+
+    def print_stats(self, limit: int = 20) -> None:
+        """Print profile statistics.
+
+        Args:
+            limit: Maximum number of entries to print
+        """
+        if self._stats is None:
+            raise RuntimeError("Profiler not stopped")
+
+        self._stats.sort_stats("cumulative")
+        self._stats.print_stats(limit)
+
+    def profile(self, func: Callable[P, R]) -> Callable[P, R]:
+        """Profile function decorator.
+
+        Args:
+            func: Function to profile
+
+        Returns:
+            Decorated function
+        """
+
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            self.start()
             try:
-                result = profiler.runcall(func, *args, **kwargs)
-                stats = pstats.Stats(profiler)
-                stats.sort_stats(sort_by)
-
-                # Ensure directory exists
-                if isinstance(output_file, str | Path):
-                    path = Path(output_file)
-                else:
-                    path = output_file
-                path.parent.mkdir(parents=True, exist_ok=True)
-
-                # Save stats
-                stats.dump_stats(str(path))
+                result = func(*args, **kwargs)
                 return result
             finally:
-                profiler.disable()
+                self.stop()
+                self.print_stats()
 
         return wrapper
-
-    return decorator
-
-
-@contextmanager
-def profile_section(
-    output: str | Path | TextIO, sort_by: str = "cumulative"
-) -> Generator[None, None, None]:
-    """Context manager for profiling a code section.
-
-    Args:
-        output: Where to write profiling results (file path or file-like object)
-        sort_by: Stats sorting key (default: cumulative)
-    """
-    profiler = cProfile.Profile()
-    profiler.enable()
-    try:
-        yield
-    finally:
-        profiler.disable()
-        stats = pstats.Stats(profiler)
-        stats.sort_stats(sort_by)
-
-        if isinstance(output, str | Path):
-            # Ensure directory exists for file path
-            path = Path(output)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            stats.dump_stats(str(path))
-        else:
-            # Write to file-like object
-            stream = io.StringIO()
-            stats.print_stats()
-            output.write(stream.getvalue())

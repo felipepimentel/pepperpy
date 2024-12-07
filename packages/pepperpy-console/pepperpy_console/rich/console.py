@@ -1,57 +1,25 @@
 """Rich console implementation."""
 
-from dataclasses import dataclass, field
-from typing import Any, Literal, TextIO
+from typing import Any
 
-from rich.console import Console as RichConsole
+from rich.console import Console
+from rich.style import Style
 
-from ..base.console import BaseConsole
-
-# Define valid color system types
-ColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
+from ..base.console import BaseConsole, ConsoleConfig
 
 
-@dataclass
-class ConsoleConfig:
-    """Console configuration."""
-
-    style: str = "default"
-    width: int | None = None
-    height: int | None = None
-    color_system: ColorSystem = "auto"
-    stderr: bool = False
-    file: TextIO | None = None
-    quiet: bool = False
-    markup: bool = True
-    emoji: bool = True
-    highlight: bool = True
-    record: bool = False
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-class Console(BaseConsole):
+class RichConsole(BaseConsole):
     """Rich console implementation."""
 
     def __init__(self, config: ConsoleConfig | None = None) -> None:
-        """Initialize console."""
+        """Initialize rich console."""
         super().__init__()
         self.config = config or ConsoleConfig()
-        self._console = RichConsole(
-            stderr=self.config.stderr,
-            file=self.config.file,
-            color_system=self.config.color_system,
-            record=self.config.record,
-            markup=self.config.markup,
-            emoji=self.config.emoji,
-            highlight=self.config.highlight,
-            width=self.config.width,
-            height=self.config.height,
-        )
+        self._console = Console(**self.config.to_kwargs())  # type: ignore
 
     def print(self, *args: Any, **kwargs: Any) -> None:
         """Print to console."""
-        style = kwargs.pop("style", self.config.style)
-        self._console.print(*args, style=style, **kwargs)
+        self._console.print(*args, **kwargs)
 
     def clear(self) -> None:
         """Clear console."""
@@ -59,8 +27,26 @@ class Console(BaseConsole):
 
     def get_width(self) -> int:
         """Get console width."""
-        return self._console.width or 80
+        console_width: int = getattr(self._console, "width", 80)
+        return console_width
 
     def get_height(self) -> int:
         """Get console height."""
-        return self._console.height or 24
+        console_height: int = getattr(self._console, "height", 24)
+        return console_height
+
+    def info(self, message: str) -> None:
+        """Print info message."""
+        self.print(f"ℹ️ {message}", style=Style(color="blue"))
+
+    def success(self, message: str) -> None:
+        """Print success message."""
+        self.print(f"✅ {message}", style=Style(color="green"))
+
+    def warning(self, message: str) -> None:
+        """Print warning message."""
+        self.print(f"⚠️ {message}", style=Style(color="yellow"))
+
+    def error(self, message: str) -> None:
+        """Print error message."""
+        self.print(f"❌ {message}", style=Style(color="red"))

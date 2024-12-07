@@ -2,15 +2,72 @@
     "folders": [
         {
             "name": "PepperPy (root)",
-            "path": "."
+            "path": ".",
+            "settings": {
+                "python.defaultInterpreterPath": null
+            }
+        },
+        {
+            "name": "PepperPy (tools)",
+            "path": "tools",
+            "settings": {
+                "ruff.configPath": "../ruff.toml",
+                "python.defaultInterpreterPath": "${workspaceFolder}/tools/.venv/bin/python"
+            }
         },
         {
             "name": "PepperPy Files",
-            "path": "packages/pepperpy-files"
+            "path": "packages/pepperpy-files",
+            "settings": {
+                "ruff.configPath": "../../ruff.toml",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-files/.venv/bin/python",
+                "python.testing.pytestArgs": ["tests"]
+            }
         },
         {
             "name": "PepperPy Console",
-            "path": "packages/pepperpy-console"
+            "path": "packages/pepperpy-console",
+            "settings": {
+                "ruff.configPath": "../../ruff.toml",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-console/.venv/bin/python",
+                "python.testing.pytestArgs": ["tests"]
+            }
+        },
+        {
+            "name": "PepperPy Core",
+            "path": "packages/pepperpy-core",
+            "settings": {
+                "ruff.configPath": "../../ruff.toml",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-core/.venv/bin/python",
+                "python.testing.pytestArgs": ["tests"]
+            }
+        },
+        {
+            "name": "PepperPy DB",
+            "path": "packages/pepperpy-db",
+            "settings": {
+                "ruff.configPath": "../../ruff.toml",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-db/.venv/bin/python",
+                "python.testing.pytestArgs": ["tests"]
+            }
+        },
+        {
+            "name": "PepperPy Codebase",
+            "path": "packages/pepperpy-codebase",
+            "settings": {
+                "ruff.configPath": "../../ruff.toml",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-codebase/.venv/bin/python",
+                "python.testing.pytestArgs": ["tests"]
+            }
+        },
+        {
+            "name": "PepperPy AI",
+            "path": "packages/pepperpy-ai",
+            "settings": {
+                "ruff.configPath": "../../ruff.toml",
+                "python.defaultInterpreterPath": "${workspaceFolder}/packages/pepperpy-ai/.venv/bin/python",
+                "python.testing.pytestArgs": ["tests"]
+            }
         }
     ],
     "settings": {
@@ -18,7 +75,35 @@
             "**/__pycache__": true,
             "**/.pytest_cache": true,
             "**/*.pyc": true,
-            "**/.ruff_cache": true
-        }
+            "**/.ruff_cache": true,
+            "**/demo_output": true,
+            "**/.DS_Store": true,
+            ".coverage": true,
+            "coverage.xml": true,
+            ".tox": true,
+            "*.egg-info": true,
+            "build": true,
+            "dist": true,
+            "**/.mypy_cache": true,
+            "**/.nox": true
+        },
+        "[python]": {
+            "editor.formatOnSave": true,
+            "editor.defaultFormatter": "charliermarsh.ruff",
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": "explicit",
+                "source.fixAll": "explicit"
+            }
+        },
+        "ruff.enable": true,
+        "ruff.nativeServer": "on",
+        "python.languageServer": "Pylance",
+        "python.analysis.typeCheckingMode": "strict",
+        "python.analysis.autoSearchPaths": true,
+        "python.analysis.diagnosticMode": "workspace",
+        "python.analysis.extraPaths": [
+            "pepperpy_console"
+        ],
+        "python.testing.pytestEnabled": true
     }
-} 
+}

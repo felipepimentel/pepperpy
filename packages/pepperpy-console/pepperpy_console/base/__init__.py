@@ -1,6 +1,10 @@
-"""Base console functionality"""
+"""Base package exports."""
 
-from .app import ConsoleApp
+from .app import BaseApp
 from .console import Console, ConsoleConfig
 
-__all__ = ["Console", "ConsoleApp", "ConsoleConfig"]
+__all__ = [
+    "BaseApp",
+    "Console",
+    "ConsoleConfig",
+]

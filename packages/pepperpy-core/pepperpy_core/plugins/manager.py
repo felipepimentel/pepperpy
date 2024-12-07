@@ -1,86 +1,48 @@
-"""Plugin manager implementation."""
+"""Plugin manager module."""
 
-from dataclasses import dataclass, field
-from typing import Any
-
-from ..module import BaseModule
+from ..base import BaseModule
 from .config import PluginConfig
 
 
-@dataclass
-class PluginInfo:
-    """Plugin information."""
-
-    name: str
-    version: str
-    enabled: bool = True
-    dependencies: list[str] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
 class PluginManager(BaseModule[PluginConfig]):
-    """Plugin manager implementation."""
+    """Plugin manager."""
 
-    def __init__(self) -> None:
-        """Initialize plugin manager."""
-        config = PluginConfig(name="plugin-manager")
+    def __init__(self, config: PluginConfig) -> None:
+        """Initialize plugin manager.
+
+        Args:
+            config: Plugin configuration
+        """
         super().__init__(config)
-        self._plugins: dict[str, PluginInfo] = {}
 
     async def _setup(self) -> None:
         """Setup plugin manager."""
-        self._plugins.clear()
+        # Initialize with required paths
+        self.config = PluginConfig(
+            name=self.config.name,
+            paths=self.config.paths,
+            enabled=self.config.enabled,
+            auto_load=self.config.auto_load,
+            metadata=self.config.metadata,
+        )
 
     async def _teardown(self) -> None:
         """Teardown plugin manager."""
-        self._plugins.clear()
+        pass
 
-    async def register_plugin(self, plugin: PluginInfo) -> None:
-        """Register plugin.
+    async def load_plugins(self) -> None:
+        """Load plugins."""
+        if not self.config.enabled:
+            return
 
-        Args:
-            plugin: Plugin information
-        """
-        if not self.is_initialized:
-            await self.initialize()
-        self._plugins[plugin.name] = plugin
+        if not self.config.auto_load:
+            return
 
-    async def unregister_plugin(self, name: str) -> None:
-        """Unregister plugin.
+        # Load plugins from configured paths
+        for path in self.config.paths:
+            await self._load_plugin(path)
 
-        Args:
-            name: Plugin name
-        """
-        if not self.is_initialized:
-            await self.initialize()
-        self._plugins.pop(name, None)
-
-    async def get_plugin(self, name: str) -> PluginInfo | None:
-        """Get plugin information.
-
-        Args:
-            name: Plugin name
-
-        Returns:
-            Plugin information if found, None otherwise
-        """
-        if not self.is_initialized:
-            await self.initialize()
-        return self._plugins.get(name)
-
-    async def get_stats(self) -> dict[str, Any]:
-        """Get plugin manager statistics.
-
-        Returns:
-            Plugin manager statistics
-        """
-        if not self.is_initialized:
-            await self.initialize()
-        return {
-            "name": self.config.name,
-            "enabled": self.config.enabled,
-            "auto_load": self.config.auto_load,
-            "plugins_count": len(self._plugins),
-            "enabled_plugins": sum(1 for p in self._plugins.values() if p.enabled),
-            "plugin_names": list(self._plugins.keys()),
-        }
+    async def _load_plugin(self, path: str) -> None:
+        """Load plugin from path."""
+        # Plugin loading implementation
+        pass

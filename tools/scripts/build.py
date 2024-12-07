@@ -50,6 +50,6 @@ def build_all() -> list[str]:
 if __name__ == "__main__":
     failed = build_all()
     if failed:
-        print(f"\nFailed packages: {', '.join(failed)}")
+        print(f"\nFailed packages: {", ".join(failed)}")
         exit(1)
     print("\nAll packages built successfully!")
