@@ -296,13 +296,14 @@ files = [
 [[package]]
 name = "pepperpy-console"
 version = "0.1.0"
-description = "Console utilities for PepperPy Framework"
+description = "PepperPy console package"
 optional = false
 python-versions = "^3.12"
 files = []
 develop = true
 
 [package.dependencies]
+pepperpy-core = {path = "../pepperpy-core", develop = true}
 rich = "^13.0.0"
 
 [package.source]

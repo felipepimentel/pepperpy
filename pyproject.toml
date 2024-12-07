@@ -1,10 +1,16 @@
 [tool.poetry]
-name = "pepperpy-tools"
-authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+name = "pepperpy"
 version = "0.1.0"
-description = "Development tools for PepperPy"
-readme = "README.md"
-package-mode = false
+description = "PepperPy Framework"
+authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+packages = [
+    { include = "packages/pepperpy-core" },
+    { include = "packages/pepperpy-console" },
+    { include = "packages/pepperpy-db" },
+    { include = "packages/pepperpy-codebase" },
+    { include = "packages/pepperpy-files" },
+    { include = "packages/pepperpy-ai" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"

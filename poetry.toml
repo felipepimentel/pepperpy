@@ -1,7 +1,7 @@
 [virtualenvs]
 in-project = false
-create = false
-prefer-active-python = true
+path = ".venv"
+create = true
 
 [installer]
 parallel = true

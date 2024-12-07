@@ -31,14 +31,13 @@ clean:
 
 # Setup target
 .PHONY: setup
-setup: clean
-	$(call log,"Installing dependencies...")
-	@$(POETRY) lock --no-update
-	@$(POETRY) install --no-root
-	$(call log,"Setting up packages...")
-	@for pkg in $(PACKAGES); do \
-		$(MAKE) setup-$$pkg; \
-	done
+setup:
+	@echo ">>> Setting up development environment..."
+	@bash scripts/install.sh
+
+setup-%:
+	@echo ">>> Setting up $*..."
+	@cd packages/$* && poetry install
 
 # Update locks target
 .PHONY: update-locks
